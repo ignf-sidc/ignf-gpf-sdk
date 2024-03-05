@@ -32,6 +32,24 @@ class StoreEntityResolverTestCase(GpfTestCase):
             o_store_entity_resolver.resolve("upload.infos._id [IFO(name=titi)]")
         self.assertEqual(o_arc_2.exception.message, "Erreur du résolveur 'store_entity' avec la chaîne 'upload.infos._id [IFO(name=titi)]'.")
 
+        # pas de possibilité de récupérer un tag pour une entité endpoint
+        l_endpoints = [Endpoint({"_id": "endpoint", "name": "Name", "type": "ARCHIVE"})]
+        o_store_entity_resolver = StoreEntityResolver("store_entity")
+        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
+        with patch.object(Endpoint, "api_list", return_value=l_endpoints) as o_mock_api_list:
+            s_to_solve = "endpoint.tags.k_tag [INFOS(type=ARCHIVE)]"
+            with self.assertRaises(ResolverError) as o_arc:
+                o_store_entity_resolver.resolve("endpoint.tags.k_tag [INFOS(type=ARCHIVE)]")
+            # Vérification erreur
+            self.assertEqual(o_arc.exception.message, f"Erreur du résolveur 'store_entity' avec la chaîne '{s_to_solve}'.")
+            # Vérifications o_mock_api_list
+            o_mock_api_list.assert_called_once_with(
+                infos_filter={"type": "ARCHIVE"},
+                tags_filter={},
+                page=1,
+                datastore=None,
+            )
+
     def test_resolve_no_result(self) -> None:
         """Vérifie le bon fonctionnement de la fonction resolve si aucun résultat n'est trouvé."""
 
@@ -82,173 +100,112 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 # Vérification maj entité via appel de api_update
                 o_mock_api_update.assert_called_once_with()
 
+    def run_resolve(self, d_param) -> None:
+        o_store_entity_resolver = StoreEntityResolver("store_entity")
+        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
+        with patch.object(d_param["classe"], "api_list", return_value=d_param["return_api_list"]) as o_mock_api_list:
+            with patch.object(d_param["classe"], "api_update", return_value=None) as o_mock_api_update:
+                s_result = o_store_entity_resolver.resolve(**d_param["expression"])
+                # Vérifications o_mock_api_list
+                o_mock_api_list.assert_called_once_with(**d_param["data_api_list"])
+                # Vérification id récupérée
+                self.assertEqual(s_result, d_param["expected_result"])
+                # Vérification maj entité via appel de api_update
+                o_mock_api_update.assert_called_once_with()
+
     def test_resolve_upload(self) -> None:
         """Vérifie le bon fonctionnement de la fonction resolve pour un upload."""
-
-        o_store_entity_resolver = StoreEntityResolver("store_entity")
         l_uploads = [
             Upload({"_id": "upload_1", "name": "Name 1", "tags": {"k_tag": "v_tag"}}),
             Upload({"_id": "upload_2", "name": "Name 2", "tags": {"k_tag": "v_tag"}}),
         ]
 
-        # TEST 1 : attributs, on tente de récupérer différents attributs du 1er élément
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(StoreEntity, "api_list", return_value=l_uploads) as o_mock_api_list:
-            with patch.object(StoreEntity, "api_update", return_value=None) as o_mock_api_update:
-                s_result = o_store_entity_resolver.resolve("upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]")
-                # Vérifications o_mock_api_list
-                o_mock_api_list.assert_called_once_with(
-                    infos_filter={"name": "start_%"},
-                    tags_filter={"k_tag": "v_tag"},
-                    page=1,
-                    datastore=None,
-                )
-                # Vérification id récupérée
-                self.assertEqual(s_result, "upload_1")
-                # Vérification maj entité via appel de api_update
-                o_mock_api_update.assert_called_once_with()
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(StoreEntity, "api_list", return_value=l_uploads) as o_mock_api_list:
-            with patch.object(StoreEntity, "api_update", return_value=None) as o_mock_api_update:
-                s_result = o_store_entity_resolver.resolve("upload.infos.name [INFOS(name=start_%), TAGS(k_tag=v_tag)]")
-                # Vérifications o_mock_api_list
-                o_mock_api_list.assert_called_once_with(
-                    infos_filter={"name": "start_%"},
-                    tags_filter={"k_tag": "v_tag"},
-                    page=1,
-                    datastore=None,
-                )
-                # Vérification name récupérée
-                self.assertEqual(s_result, "Name 1")
-                # Vérification maj entité via appel de api_update
-                o_mock_api_update.assert_called_once_with()
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(StoreEntity, "api_list", return_value=l_uploads) as o_mock_api_list:
-            with patch.object(StoreEntity, "api_update", return_value=None) as o_mock_api_update:
-                s_result = o_store_entity_resolver.resolve("upload.tags.k_tag [INFOS(name=start_%), TAGS(k_tag=v_tag)]")
-                # Vérifications o_mock_api_list
-                o_mock_api_list.assert_called_once_with(
-                    infos_filter={"name": "start_%"},
-                    tags_filter={"k_tag": "v_tag"},
-                    page=1,
-                    datastore=None,
-                )
-                # Vérification name récupéré
-                self.assertEqual(s_result, "v_tag")
-                # Vérification maj entité via appel de api_update
-                o_mock_api_update.assert_called_once_with()
-
-        # TEST 2 : avec on sens datastore, on vérifie qu'un datastore passé est bien transmis
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(StoreEntity, "api_list", return_value=l_uploads) as o_mock_api_list:
-            with patch.object(StoreEntity, "api_update", return_value=None) as o_mock_api_update:
-                s_result = o_store_entity_resolver.resolve(
-                    "upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]",
-                    datastore="datastore_1",  # On précise un datastore
-                )
-                # Vérifications o_mock_api_list
-                o_mock_api_list.assert_called_once_with(
-                    infos_filter={"name": "start_%"},
-                    tags_filter={"k_tag": "v_tag"},
-                    page=1,
-                    datastore="datastore_1",  # Il est bien transmis
-                )
-                # Vérification id récupérée
-                self.assertEqual(s_result, "upload_1")
-                # Vérification maj entité via appel de api_update
-                o_mock_api_update.assert_called_once_with()
+        l_param = [
+            # TEST 1 : attributs, on tente de récupérer différents attributs du 1er élément
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
+                "expected_result": "upload_1",
+            },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "upload.infos.name [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
+                "expected_result": "Name 1",
+            },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "upload.tags.k_tag [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
+                "expected_result": "v_tag",
+            },
+            # TEST 2 : avec on sens datastore, on vérifie qu'un datastore passé est bien transmis
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": "datastore_1"},
+                "expression": {"string_to_solve": "upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
+                "expected_result": "upload_1",
+            },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": "datastore_1"},
+                "expression": {"string_to_solve": "upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
+                "expected_result": "upload_1",
+            },
+        ]
+        for d_param in l_param:
+            self.run_resolve(d_param)
 
     def test_resolve_endpoint(self) -> None:
         """Vérifie le bon fonctionnement de la fonction resolve pour un endpoint."""
-
-        o_store_entity_resolver = StoreEntityResolver("store_entity")
-        l_uploads = [
-            Endpoint({"_id": "endpoint", "name": "Name", "type": "ARCHIVE"}),
+        l_endpoints = [Endpoint({"_id": "endpoint", "name": "Name", "type": "ARCHIVE"})]
+        l_param = [
+            # TEST 1 : attributs, on tente de récupérer différents attributs du 1er élément
+            {
+                "classe": Endpoint,
+                "return_api_list": l_endpoints,
+                "data_api_list": {"infos_filter": {"type": "ARCHIVE"}, "tags_filter": {}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "endpoint.infos._id [INFOS(type=ARCHIVE)]"},
+                "expected_result": "endpoint",
+            },
+            {
+                "classe": Endpoint,
+                "return_api_list": l_endpoints,
+                "data_api_list": {"infos_filter": {"type": "ARCHIVE"}, "tags_filter": {}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "endpoint.infos.name [INFOS(type=ARCHIVE)]"},
+                "expected_result": "Name",
+            },
         ]
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(Endpoint, "api_list", return_value=l_uploads) as o_mock_api_list:
-            s_result = o_store_entity_resolver.resolve("endpoint.infos._id [INFOS(type=ARCHIVE)]")
-            # Vérifications o_mock_api_list
-            o_mock_api_list.assert_called_once_with(
-                infos_filter={"type": "ARCHIVE"},
-                tags_filter={},
-                page=1,
-                datastore=None,
-            )
-            # Vérification id récupérée
-            self.assertEqual(s_result, "endpoint")
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(Endpoint, "api_list", return_value=l_uploads) as o_mock_api_list:
-            s_result = o_store_entity_resolver.resolve("endpoint.infos.name [INFOS(type=ARCHIVE)]")
-            # Vérifications o_mock_api_list
-            o_mock_api_list.assert_called_once_with(
-                infos_filter={"type": "ARCHIVE"},
-                tags_filter={},
-                page=1,
-                datastore=None,
-            )
-            # Vérification name récupérée
-            self.assertEqual(s_result, "Name")
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(Endpoint, "api_list", return_value=l_uploads) as o_mock_api_list:
-            s_to_solve = "endpoint.tags.k_tag [INFOS(type=ARCHIVE)]"
-            with self.assertRaises(ResolverError) as o_arc:
-                o_store_entity_resolver.resolve("endpoint.tags.k_tag [INFOS(type=ARCHIVE)]")
-            # Vérification erreur
-            self.assertEqual(o_arc.exception.message, f"Erreur du résolveur 'store_entity' avec la chaîne '{s_to_solve}'.")
-            # Vérifications o_mock_api_list
-            o_mock_api_list.assert_called_once_with(
-                infos_filter={"type": "ARCHIVE"},
-                tags_filter={},
-                page=1,
-                datastore=None,
-            )
+        for d_param in l_param:
+            self.run_resolve(d_param)
 
     def test_resolve_datastore(self) -> None:
         """Vérifie le bon fonctionnement de la fonction resolve pour un store.
         On peut utiliser `name` pour filter sur le `name` et sur le `technical_name`.
         """
-
-        o_store_entity_resolver = StoreEntityResolver("store_entity")
-        l_entities = [
-            Datastore({"_id": "1", "name": "Datastore 1", "technical_name": "ds1"}),
+        l_entities = [Datastore({"_id": "1", "name": "Datastore 1", "technical_name": "ds1"})]
+        l_param = [
+            # TEST 1 : attributs, on tente de récupérer différents attributs du 1er élément
+            {
+                "classe": Datastore,
+                "return_api_list": l_entities,
+                "data_api_list": {"infos_filter": {"name": "ds1"}, "tags_filter": {}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "datastore.infos._id [INFOS(name=ds1)]"},
+                "expected_result": "1",
+            },
+            {
+                "classe": Datastore,
+                "return_api_list": l_entities,
+                "data_api_list": {"infos_filter": {"name": "ds1"}, "tags_filter": {}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "datastore.infos.technical_name [INFOS(name=ds1)]"},
+                "expected_result": "ds1",
+            },
         ]
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(Datastore, "api_list", return_value=l_entities) as o_mock_api_list:
-            with patch.object(Datastore, "api_update", return_value=None) as o_mock_api_update:
-                s_result = o_store_entity_resolver.resolve("datastore.infos._id [INFOS(name=ds1)]")
-                # Vérifications o_mock_api_list
-                o_mock_api_list.assert_called_once_with(
-                    infos_filter={"name": "ds1"},
-                    tags_filter={},
-                    page=1,
-                    datastore=None,
-                )
-                # Vérification id récupérée
-                self.assertEqual(s_result, "1")
-                # Vérification maj entité via appel de api_update
-                o_mock_api_update.assert_called_once_with()
-
-        # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
-        with patch.object(Datastore, "api_list", return_value=l_entities) as o_mock_api_list:
-            with patch.object(Datastore, "api_update", return_value=None) as o_mock_api_update:
-                s_result = o_store_entity_resolver.resolve("datastore.infos._id [INFOS(name=Datastore 1)]")
-                # Vérifications o_mock_api_list
-                o_mock_api_list.assert_called_once_with(
-                    infos_filter={"name": "Datastore 1"},
-                    tags_filter={},
-                    page=1,
-                    datastore=None,
-                )
-                # Vérification id récupérée
-                self.assertEqual(s_result, "1")
-                # Vérification maj entité via appel de api_update
-                o_mock_api_update.assert_called_once_with()
+        for d_param in l_param:
+            self.run_resolve(d_param)
