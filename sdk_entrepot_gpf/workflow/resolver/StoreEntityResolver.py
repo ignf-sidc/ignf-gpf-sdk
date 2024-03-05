@@ -1,3 +1,4 @@
+import json
 import re
 from typing import Any, Dict, Optional, Pattern, Type
 
@@ -86,20 +87,45 @@ class StoreEntityResolver(AbstractResolver):
         if len(l_entities) == 0:
             raise NoEntityFoundError(self.name, string_to_solve)
         # Sinon on regarde ce qu'on doit envoyer
-        o_entity = l_entities[0]
+
+        if d_groups["number_dict"] == "ONE":
+            # json de la première entité trouvé
+            l_entities[0].api_update()
+            return l_entities[0].to_json()
+        if d_groups["number_dict"] == "ALL":
+            # json de toutes les entités trouvées
+            l_res = []
+            for o_entity in l_entities:
+                o_entity.api_update()
+                l_res.append(o_entity.get_store_properties())
+            return json.dumps(l_res)
+        try:
+            if not d_groups["number_selected"] or d_groups["number_selected"] == "ONE":
+                # une seule entité à traité affichage d'une info ou d'un tag
+                return self._get_info_or_tag(l_entities[0], d_groups)
+            if d_groups["number_selected"] == "ALL":
+                # affichage d'info ou d'tag pour tout les entités trouvées
+                l_res = [self._get_info_or_tag(o_entity, d_groups) for o_entity in l_entities]
+                if d_groups["selected_field_type"] == "tags":
+                    l_res = list(set(l_res))
+                return json.dumps(l_res)
+        except KeyError as e:
+            raise ResolverError(self.name, string_to_solve) from e
+
+        # print(d_groups)
+        raise ResolverError(self.name, string_to_solve)
+
+    def _get_info_or_tag(self, o_entity: StoreEntity, d_groups: Dict[str, Any]) -> str:
         o_entity.api_update()
         s_selected_field = d_groups["selected_field"]
         # On doit envoyer une info ?
         if d_groups["selected_field_type"] == "infos":
             # On doit renvoyer une info
-            try:
-                return str(self.get(o_entity.get_store_properties(), s_selected_field))
-            except KeyError as e:
-                raise ResolverError(self.name, string_to_solve) from e
+            return str(self.get(o_entity.get_store_properties(), s_selected_field))
         # On doit renvoyer un tag, possible que si ça implémente TagInterface
         if isinstance(o_entity, TagInterface):
             return o_entity.get_tag(s_selected_field)
-        raise ResolverError(self.name, string_to_solve)
+        raise KeyError()
 
     @property
     def regex(self) -> Pattern[str]:

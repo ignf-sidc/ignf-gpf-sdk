@@ -1,3 +1,4 @@
+import json
 from typing import List
 from unittest.mock import patch
 
@@ -111,7 +112,7 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 # Vérification id récupérée
                 self.assertEqual(s_result, d_param["expected_result"])
                 # Vérification maj entité via appel de api_update
-                o_mock_api_update.assert_called_once_with()
+                self.assertEqual(o_mock_api_update.call_count, d_param.get("nb_api_update", 1))
 
     def test_resolve_upload(self) -> None:
         """Vérifie le bon fonctionnement de la fonction resolve pour un upload."""
@@ -151,12 +152,52 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 "expression": {"string_to_solve": "upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
                 "expected_result": "upload_1",
             },
+            # TEST 3 : utilisation de ONE
             {
                 "classe": Upload,
                 "return_api_list": l_uploads,
                 "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": "datastore_1"},
-                "expression": {"string_to_solve": "upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
+                "expression": {"string_to_solve": "upload.ONE.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
                 "expected_result": "upload_1",
+            },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "upload.ONE.infos.name [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
+                "expected_result": "Name 1",
+            },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "upload.ONE [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
+                "expected_result": l_uploads[0].to_json(),
+            },
+            # TEST 4 : utilisation de ALL
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": "datastore_1"},
+                "expression": {"string_to_solve": "upload.ALL.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
+                "expected_result": json.dumps([o_upload["_id"] for o_upload in l_uploads]),
+                "nb_api_update": len(l_uploads),
+            },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": "datastore_1"},
+                "expression": {"string_to_solve": "upload.ALL.infos.name [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
+                "expected_result": json.dumps([o_upload["name"] for o_upload in l_uploads]),
+                "nb_api_update": len(l_uploads),
+            },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": "datastore_1"},
+                "expression": {"string_to_solve": "upload.ALL [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
+                "expected_result": json.dumps([o_upload.get_store_properties() for o_upload in l_uploads]),
+                "nb_api_update": len(l_uploads),
             },
         ]
         for d_param in l_param:
