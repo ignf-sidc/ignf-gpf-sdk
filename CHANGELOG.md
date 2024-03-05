@@ -4,8 +4,7 @@
 
 ### [Added]
 
-* ajout classe Permission : gère les permissions sur les offres #93
-* ajout classe PermissionAction : gère les permissions sur les offres depuis le workflow #94
+* StoreEntityResolver: possibilité de récupérer une liste d'entités ou d’informations sur une entité #85
 
 ### [Changed]
 

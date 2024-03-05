@@ -119,6 +119,7 @@ class StoreEntityResolverTestCase(GpfTestCase):
         l_uploads = [
             Upload({"_id": "upload_1", "name": "Name 1", "tags": {"k_tag": "v_tag"}}),
             Upload({"_id": "upload_2", "name": "Name 2", "tags": {"k_tag": "v_tag"}}),
+            Upload({"_id": "upload_2", "name": "Name 2", "tags": {"k_tag": "autre_tag"}}),
         ]
 
         l_param = [
@@ -128,21 +129,21 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 "return_api_list": l_uploads,
                 "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
                 "expression": {"string_to_solve": "upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
-                "expected_result": "upload_1",
+                "expected_result": l_uploads[0]["_id"],
             },
             {
                 "classe": Upload,
                 "return_api_list": l_uploads,
                 "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
                 "expression": {"string_to_solve": "upload.infos.name [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
-                "expected_result": "Name 1",
+                "expected_result": l_uploads[0]["name"],
             },
             {
                 "classe": Upload,
                 "return_api_list": l_uploads,
                 "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
                 "expression": {"string_to_solve": "upload.tags.k_tag [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
-                "expected_result": "v_tag",
+                "expected_result": l_uploads[0]["tags"]["k_tag"],
             },
             # TEST 2 : avec on sens datastore, on vérifie qu'un datastore passé est bien transmis
             {
@@ -150,7 +151,7 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 "return_api_list": l_uploads,
                 "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": "datastore_1"},
                 "expression": {"string_to_solve": "upload.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
-                "expected_result": "upload_1",
+                "expected_result": l_uploads[0]["_id"],
             },
             # TEST 3 : utilisation de ONE
             {
@@ -158,14 +159,21 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 "return_api_list": l_uploads,
                 "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": "datastore_1"},
                 "expression": {"string_to_solve": "upload.ONE.infos._id [INFOS(name=start_%), TAGS(k_tag=v_tag)]", "datastore": "datastore_1"},
-                "expected_result": "upload_1",
+                "expected_result": l_uploads[0]["_id"],
             },
             {
                 "classe": Upload,
                 "return_api_list": l_uploads,
                 "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
                 "expression": {"string_to_solve": "upload.ONE.infos.name [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
-                "expected_result": "Name 1",
+                "expected_result": l_uploads[0]["name"],
+            },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {"k_tag": "v_tag"}, "page": 1, "datastore": None},
+                "expression": {"string_to_solve": "upload.ONE.tags.k_tag [INFOS(name=start_%), TAGS(k_tag=v_tag)]"},
+                "expected_result": l_uploads[0]["tags"]["k_tag"],
             },
             {
                 "classe": Upload,
@@ -199,6 +207,14 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 "expected_result": json.dumps([o_upload.get_store_properties() for o_upload in l_uploads]),
                 "nb_api_update": len(l_uploads),
             },
+            {
+                "classe": Upload,
+                "return_api_list": l_uploads,
+                "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {}, "page": 1, "datastore": "datastore_1"},
+                "expression": {"string_to_solve": "upload.ALL.tags.k_tag [INFOS(name=start_%)]", "datastore": "datastore_1"},
+                "expected_result": json.dumps(list(set([o_upload["tags"]["k_tag"] for o_upload in l_uploads]))),
+                "nb_api_update": len(l_uploads),
+            },
         ]
         for d_param in l_param:
             self.run_resolve(d_param)
@@ -213,14 +229,14 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 "return_api_list": l_endpoints,
                 "data_api_list": {"infos_filter": {"type": "ARCHIVE"}, "tags_filter": {}, "page": 1, "datastore": None},
                 "expression": {"string_to_solve": "endpoint.infos._id [INFOS(type=ARCHIVE)]"},
-                "expected_result": "endpoint",
+                "expected_result": l_endpoints[0]["_id"],
             },
             {
                 "classe": Endpoint,
                 "return_api_list": l_endpoints,
                 "data_api_list": {"infos_filter": {"type": "ARCHIVE"}, "tags_filter": {}, "page": 1, "datastore": None},
                 "expression": {"string_to_solve": "endpoint.infos.name [INFOS(type=ARCHIVE)]"},
-                "expected_result": "Name",
+                "expected_result": l_endpoints[0]["name"],
             },
         ]
         for d_param in l_param:
@@ -238,14 +254,14 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 "return_api_list": l_entities,
                 "data_api_list": {"infos_filter": {"name": "ds1"}, "tags_filter": {}, "page": 1, "datastore": None},
                 "expression": {"string_to_solve": "datastore.infos._id [INFOS(name=ds1)]"},
-                "expected_result": "1",
+                "expected_result": l_entities[0]["_id"],
             },
             {
                 "classe": Datastore,
                 "return_api_list": l_entities,
                 "data_api_list": {"infos_filter": {"name": "ds1"}, "tags_filter": {}, "page": 1, "datastore": None},
                 "expression": {"string_to_solve": "datastore.infos.technical_name [INFOS(name=ds1)]"},
-                "expected_result": "ds1",
+                "expected_result": l_entities[0]["technical_name"],
             },
         ]
         for d_param in l_param:
