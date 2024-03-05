@@ -94,21 +94,21 @@ class StoreEntityResolver(AbstractResolver):
             return l_entities[0].to_json()
         if d_groups["number_dict"] == "ALL":
             # json de toutes les entités trouvées
-            l_res = []
+            l_res1 = []
             for o_entity in l_entities:
                 o_entity.api_update()
-                l_res.append(o_entity.get_store_properties())
-            return json.dumps(l_res)
+                l_res1.append(o_entity.get_store_properties())
+            return json.dumps(l_res1)
         try:
             if not d_groups["number_selected"] or d_groups["number_selected"] == "ONE":
                 # une seule entité à traité affichage d'une info ou d'un tag
                 return self._get_info_or_tag(l_entities[0], d_groups)
             if d_groups["number_selected"] == "ALL":
                 # affichage d'info ou d'tag pour tout les entités trouvées
-                l_res = [self._get_info_or_tag(o_entity, d_groups) for o_entity in l_entities]
+                l_res2 = [self._get_info_or_tag(o_entity, d_groups) for o_entity in l_entities]
                 if d_groups["selected_field_type"] == "tags":
-                    l_res = list(set(l_res))
-                return json.dumps(l_res)
+                    l_res2 = list(set(l_res2))
+                return json.dumps(l_res2)
         except KeyError as e:
             raise ResolverError(self.name, string_to_solve) from e
 

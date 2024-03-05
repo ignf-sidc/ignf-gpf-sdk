@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import Any, Dict, List
 from unittest.mock import patch
 
 from sdk_entrepot_gpf.store.Endpoint import Endpoint
@@ -101,7 +101,12 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 # Vérification maj entité via appel de api_update
                 o_mock_api_update.assert_called_once_with()
 
-    def run_resolve(self, d_param) -> None:
+    def run_resolve(self, d_param: Dict[str, Any]) -> None:
+        """lancement des tests pour resolve() sans erreur
+
+        Args:
+            d_param (Dict[str,Any]): dictionnaire
+        """
         o_store_entity_resolver = StoreEntityResolver("store_entity")
         # On mock la fonction api_list, on veut vérifier qu'elle est appelée avec les bons param
         with patch.object(d_param["classe"], "api_list", return_value=d_param["return_api_list"]) as o_mock_api_list:
@@ -212,7 +217,7 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 "return_api_list": l_uploads,
                 "data_api_list": {"infos_filter": {"name": "start_%"}, "tags_filter": {}, "page": 1, "datastore": "datastore_1"},
                 "expression": {"string_to_solve": "upload.ALL.tags.k_tag [INFOS(name=start_%)]", "datastore": "datastore_1"},
-                "expected_result": json.dumps(list(set([o_upload["tags"]["k_tag"] for o_upload in l_uploads]))),
+                "expected_result": json.dumps(list({o_upload["tags"]["k_tag"] for o_upload in l_uploads})),
                 "nb_api_update": len(l_uploads),
             },
         ]
