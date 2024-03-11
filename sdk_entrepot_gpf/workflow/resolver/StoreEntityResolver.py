@@ -89,7 +89,7 @@ class StoreEntityResolver(AbstractResolver):
         # Sinon on regarde ce qu'on doit envoyer
 
         if d_groups["number_dict"] == "ONE":
-            # json de la première entité trouvé
+            # json de la première entité trouvée
             l_entities[0].api_update()
             return l_entities[0].to_json()
         if d_groups["number_dict"] == "ALL":
@@ -101,10 +101,10 @@ class StoreEntityResolver(AbstractResolver):
             return json.dumps(l_res1)
         try:
             if not d_groups["number_selected"] or d_groups["number_selected"] == "ONE":
-                # une seule entité à traité affichage d'une info ou d'un tag
+                # une seule entité à traiter, affichage d'une info ou d'un tag
                 return self._get_info_or_tag(l_entities[0], d_groups)
             if d_groups["number_selected"] == "ALL":
-                # affichage d'info ou d'tag pour tout les entités trouvées
+                # affichage d'une info ou d'un tag pour toutes les entités trouvées
                 l_res2 = [self._get_info_or_tag(o_entity, d_groups) for o_entity in l_entities]
                 if d_groups["selected_field_type"] == "tags":
                     l_res2 = list(set(l_res2))
@@ -112,7 +112,6 @@ class StoreEntityResolver(AbstractResolver):
         except KeyError as e:
             raise ResolverError(self.name, string_to_solve) from e
 
-        # print(d_groups)
         raise ResolverError(self.name, string_to_solve)
 
     def _get_info_or_tag(self, o_entity: StoreEntity, d_groups: Dict[str, Any]) -> str:
