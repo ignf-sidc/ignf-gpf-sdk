@@ -8,7 +8,10 @@
 
 ### [Changed]
 
-* workflow: ajout de PermissionAction #94
+* workflow:
+  * ajout de PermissionAction #94
+  * possibilité d'utiliser un résolveur pour créer la liste de "Iter_vals" #106
+  * possibilité de définir un datastore au niveau de l'étape
 
 ### [Fixed]
 
