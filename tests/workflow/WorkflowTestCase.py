@@ -21,6 +21,7 @@ from sdk_entrepot_gpf.workflow.action.OfferingAction import OfferingAction
 from sdk_entrepot_gpf.workflow.action.PermissionAction import PermissionAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.workflow.action.SynchronizeOfferingAction import SynchronizeOfferingAction
+from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
 
 from tests.GpfTestCase import GpfTestCase
 
@@ -145,45 +146,49 @@ class WorkflowTestCase(GpfTestCase):
         o_mock_action.run.return_value = None
 
         ## mock de la property definition_dict
-        d_effect = []
-        for d_el in l_actions:
-            d_effect += [d_el] * 2
-        type(o_mock_action).definition_dict = PropertyMock(side_effect=d_effect)
+        type(o_mock_action).definition_dict = PropertyMock(side_effect=l_actions)
 
         # initialisation de Workflow
         o_workflow = Workflow("nom", d_workflow)
 
         # on mock Workflow.generate
         with patch.object(Workflow, "generate", return_value=o_mock_action) as o_mock_action_generate:
-            if error_message is not None:
-                # si on attend une erreur
-                with self.assertRaises(WorkflowError) as o_arc:
-                    o_workflow.run_step(**d_args_run_step)
-                self.assertEqual(o_arc.exception.message, error_message.format(action=o_mock_action))
-            else:
-                # pas d'erreur attendu
-                l_entities = o_workflow.run_step(**d_args_run_step)
-                self.assertListEqual(l_entities, [f"Entity_{output_type}"] * len(l_run_args))
+            with patch.object(GlobalResolver, "resolve", side_effect=lambda x, **kwargs: x) as o_mock_resolve:
+                if error_message is not None:
+                    # si on attend une erreur
+                    with self.assertRaises(WorkflowError) as o_arc:
+                        o_workflow.run_step(**d_args_run_step)
+                    self.assertEqual(o_arc.exception.message, error_message.format(action=o_mock_action))
+                else:
+                    # pas d'erreur attendu
+                    l_entities = o_workflow.run_step(**d_args_run_step)
+                    self.assertListEqual(l_entities, [f"Entity_{output_type}"] * len(l_run_args))
 
-            # vérification des appels à generate
-            self.assertEqual(o_mock_action_generate.call_count, len(l_run_args))
-            o_parent = None
-            for d_action in l_actions:
-                o_mock_action_generate.assert_any_call(s_etape, d_action, o_parent, d_args_run_step["behavior"])
-                o_parent = o_mock_action
+                    # tests pour "iter_vals"
+                    d_step = d_workflow["workflow"]["steps"][s_etape]
+                    if "iter_vals" in d_step:
+                        # datastore argument du run_step, ou datastore de l'étape ou datastore du workflow
+                        o_mock_resolve.assert_called_once_with(json.dumps(d_step["iter_vals"]), datastore=d_args_run_step.get("datastore", d_step.get("datastore", d_workflow.get("datastore"))))
 
-            # vérification des appels à résolve
-            self.assertEqual(o_mock_action.resolve.call_count, len(l_run_args))
+                # vérification des appels à generate
+                self.assertEqual(o_mock_action_generate.call_count, len(l_run_args))
+                o_parent = None
+                for d_action in l_actions:
+                    o_mock_action_generate.assert_any_call(s_etape, d_action, o_parent, d_args_run_step["behavior"])
+                    o_parent = o_mock_action
 
-            # vérification des appels à run
-            self.assertEqual(o_mock_action.run.call_count, len(l_run_args))
-            for o_el in l_run_args:
-                o_mock_action.run.assert_any_call(o_el)
-
-            # si monitoring : vérification des appels à monitoring
-            if monitoring_until_end:
+                # vérification des appels à résolve
                 self.assertEqual(o_mock_action.resolve.call_count, len(l_run_args))
-                o_mock_action.monitoring_until_end.assert_any_call(callback=d_args_run_step["callback"], ctrl_c_action=None)
+
+                # vérification des appels à run
+                self.assertEqual(o_mock_action.run.call_count, len(l_run_args))
+                for o_el in l_run_args:
+                    o_mock_action.run.assert_any_call(o_el)
+
+                # si monitoring : vérification des appels à monitoring
+                if monitoring_until_end:
+                    self.assertEqual(o_mock_action.resolve.call_count, len(l_run_args))
+                    o_mock_action.monitoring_until_end.assert_any_call(callback=d_args_run_step["callback"], ctrl_c_action=None)
 
     def test_run_step(self) -> None:
         """test de run_step"""

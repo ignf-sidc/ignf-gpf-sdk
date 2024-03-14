@@ -89,8 +89,8 @@ class Workflow:
         Config().om.info(f"Lancement de l'étape {step_name}...")
         # Création d'une liste pour stocker les entités créées
         l_store_entity: List[StoreEntity] = []
-        # Récupération de l'étape dans la définition de workflow
-        d_step_definition = self.__get_step_definition(step_name, comments, tags)
+        # Récupération de l'étape dans la définition de workflow (datastore forcé, sinon datastore du workflow/None)
+        d_step_definition = self.__get_step_definition(step_name, comments, tags, datastore if datastore else self.__datastore)
         # initialisation des actions parentes
         o_parent_action: Optional[ActionAbstract] = None
         # Pour chaque action définie dans le workflow, instanciation de l'objet Action puis création sur l'entrepôt
@@ -139,7 +139,7 @@ class Workflow:
         # Retour de la liste
         return l_store_entity
 
-    def __get_step_definition(self, step_name: str, comments: List[str] = [], tags: Dict[str, str] = {}) -> Dict[str, Any]:
+    def __get_step_definition(self, step_name: str, comments: List[str] = [], tags: Dict[str, str] = {}, datastore: Optional[str] = None) -> Dict[str, Any]:
         """Renvoie le dictionnaire correspondant à une étape du workflow à partir de son nom.
         Lève une WorkflowError avec un message clair si l'étape n'est pas trouvée.
 
@@ -170,6 +170,9 @@ class Workflow:
             l_actions = []
             s_actions = str(json.dumps(d_step["actions"], ensure_ascii=False))
 
+            # on lance la résolution sur iter_vals
+            d_step["iter_vals"] = json.loads(GlobalResolver().resolve(json.dumps(d_step["iter_vals"]), datastore=datastore))
+            Config().om.debug(f"iter_vals : {d_step['iter_vals']}")
             if isinstance(d_step["iter_vals"][0], (str, float, int)):
                 # si la liste est une liste de string, un int ou flat : on remplace directement
                 for s_val in d_step["iter_vals"]:
