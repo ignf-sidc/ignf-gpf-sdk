@@ -62,22 +62,25 @@ class Configuration(TagInterface, CommentInterface, EventInterface, FullEditInte
 
     def edit(self, data_edit: Dict[str, Any]) -> None:
         """Mise à jour totale de l'entité en fusionnant le nouveau dictionnaire (prioritaire) et l'ancien.
-        Pour les configurations, il faut en plus fusionner la liste des used_data.
+        Pour les configurations, il faut en plus fusionner le sous dictionnaire "type_infos" et la liste "used_data" qu'il contient.
         Si la nouvelle liste et l'ancienne liste n'ont pas la même taille, une exception est levée.
 
         Args:
             data_edit (Dict[str, Any]): nouvelles valeurs de propriétés
         """
         d_origine_data = self.get_store_properties()
-        # fusion de used_data
-        l_used_data = []
-        if len(d_origine_data["used_data"]) != len(data_edit["used_data"]):
-            s_message = "Edition impossible, le nombre de 'used_data' ne correspond pas."
-            raise StoreEntityError(s_message)
-        for i in range(len(d_origine_data["used_data"])):
-            l_used_data.append({**d_origine_data["used_data"][i], **data_edit["used_data"][i]})
 
-        # fusion des dictionnaires actuels et nouveaux (prioritaire)
-        d_data = {**self.get_store_properties(), **data_edit, **{"used_data": l_used_data}}
+        # fusion de type_infos et de type_infos.used_data
+        if "type_infos" in data_edit:  # il peut ne pas y avoir de "type_infos" dans data_edit
+            if "used_data" in data_edit["type_infos"]:  # il peut ne pas y avoir de "used_data" dans data_edit["type_infos"]
+                l_used_data = []
+                if len(d_origine_data["type_infos"]["used_data"]) != len(data_edit["type_infos"]["used_data"]):
+                    s_message = "Edition impossible, le nombre de 'used_data' ne correspond pas."
+                    raise StoreEntityError(s_message)
+                for i in range(len(d_origine_data["type_infos"]["used_data"])):
+                    l_used_data.append({**d_origine_data["type_infos"]["used_data"][i], **data_edit["type_infos"]["used_data"][i]})
+                data_edit["type_infos"]["used_data"] = l_used_data
+            data_edit["type_infos"] = {**d_origine_data["type_infos"], **data_edit["type_infos"]}
 
-        self.api_full_edit(d_data)
+        # le reste est géré par la classe parente
+        FullEditInterface.edit(self, data_edit)

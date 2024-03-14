@@ -102,18 +102,40 @@ class ConfigurationTestCase(GpfTestCase):
 
     def test_edit(self) -> None:
         """test de edit"""
-        d_entity: Dict[str, Any] = {"key": "val", "comm_key": "edit", "used_data": [{"nom": "or-1"}, {"nom": "or-2"}, {"nom": "or-3"}]}
-        d_edit: Dict[str, Any] = {"_id": "1", "comm_key": "origine", "used_data": [{"nom": "val_new"}, {}, {"new": "val"}]}
-        d_fusion: Dict[str, Any] = {**d_entity, **d_edit, **{"used_data": [{"nom": "val_new"}, {"nom": "or-2"}, {"nom": "or-3", "new": "val"}]}}
-
+        # Test complet (clef existantes conservées, clef nouvelles ajoutées, clef éditées modifiées)
+        d_entity: Dict[str, Any] = {
+            "key": "val",
+            "comm_key": "origine",
+            "type_infos": {"kept_key": "kept_value", "other_key": "value_1", "used_data": [{"nom": "or-1"}, {"nom": "or-2"}, {"nom": "or-3"}]},
+        }
+        d_edit: Dict[str, Any] = {"_id": "1", "comm_key": "edit", "type_infos": {"other_key": "value_2", "new_key": "n k", "used_data": [{"nom": "val_new"}, {}, {"new": "val"}]}}
+        d_fusion: Dict[str, Any] = {
+            **d_entity,
+            **d_edit,
+            **{"type_infos": {"kept_key": "kept_value", "new_key": "n k", "other_key": "value_2", "used_data": [{"nom": "val_new"}, {"nom": "or-2"}, {"nom": "or-3", "new": "val"}]}},
+        }
         o_entity = Configuration(d_entity)
         with patch.object(Configuration, "api_full_edit", return_value=None) as o_mock_api_edit:
             o_entity.edit(d_edit)
             o_mock_api_edit.assert_called_once_with(d_fusion)
 
-        # manque used_data
-        d_edit = {"_id": "1", "comm_key": "origine", "used_data": [{"nom": "val_new"}]}
+        # le nombre de used_data ne correspond pas
+        d_edit = {"_id": "1", "comm_key": "edit", "type_infos": {"used_data": [{"nom": "val_new"}]}}
         with self.assertRaises(StoreEntityError) as o_raise:
             o_entity.edit(d_edit)
         s_message = "Edition impossible, le nombre de 'used_data' ne correspond pas."
         self.assertEqual(s_message, o_raise.exception.message)
+
+        # Ok si pas de type_infos (dans d_edit)
+        o_entity = Configuration(d_entity)
+        d_edit = {"_id": "1", "comm_key": "edit", "new_key": "new_key"}
+        with patch.object(Configuration, "api_full_edit", return_value=None) as o_mock_api_edit:
+            o_entity.edit(d_edit)
+            o_mock_api_edit.assert_called_once_with({**d_entity, **d_edit})
+
+        # Ok si pas de type_infos.used_data (dans d_edit)
+        o_entity = Configuration(d_entity)
+        d_edit = {"_id": "1", "comm_key": "edit", "new_key": "new_key", "type_infos": {"new_key": "new_key", "other_key": "value_2"}}
+        with patch.object(Configuration, "api_full_edit", return_value=None) as o_mock_api_edit:
+            o_entity.edit(d_edit)
+            o_mock_api_edit.assert_called_once_with({**d_entity, **d_edit})
