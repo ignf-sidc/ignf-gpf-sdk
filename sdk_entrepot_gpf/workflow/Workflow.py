@@ -98,14 +98,12 @@ class Workflow:
             # création de l'action
             o_action = Workflow.generate(step_name, d_action_raw, o_parent_action, behavior)
             # choix du datastore
-            ## par défaut datastore du workflow, si None il sera récupérer dans la configuration
-            s_use_datastore = self.__datastore
-            if datastore:
-                # datastore dans l'appel à la fonction on prend
-                s_use_datastore = datastore
-            elif "datastore" in o_action.definition_dict:
-                # datastore dans l'étape
-                s_use_datastore = o_action.definition_dict["datastore"]
+            ## datastore donné en paramètre
+            ## sinon datastore du workflow au niveau de l'action
+            ## sinon datastore du workflow au niveau de l'étape
+            ## sinon datastore du workflow au niveau global (self.__datastore)
+            # NB: si None il sera récupérer dans la configuration
+            s_use_datastore = datastore if datastore else o_action.definition_dict.get("datastore", d_step_definition.get("datastore", self.__datastore))
 
             # résolution
             o_action.resolve(datastore=s_use_datastore)
