@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import datetime
 import json as JSON
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from sdk_entrepot_gpf.pattern.Singleton import Singleton
 from sdk_entrepot_gpf.io.Config import Config
@@ -10,7 +10,8 @@ from sdk_entrepot_gpf.io.Config import Config
 
 class JsonConverter(metaclass=Singleton):
     """Classe de conversion des objects python en json. Le but est de convertir
-    les objets qui ne sont pas nativement gérés par Python comme les dates."""
+    les objets qui ne sont pas nativement gérés par Python comme les dates mais
+    aussi de permettre de corriger les erreurs en loguant ce qui pose problème."""
 
     def __init__(self) -> None:
         """initialisation : liste des routes et adresse site"""
@@ -19,7 +20,7 @@ class JsonConverter(metaclass=Singleton):
         self.__date_pattern = Config().get_str("json_converter", "date_pattern")
         self.__time_pattern = Config().get_str("json_converter", "time_pattern")
 
-    def dumps(self, data: Dict[Any, Any]) -> str:
+    def dumps(self, data: Any) -> str:
         """Cette fonction permet de convertir les classes python en string JSON.
         Pour le moment, sont traitées les dates, times, et datetimes.
         On utilise un "converter" spécialisé.
@@ -31,7 +32,7 @@ class JsonConverter(metaclass=Singleton):
             str: JSON avec gestion des classes Python
         """
         if data is None:
-            return None
+            return "null"
         s_json = JSON.dumps(data, default=self.__converter)
         return s_json
 
@@ -48,7 +49,7 @@ class JsonConverter(metaclass=Singleton):
         if data is None:
             return None
         s_json = self.dumps(data)
-        return JSON.loads(s_json)
+        return JSON.loads(s_json)  # json.loads ok car pas d'erreur possible ici (dumps juste avant)
 
     def __converter(self, obj: object) -> Optional[str]:
         """Converter spécialisé pour passer des classes python au json.

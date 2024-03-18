@@ -6,7 +6,12 @@
 
 ### [Changed]
 
+* ajout d'une `LogsInterface` pour gérer les logs (mutualisation de `api_logs`).
+* utilisation systématique de la fonction `JsonHelper.loads` (au lieu de `json.loads`) pour afficher un message d'erreur et le JSON posant problème en cas de besoin (sauf si raison particulière, à expliquer).
+
 ### [Fixed]
+
+* correction de la résolution de la valeur d'itération dans les workflows.
 
 ## v0.1.24
 

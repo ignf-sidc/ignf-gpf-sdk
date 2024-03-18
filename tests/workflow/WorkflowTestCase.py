@@ -90,11 +90,11 @@ class WorkflowTestCase(GpfTestCase):
             if isinstance(d_etape["iter_vals"][0], (str, float, int)):
                 # si la liste est une liste de string, un int ou flat : on remplace directement
                 for s_val in d_etape["iter_vals"]:
-                    l_actions += json.loads(s_actions.replace("{" + d_etape["iter_key"] + "}", s_val))
+                    l_actions += json.loads(s_actions.replace("{" + d_etape["iter_key"] + "}", s_val))  # json.loads ok car on est dans des tests
             else:
                 # on a une liste de sous dict ou apparenté on utilise un résolveur
                 for i, s_val in enumerate(d_etape["iter_vals"]):
-                    l_actions += json.loads(s_actions.replace(d_etape["iter_key"], f"iter_resolve_{i}"))
+                    l_actions += json.loads(s_actions.replace(d_etape["iter_key"], f"iter_resolve_{i}"))  # json.loads ok car on est dans des tests
         return l_actions
 
     def run_run_step(
