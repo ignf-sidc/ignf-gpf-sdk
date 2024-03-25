@@ -17,6 +17,7 @@ from sdk_entrepot_gpf.workflow.action.ConfigurationAction import ConfigurationAc
 from sdk_entrepot_gpf.workflow.action.CopyConfigurationAction import CopyConfigurationAction
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.EditAction import EditAction
+from sdk_entrepot_gpf.workflow.action.EditUsedDataConfigurationAction import EditUsedDataConfigurationAction
 from sdk_entrepot_gpf.workflow.action.OfferingAction import OfferingAction
 from sdk_entrepot_gpf.workflow.action.PermissionAction import PermissionAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
@@ -373,6 +374,7 @@ class WorkflowTestCase(GpfTestCase):
         patch.object(OfferingAction, "__init__", wraps=new_init) as d_mock["OfferingAction"], \
         patch.object(SynchronizeOfferingAction, "__init__", wraps=new_init) as d_mock["SynchronizeOfferingAction"], \
         patch.object(CopyConfigurationAction, "__init__", wraps=new_init) as d_mock["CopyConfigurationAction"], \
+        patch.object(EditUsedDataConfigurationAction, "__init__", wraps=new_init) as d_mock["EditUsedDataConfigurationAction"], \
         patch.object(EditAction, "__init__", wraps=new_init) as d_mock["EditAction"]:
             # fmt: on
             # exécution
@@ -414,6 +416,8 @@ class WorkflowTestCase(GpfTestCase):
         self.run_generation(EditAction, "name", {"type": "edit-entity"}, o_mock_parent, with_beavior=False)
         # test type permission
         self.run_generation(PermissionAction, "name", {"type": "permission"}, o_mock_parent, with_beavior=False)
+        # test type used_data-configuration
+        self.run_generation(EditUsedDataConfigurationAction, "name", {"type": "used_data-configuration"}, o_mock_parent, with_beavior=False)
 
     def test_open_workflow(self) -> None:
         """Test de la fonction open_workflow."""
