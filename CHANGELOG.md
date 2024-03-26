@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* workflow : ajout de EditUsedDataConfigurationAction #105
+
 ### [Changed]
 
 * ajout d'une `LogsInterface` pour gérer les logs (mutualisation de `api_logs`).
