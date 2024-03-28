@@ -24,7 +24,7 @@ class EditUsedDataConfigurationAction(ActionAbstract):
         l_new_use_data = d_parameter["type_infos"]["used_data"]
         # suppression des used_data
         for d_data_delete in self.definition_dict.get("delete_used_data", []):
-            l_new_use_data = self._delete_use_data(d_data_delete, l_new_use_data)
+            l_new_use_data = self._delete_used_data(d_data_delete, l_new_use_data)
 
         # ajout des used_data
         if self.definition_dict.get("append_used_data"):
@@ -39,7 +39,7 @@ class EditUsedDataConfigurationAction(ActionAbstract):
         o_base_config.api_full_edit(d_parameter)
         Config().om.info("Modification de la configuration : terminé", green_colored=True)
 
-    def _delete_use_data(self, d_data_delete: Dict[str, str], l_used_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _delete_used_data(self, d_data_delete: Dict[str, str], l_used_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         l_new_use_data = []
         for d_data in l_used_data:
             b_keep = True
