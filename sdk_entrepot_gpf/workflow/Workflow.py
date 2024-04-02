@@ -14,6 +14,7 @@ from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 from sdk_entrepot_gpf.workflow.action.CopyConfigurationAction import CopyConfigurationAction
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.EditAction import EditAction
+from sdk_entrepot_gpf.workflow.action.EditUsedDataConfigurationAction import EditUsedDataConfigurationAction
 from sdk_entrepot_gpf.workflow.action.PermissionAction import PermissionAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.workflow.action.ConfigurationAction import ConfigurationAction
@@ -273,6 +274,8 @@ class Workflow:
             return ConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
         if definition_dict["type"] == "copy-configuration":
             return CopyConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
+        if definition_dict["type"] == "used_data-configuration":
+            return EditUsedDataConfigurationAction(workflow_context, definition_dict, parent_action)
         if definition_dict["type"] == "offering":
             return OfferingAction(workflow_context, definition_dict, parent_action, behavior=behavior)
         if definition_dict["type"] == "synchronize-offering":

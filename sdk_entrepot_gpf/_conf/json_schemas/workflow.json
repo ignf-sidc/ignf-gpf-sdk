@@ -40,6 +40,7 @@
                                                 "processing-execution",
                                                 "configuration",
                                                 "copy-configuration",
+                                                "used_data-configuration",
                                                 "offering",
                                                 "synchronize-offering",
                                                 "edit-entity",
@@ -92,6 +93,18 @@
                                         },
                                         "confirm": {
                                             "type": "boolean"
+                                        },
+                                        "delete_used_data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "append_used_data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
                                         }
                                     }
                                 }
