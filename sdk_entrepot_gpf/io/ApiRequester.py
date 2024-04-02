@@ -1,16 +1,17 @@
 from __future__ import unicode_literals
-from io import BufferedReader
-import json
-from pathlib import Path
+
 import re
 import time
 import traceback
+from io import BufferedReader
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, List, Union
 import requests
 from requests_toolbelt import MultipartEncoder
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.auth.Authentifier import Authentifier
+from sdk_entrepot_gpf.helper.JsonHelper import JsonHelper
 from sdk_entrepot_gpf.pattern.Singleton import Singleton
 from sdk_entrepot_gpf.io.JsonConverter import JsonConverter
 from sdk_entrepot_gpf.io.Errors import ApiError, ConflictError, RouteNotFoundError, InternalServerError, NotFoundError, NotAuthorizedError, BadRequestError, StatusCodeError
@@ -97,7 +98,7 @@ class ApiRequester(metaclass=Singleton):
         s_header = Config().get("routing", route_name + "_header", fallback=None)
         d_header = {}
         if s_header is not None:
-            d_header = json.loads(s_header)
+            d_header = JsonHelper.loads(s_header, f"config.routing.{route_name}_header")
 
         # Exécution de la requête en boucle jusqu'au succès (ou erreur au bout d'un certains temps)
         return self.url_request(s_url, method, params, data, files, d_header)

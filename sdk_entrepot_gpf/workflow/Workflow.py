@@ -171,19 +171,19 @@ class Workflow:
             s_actions = str(json.dumps(d_step["actions"], ensure_ascii=False))
 
             # on lance la résolution sur iter_vals
-            d_step["iter_vals"] = json.loads(GlobalResolver().resolve(json.dumps(d_step["iter_vals"]), datastore=datastore))
+            d_step["iter_vals"] = JsonHelper.loads(GlobalResolver().resolve(json.dumps(d_step["iter_vals"]), datastore=datastore), "iter_vals résolu")
             Config().om.debug(f"iter_vals : {d_step['iter_vals']}")
             if isinstance(d_step["iter_vals"][0], (str, float, int)):
-                # si la liste est une liste de string, un int ou flat : on remplace directement
-                for s_val in d_step["iter_vals"]:
-                    l_actions += json.loads(s_actions.replace("{" + d_step["iter_key"] + "}", s_val))
+                # si la liste est une liste de string, un int ou float : on remplace directement
+                for o_val in d_step["iter_vals"]:
+                    l_actions += JsonHelper.loads(s_actions.replace("{" + d_step["iter_key"] + "}", o_val), "iter_val str/float/int")
             else:
                 # on a une liste de sous dict ou apparenté on utilise un résolveur
-                for i, s_val in enumerate(d_step["iter_vals"]):
-                    l_actions += json.loads(s_actions.replace(d_step["iter_key"], f"iter_resolve_{i}"))
-                    GlobalResolver().add_resolver(DictResolver(f"iter_resolve_{i}", s_val))
-
+                for i, o_val in enumerate(d_step["iter_vals"]):
+                    l_actions += JsonHelper.loads(s_actions.replace(d_step["iter_key"], f"iter_resolve_{i}"), f"iter_vals list({i})")
+                    GlobalResolver().add_resolver(DictResolver(f"iter_resolve_{i}", o_val))
             d_step["actions"] = l_actions
+
         elif "iter_vals" in d_step or "iter_key" in d_step:
             # on a une seule des deux clef
             s_error_message = f"Une seule des clefs iter_vals ou iter_key est trouvée: il faut mettre les deux valeurs ou aucune. Étape {step_name} workflow {self.__name}"
