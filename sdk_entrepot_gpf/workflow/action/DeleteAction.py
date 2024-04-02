@@ -79,8 +79,12 @@ class DeleteAction(ActionAbstract):
         else:
             raise StepActionError('Il faut au moins une des clefs suivantes : "entity_id", "filter_infos", "filter_tags" pour cette action.')
 
-        if len(l_entities) == 0 and not self.definition_dict.get("not_found_ok"):
-            raise StepActionError("Aucune entité trouvée pour la suppression")
+        if len(l_entities) == 0 :
+            if not self.definition_dict.get("not_found_ok"):
+                raise StepActionError("Aucune entité trouvée pour la suppression")
+            else:
+                Config().om.info("Aucune entité à supprimé.", green_colored=True)
+                return
         if len(l_entities) > 1:
             if self.definition_dict.get("if_multi") == "error":
                 # On sort en erreur
