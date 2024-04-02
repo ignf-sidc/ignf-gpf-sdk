@@ -75,7 +75,7 @@ class DeleteAction(ActionAbstract):
                 pass
         elif "filter_infos" in self.definition_dict or "filter_tags" in self.definition_dict:
             ## par liste des éléments
-            l_entities = store.TYPE__ENTITY[self.definition_dict["entity_type"]].api_list(self.definition_dict.get("filter_infos"), self.definition_dict.get("filter_infos"), datastore=datastore)
+            l_entities = store.TYPE__ENTITY[self.definition_dict["entity_type"]].api_list(self.definition_dict.get("filter_infos"), self.definition_dict.get("filter_tags"), datastore=datastore)
         else:
             raise StepActionError('Il faut au moins une des clefs suivantes : "entity_id", "filter_infos", "filter_tags" pour cette action.')
 
