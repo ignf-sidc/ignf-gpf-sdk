@@ -53,13 +53,13 @@ class ConfigurationTestCase(GpfTestCase):
         # On mock la fonction api_create, on veut vérifier qu'elle est appelée avec les bons param
         with patch.object(StoreEntity, "api_create", return_value=Offering(d_data_offering)) as o_mock_create:
             # Instanciation d'une Configuration
-            o_configuration = Configuration({"_id": "2222222"})
+            o_configuration = Configuration({"_id": "2222222"}, datastore="datastore")
             # Ajout d'une Offre
             o_offering = o_configuration.api_add_offering(d_data_offering)
             # on vérifie que api_create est appelé correctement
             o_mock_create.assert_called_once_with(
                 d_data_offering,
-                route_params={"configuration": "2222222"},
+                route_params={"configuration": "2222222", "datastore": "datastore"},
             )
             # on vérifie que l'entité renvoyée est cohérente
             self.assertIsInstance(o_offering, Offering)
