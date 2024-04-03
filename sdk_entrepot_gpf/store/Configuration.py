@@ -46,7 +46,7 @@ class Configuration(TagInterface, CommentInterface, EventInterface, FullEditInte
         Returns:
             Offering: représentation Python de l'Offering créée
         """
-        return Offering.api_create(data_offering, route_params={self._entity_name: self.id, "dastore": self.datastore})
+        return Offering.api_create(data_offering, route_params={self._entity_name: self.id, "datastore": self.datastore})
 
     def get_liste_deletable_cascade(self) -> List[StoreEntity]:
         """liste les entités à supprimé lors d'une suppression en cascade de la Configuration en supprimant en cascade les offres liées (et uniquement les offres, pas les données stockées).

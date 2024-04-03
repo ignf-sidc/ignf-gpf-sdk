@@ -79,20 +79,19 @@ class DeleteAction(ActionAbstract):
         else:
             raise StepActionError('Il faut au moins une des clefs suivantes : "entity_id", "filter_infos", "filter_tags" pour cette action.')
 
-        if len(l_entities) == 0 :
+        if len(l_entities) == 0:
             if not self.definition_dict.get("not_found_ok"):
                 raise StepActionError("Aucune entité trouvée pour la suppression")
-            else:
-                Config().om.info("Aucune entité à supprimé.", green_colored=True)
-                return
-        if len(l_entities) > 1:
-            if self.definition_dict.get("if_multi") == "error":
-                # On sort en erreur
-                raise StepActionError(f"Plusieurs entités trouvées pour la suppression : {l_entities}")
-            if self.definition_dict.get("if_multi") == "first":
-                # on ne supprime que le 1er élément trouvé
-                l_entities = [l_entities[0]]
-            # on les supprimera tous
+            # sinon OK
+            Config().om.info("Aucune entité à supprimé.", green_colored=True)
+            return
+        if len(l_entities) > 1 and self.definition_dict.get("if_multi") == "error":
+            # On sort en erreur
+            raise StepActionError(f"Plusieurs entités trouvées pour la suppression : {l_entities}")
+        if len(l_entities) > 1 and self.definition_dict.get("if_multi") == "first":
+            # on ne supprime que le 1er élément trouvé
+            l_entities = [l_entities[0]]
+        # on les supprimera tous
 
         # récupération des entités en cascades si demandé
         if self.definition_dict.get("cascade", False):
