@@ -5,6 +5,7 @@
 ### [Added]
 
 * workflow : ajout de EditUsedDataConfigurationAction #105
+* DeleteAction: meilleur gestion cas sans élément à supprimé #115
 
 ### [Changed]
 
@@ -14,6 +15,9 @@
 ### [Fixed]
 
 * correction de la résolution de la valeur d'itération dans les workflows.
+* OfferingAction: utilisation du bon datastore #116
+* DeleteAction: debug mauvaise utilisation des filtres #114
+* Configuration: création/récupération des offres avec le bon datastore
 
 ## v0.1.24
 
