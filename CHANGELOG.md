@@ -6,6 +6,7 @@
 
 * workflow : ajout de EditUsedDataConfigurationAction #105
 * DeleteAction: meilleur gestion cas sans élément à supprimé #115
+* UploadAction: les conflits de livraisons ne bloquent pas la suite du traitement #119
 
 ### [Changed]
 
