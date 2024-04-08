@@ -1,5 +1,6 @@
 from pathlib import Path
 import time
+import requests
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
@@ -200,6 +201,9 @@ class UploadAction:
                 f_api_push(p_file_path, s_api_path)
                 i_file_upload += 1
                 Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: terminé")
+            except requests.Timeout:
+                Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: timeout.")
+                l_conflict.append((p_file_path, s_data_api_path))
             except ConflictError:
                 Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: conflict.")
                 l_conflict.append((p_file_path, s_data_api_path))
