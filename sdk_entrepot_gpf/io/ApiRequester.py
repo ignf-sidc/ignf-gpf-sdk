@@ -1,16 +1,17 @@
 from __future__ import unicode_literals
-from io import BufferedReader
-import json
-from pathlib import Path
+
 import re
 import time
 import traceback
+from io import BufferedReader
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, List, Union
 import requests
 from requests_toolbelt import MultipartEncoder
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.auth.Authentifier import Authentifier
+from sdk_entrepot_gpf.helper.JsonHelper import JsonHelper
 from sdk_entrepot_gpf.pattern.Singleton import Singleton
 from sdk_entrepot_gpf.io.JsonConverter import JsonConverter
 from sdk_entrepot_gpf.io.Errors import ApiError, ConflictError, RouteNotFoundError, InternalServerError, NotFoundError, NotAuthorizedError, BadRequestError, StatusCodeError
@@ -47,6 +48,7 @@ class ApiRequester(metaclass=Singleton):
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Union[Dict[str, Any], List[Any]]] = None,
         files: Optional[Dict[str, Tuple[str, BufferedReader]]] = None,
+        timeout: Optional[int] = -1000,
     ) -> requests.Response:
         """Exécute une requête à l'API à partir du nom d'une route. La requête est retentée plusieurs fois s'il y a un problème.
 
@@ -57,6 +59,7 @@ class ApiRequester(metaclass=Singleton):
             method (str, optional): méthode de la requête.
             data (Optional[Dict[str, Any]], optional): Données de la requête.
             files (Optional[Dict[str, Tuple[Any]]], optional): Liste des fichiers à envoyer {"file":('fichier.ext', File)}.
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
 
         Raises:
             RouteNotFoundError: levée si la route demandée n'est pas définie dans les paramètres
@@ -70,6 +73,11 @@ class ApiRequester(metaclass=Singleton):
             réponse vérifiée
         """
         Config().om.debug(f"route_request({route_name}, {method}, {route_params}, {params})")
+
+        # gestion timeout
+        if timeout and timeout < 0:
+            s_timeout = Config().get("routing", f"{route_name}_timeout", "-1000")
+            timeout = None if not s_timeout or s_timeout == "null" else int(s_timeout)
 
         # La valeur par défaut est transformée en un dict valide
         if route_params is None:
@@ -97,10 +105,10 @@ class ApiRequester(metaclass=Singleton):
         s_header = Config().get("routing", route_name + "_header", fallback=None)
         d_header = {}
         if s_header is not None:
-            d_header = json.loads(s_header)
+            d_header = JsonHelper.loads(s_header, f"config.routing.{route_name}_header")
 
         # Exécution de la requête en boucle jusqu'au succès (ou erreur au bout d'un certains temps)
-        return self.url_request(s_url, method, params, data, files, d_header)
+        return self.url_request(s_url, method, params, data, files, d_header, timeout)
 
     def url_request(
         self,
@@ -110,6 +118,7 @@ class ApiRequester(metaclass=Singleton):
         data: Optional[Union[Dict[str, Any], List[Any]]] = None,
         files: Optional[Dict[str, Tuple[str, BufferedReader]]] = None,
         header: Dict[str, str] = {},
+        timeout: Optional[int] = -1000,
     ) -> requests.Response:
         """Effectue une requête à l'API à partir d'une url. La requête est retentée plusieurs fois s'il y a un problème.
 
@@ -120,21 +129,24 @@ class ApiRequester(metaclass=Singleton):
             data (Optional[Union[Dict[str, Any], List[Any]]], optional): contenue de la requête (ajouté au corp)
             files (Optional[Dict[str, Tuple[Any]]], optional): fichiers à envoyer
             header (Dict[str, str], optional): Header additionnel pour la requête
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
 
         Returns:
             réponse si succès
         """
         Config().om.debug(f"url_request({url}, {method}, {params}, {data})")
 
+        # gestion timeout
+        if timeout and timeout < 0:
+            s_timeout = Config().get("store_api", "timeout")
+            timeout = None if not s_timeout or s_timeout == "null" else int(s_timeout)
+
         i_nb_attempts = 0
         while True:
             i_nb_attempts += 1
             try:
                 # On fait la requête
-                return self.__url_request(url, method, params=params, data=data, files=files, header=header)
-            except NotFoundError as e_error:
-                # S'il on a un 404, on ne retente pas, on ne fait rien. On propage l'erreur.
-                raise e_error
+                return self.__url_request(url, method, params=params, data=data, files=files, header=header, timeout=timeout)
 
             except (requests.HTTPError, requests.URLRequired) as e_error:
                 # S'il y a une erreur d'URL, on ne retente pas, on indique de contacter le support
@@ -146,8 +158,8 @@ class ApiRequester(metaclass=Singleton):
                 s_message = f"La requête formulée par le programme est incorrecte ({e_error.message}). Contactez le support."
                 raise GpfSdkError(s_message) from e_error
 
-            except ConflictError as e_error:
-                # S'il y a un conflit, on ne retente pas, on ne fait rien. On propage l'erreur.
+            except (ConflictError, NotFoundError, requests.Timeout) as e_error:
+                # S'il y a un conflit, un 404 ou un timeout, on ne retente pas, on ne fait rien. On propage l'erreur.
                 raise e_error
 
             except (ApiError, requests.RequestException) as e_error:
@@ -173,6 +185,7 @@ class ApiRequester(metaclass=Singleton):
         data: Optional[Union[Dict[str, Any], List[Any]]] = None,
         files: Optional[Dict[str, Tuple[str, BufferedReader]]] = None,
         header: Dict[str, str] = {},
+        timeout: Optional[int] = None,
     ) -> requests.Response:
         """Effectue une requête à l'API à partir d'une url. Ne retente pas plusieurs fois si problème.
 
@@ -183,11 +196,12 @@ class ApiRequester(metaclass=Singleton):
             data (Optional[Union[Dict[str, Any], List[Any]]], optional): données.
             files (Optional[Dict[str, Tuple[Any]]], optional): fichiers.
             header (Dict[str, str], optional): Header additionnel pour la requête.
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
 
         Returns:
             réponse si succès
         """
-        Config().om.debug(f"__url_request({url}, {method}, {params}, {data})")
+        Config().om.debug(f"__url_request({url}, {method}, {params}, {data}, {timeout})")
 
         # Définition du header
         d_headers = Authentifier().get_http_header(json_content_type=files is None)
@@ -200,13 +214,13 @@ class ApiRequester(metaclass=Singleton):
             "headers": d_headers,
             "proxies": self.__proxy,
             "params": params,
+            "timeout": timeout,
         }
         if files:
             d_fields = {**files}
             o_me = MultipartEncoder(fields=d_fields)
             d_headers["content-type"] = o_me.content_type
             # Execution de la requête
-            # TODO : contournement pour les uploads, supprimer `"verify": False` une fois le problème résolu + suppression proxy
             d_requests.update({"data": o_me})
         else:
             d_requests.update({"params": params, "json": data})
@@ -248,6 +262,7 @@ class ApiRequester(metaclass=Singleton):
         method: str = "POST",
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Union[Dict[str, Any], List[Any]]] = None,
+        timeout: Optional[int] = -1000,
     ) -> requests.Response:
         """Exécute une requête à l'API à partir du nom d'une route. La requête est retentée plusieurs fois s'il y a un problème.
 
@@ -263,13 +278,30 @@ class ApiRequester(metaclass=Singleton):
         Returns:
             réponse vérifiée
         """
+
+        # gestion timeout
+        if timeout and timeout < 0:
+            s_timeout = Config().get("routing", f"{route_name}_timeout", "-1000")
+            if not s_timeout or s_timeout.lower() == "null" or s_timeout.lower() == "none":
+                # timeout directe ou None (pas de timeout)
+                timeout = None
+            elif re.search(r"^ *-? *\d+ *$", s_timeout):
+                timeout = int(s_timeout)
+            else:
+                # timeout selon la taille du fichier
+                d_timeout_dict: Dict[str, Optional[int]] = dict(JsonHelper.loads(s_timeout, "du dictionnaire des timeout pour {route_name}"))
+                # on rajoute une valeur par défaut
+                d_timeout_dict["-1000"] = -1000
+                i_index_timeout = max(int(i) for i in d_timeout_dict if int(i) <= file_path.stat().st_size)
+                timeout = d_timeout_dict[str(i_index_timeout)]
+
         # Ouverture du fichier et remplissage du tuple de fichier
         with file_path.open("rb") as o_file_binary:
             o_tuple_file = (file_path.name, o_file_binary)
             o_dict_files = {file_key: o_tuple_file}
 
             # Requête
-            return self.route_request(route_name, route_params=route_params, method=method, params=params, data=data, files=o_dict_files)
+            return self.route_request(route_name, route_params=route_params, method=method, params=params, data=data, files=o_dict_files, timeout=timeout)
 
     @staticmethod
     def range_next_page(content_range: Optional[str], length: int) -> bool:

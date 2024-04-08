@@ -4,9 +4,23 @@
 
 ### [Added]
 
+* workflow : ajout de EditUsedDataConfigurationAction #105
+* DeleteAction: meilleur gestion cas sans élément à supprimé #115
+* UploadAction: les conflits de livraisons et timeout lors de la livraison ne bloquent pas la suite du traitement #119, #121
+* ApiRequester: ajout de timeout #121
+
 ### [Changed]
 
+* ajout d'une `LogsInterface` pour gérer les logs (mutualisation de `api_logs`).
+* utilisation systématique de la fonction `JsonHelper.loads` (au lieu de `json.loads`) pour afficher un message d'erreur et le JSON posant problème en cas de besoin (sauf si raison particulière, à expliquer).
+* UploadAction: mise en commun fonctions__push_data_files et __push_md5_files
+
 ### [Fixed]
+
+* correction de la résolution de la valeur d'itération dans les workflows.
+* OfferingAction: utilisation du bon datastore #116
+* DeleteAction: debug mauvaise utilisation des filtres #114
+* Configuration: création/récupération des offres avec le bon datastore
 
 ## v0.1.24
 

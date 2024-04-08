@@ -16,12 +16,12 @@ class GlobalResolverTestCase(GpfTestCase):
     localization = {
         "Jacques_country": "France",
         "Jacques_city": "Paris",
-        "Jacques_street": "Champs-Elysée",
+        "Jacques_street": "Champs-Elysee",
         "John_country": "England",
         "John_city": "London",
         "John_street": "rue_Londres",
         "city": ["Paris", "London"],
-        "store": {"Paris": "Champs-Elysée", "London": "rue_Londres"},
+        "store": {"Paris": "Champs-Elysee", "London": "rue_Londres"},
     }
     profession = {
         "chef": "Jacques",
@@ -123,9 +123,9 @@ class GlobalResolverTestCase(GpfTestCase):
         # Comme dict (pour insérer une string)
         self.assertEqual(GlobalResolver().resolve('{"_localization_":"Jacques_country"}'), "France")
         # Comme liste (pour insérer une liste)
-        self.assertEqual(GlobalResolver().resolve('["_localization_","city"]'), "['Paris', 'London']")
+        self.assertEqual(GlobalResolver().resolve('["_localization_","city"]'), '["Paris", "London"]')
         # Comme dict (pour insérer un dict)
-        self.assertEqual(GlobalResolver().resolve('{"_localization_":"store"}'), "{'Paris': 'Champs-Elysée', 'London': 'rue_Londres'}")
+        self.assertEqual(GlobalResolver().resolve('{"_localization_":"store"}'), '{"Paris": "Champs-Elysee", "London": "rue_Londres"}')
         # Cas avancés : deux résolutions l'une dans l'autre
         # Comme string
         self.assertEqual(GlobalResolver().resolve("{localization.{profession.sailor}_country}"), "England")

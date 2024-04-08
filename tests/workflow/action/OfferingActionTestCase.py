@@ -1,6 +1,6 @@
 import time
 from unittest.mock import patch, MagicMock
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.io.Errors import ConflictError
 
@@ -19,7 +19,7 @@ class OfferingActionTestCase(GpfTestCase):
     """
 
     # creation du dictionnaire qui reprend les paramètres du workflow pour créer une offre
-    d_action = {"type": "offering", "body_parameters": {"endpoint": "id_endpoint"}, "url_parameters": {"configuration": "id_configuration"}}
+    d_action: Dict[str, Any] = {"type": "offering", "body_parameters": {"endpoint": "id_endpoint"}, "url_parameters": {"configuration": "id_configuration"}}
 
     def __get_offering_action(self, behavior: Optional[str] = None) -> OfferingAction:
         # Instanciation de OfferingAction
@@ -40,13 +40,13 @@ class OfferingActionTestCase(GpfTestCase):
         with patch.object(o_offering_action, "find_offering", return_value=None) as o_mock_offering_action_list_offering:
             with patch.object(Offering, "api_create", return_value=o_mock_offering) as o_mock_offering_api_create:
                 # on lance l'exécution de run
-                o_offering_action.run()
+                o_offering_action.run(datastore="datastore")
 
                 # test de l'appel à OfferingAction.find_offering
                 o_mock_offering_action_list_offering.assert_called_once()
 
                 # test de l'appel à Offering.api_create
-                o_mock_offering_api_create.assert_called_once_with(self.d_action["body_parameters"], route_params=self.d_action["url_parameters"])
+                o_mock_offering_api_create.assert_called_once_with(self.d_action["body_parameters"], route_params={"datastore": "datastore", **self.d_action["url_parameters"]})
 
                 # api update appelé 2 fois
                 self.assertEqual(2, o_mock_offering.api_update.call_count)
@@ -108,11 +108,11 @@ class OfferingActionTestCase(GpfTestCase):
                 with patch.object(time, "sleep", return_value=None) as o_mock_time:
                     # on lance l'exécution de run
                     with self.assertRaises(StepActionError) as o_err:
-                        o_offering_action.run()
+                        o_offering_action.run("datastore")
                     self.assertEqual(o_err.exception.message, "Création d'une offre : terminé en erreur.")
 
                     o_mock_offering_action_list_offering.assert_called_once()
-                    o_mock_offering_api_create.assert_called_once_with(self.d_action["body_parameters"], route_params=self.d_action["url_parameters"])
+                    o_mock_offering_api_create.assert_called_once_with(self.d_action["body_parameters"], route_params={"datastore": "datastore", **self.d_action["url_parameters"]})
                     self.assertEqual(o_mock_offering.api_update.call_count, 4)
                     o_mock_time.assert_any_call(1)
 

@@ -1,12 +1,16 @@
+from pathlib import Path
 import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
+import requests
 
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
+from sdk_entrepot_gpf.io.Errors import ConflictError
 from sdk_entrepot_gpf.store.CheckExecution import CheckExecution
 from sdk_entrepot_gpf.store.Upload import Upload
 from sdk_entrepot_gpf.io.Dataset import Dataset
 from sdk_entrepot_gpf.io.Config import Config
+from sdk_entrepot_gpf.workflow.Errors import UploadFileError
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 
 
@@ -129,59 +133,110 @@ class UploadAction:
         if self.__upload is not None:
             # Liste les fichiers déjà téléversés sur l'entrepôt et récupère leur taille
             Config().om.info(f"Livraison {self.__upload['name']} : récupération de l'arborescence des données déjà téléversées...")
-            l_arborescence = self.__upload.api_tree()
-            d_destination_taille = UploadAction.parse_tree(l_arborescence)
+            i_file_upload = self.__push_files(
+                list(self.__dataset.data_files.items()),
+                self.__upload.api_push_data_file,
+                self.__upload.api_delete_data_file,
+            )
 
-            for p_file_path, s_api_path in self.__dataset.data_files.items():
-                # Regarde si le fichier du dataset est déjà dans la liste des fichiers téléversés sur l'entrepôt
-                # NB: sur l'entrepôt, tous les fichiers "data" sont dans le dossier parent "data" TODO vérifier que c'est toujours le cas !
-                s_data_api_path = f"{s_api_path}/{p_file_path.name}"
-                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}...")
-                if s_data_api_path in d_destination_taille:
-                    # le fichier est déjà livré, on check sa taille :
-                    if d_destination_taille[s_data_api_path] == p_file_path.stat().st_size:
-                        # le fichier a été complètement téléversé. On passe au fichier suivant.
-                        Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
-                        continue
-
-                    # le fichier n'a pas été téléversé en totalité.
-                    # Si le mode "Append" n'est pas disponible sur le serveur, il faut supprimer le fichier à moitié téléversé.
-                    # Sinon il faudra reprendre le téléversement (!)
-                    self.__upload.api_delete_data_file(s_data_api_path)
-
-                # sinon, on doit livrer le fichier
-                self.__upload.api_push_data_file(p_file_path, s_api_path)
-                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: terminé")
-            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.data_files)} fichiers de données ont été ajoutés avec succès.")
+            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.data_files)} fichiers de données ont été ajoutés avec succès. ({i_file_upload} livrer lors de ce traitement)")
 
     def __push_md5_files(self) -> None:
         """Téléverse les fichiers de clefs (listés dans le dataset)."""
         if self.__upload is not None:
-            # Liste les fichiers md5 téléversés sur l'entrepôt et récupère leur taille
-            l_arborescence = self.__upload.api_tree()
-            d_destination_taille = UploadAction.parse_tree(l_arborescence)
+            i_file_upload = self.__push_files(
+                [(p_file, "") for p_file in self.__dataset.md5_files],
+                self.__normalise_api_push_md5_file,
+                self.__upload.api_delete_md5_file,
+            )
+            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.md5_files)} fichiers md5 ont été ajoutés avec succès. ({i_file_upload} livrer lors de ce traitement)")
 
-            for p_file_path in self.__dataset.md5_files:
-                # Regarde si le fichier du dataset est déjà dans la liste des fichiers téléversés sur l'entrepôt
-                # NB: sur l'entrepot, tous les fichiers md5 sont à la racine
-                s_api_path = p_file_path.name
-                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_api_path}...")
-                if s_api_path in d_destination_taille:
-                    # le fichier est déjà livré, on check sa taille :
-                    if d_destination_taille[s_api_path] == p_file_path.stat().st_size:
-                        # le fichier a été complètement téléversé. On passe au fichier suivant.
-                        Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_api_path}: déjà livré")
-                        continue
+    def __normalise_api_push_md5_file(self, path: Path, nom: str) -> None:
+        """fonction cachant api_push_md5_file pour avoir une fonction ayant les même entrées que api_push_data_file, utilisé comme paramétre de __push_files
 
-                    # le fichier n'a pas été téléversé en totalité.
-                    # Si le mode "Append" n'est pas disponible sur le serveur, il faut supprimer le fichier à moitié téléversé.
-                    # Sinon il faudra reprendre le téléversement (!)
-                    self.__upload.api_delete_data_file(s_api_path)
+        Args:
+            path (Path): chemin le la chef MD5
+            nom (str): non du ficher md5
+        """
+        if self.__upload is None:
+            raise GpfSdkError(f"Aucune livraison de définie - impossible de livrer {nom}")
+        self.__upload.api_push_md5_file(path)
 
-                # sinon, on doit livrer le fichier
-                self.__upload.api_push_md5_file(p_file_path)
-                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_api_path}: terminé")
-            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.md5_files)} fichiers md5 ont été ajoutés avec succès.")
+    def __push_files(self, l_files: List[Tuple[Path, str]], f_api_push: Callable[[Path, str], None], f_api_delete: Callable[[str], None]) -> int:
+        """pousse un ficher de données ou un ficher md5 sur le store. Gére la reprise de Livraison et les conflicts lors de la livraison.
+
+        Args:
+            l_files (List[Tuple[Path, str]]): liste de tuple Path du ficher à livre, nom du ficher sous la gpf
+            f_api_push (Callable[[Path, str], None]): fonction pour livrer les données
+            f_api_delete (Callable[[str], None]): fonction pour supprimé les données si livrer partiellement.
+
+        Returns:
+            int: nombre de ficher réellement téléverser durant l'action
+        """
+        if self.__upload is None:
+            raise GpfSdkError("Aucune livraison de définie")
+        # Liste les fichiers téléversés sur l'entrepôt et récupère leur taille
+        l_arborescence = self.__upload.api_tree()
+        d_destination_taille = UploadAction.parse_tree(l_arborescence)
+        l_conflict = []
+        i_file_upload = 0
+        for p_file_path, s_api_path in l_files:
+            # Regarde si le fichier du dataset est déjà dans la liste des fichiers téléversés sur l'entrepôt
+            # NB: sur l'entrepot, tous les fichiers md5 sont à la racine
+            s_data_api_path = f"{s_api_path}/{p_file_path.name}" if s_api_path else p_file_path.name
+            Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}...")
+            if s_data_api_path in d_destination_taille:
+                # le fichier est déjà livré, on check sa taille :
+                if d_destination_taille[s_data_api_path] == p_file_path.stat().st_size:
+                    # le fichier a été complètement téléversé. On passe au fichier suivant.
+                    Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
+                    continue
+
+                # le fichier n'a pas été téléversé en totalité.
+                # Si le mode "Append" n'est pas disponible sur le serveur, il faut supprimer le fichier à moitié téléversé.
+                # Sinon il faudra reprendre le téléversement (!)
+                f_api_delete(s_data_api_path)
+
+            try:
+                # livraison du fichier
+                f_api_push(p_file_path, s_api_path)
+                i_file_upload += 1
+                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: terminé")
+            except requests.Timeout:
+                Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: timeout.")
+                l_conflict.append((p_file_path, s_data_api_path))
+            except ConflictError:
+                Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: conflict.")
+                l_conflict.append((p_file_path, s_data_api_path))
+        if l_conflict:
+            Config().om.info(f"Livraison {self.__upload}: {len(l_conflict)} fichiers en conflict, vérification de leur livraisons...")
+            l_error = self._check_file_uploaded(l_conflict)
+            if l_error:
+                raise UploadFileError(f"Livraison {self.__upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.", l_error)
+        return i_file_upload
+
+    def _check_file_uploaded(self, l_files: List[Tuple[Path, str]]) -> List[Tuple[Path, str]]:
+        if self.__upload is None:
+            raise GpfSdkError("Aucune livraison de définie")
+        # on recharge la l'arborescence
+        l_arborescence = self.__upload.api_tree()
+        d_destination_taille = UploadAction.parse_tree(l_arborescence)
+        l_error: List[Tuple[Path, str]] = []
+        # vérifications
+        for p_file_path, s_api_path in l_files:
+            s_data_api_path = f"{s_api_path}/{p_file_path.name}" if s_api_path else p_file_path.name
+            if s_data_api_path in d_destination_taille:
+                # le fichier est déjà livré, on check sa taille :
+                if d_destination_taille[s_data_api_path] == p_file_path.stat().st_size:
+                    # le fichier a été complètement téléversé. On passe au fichier suivant.
+                    Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
+                else:
+                    Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: à re-livré, problème de taille")
+                    l_error.append((p_file_path, s_api_path))
+            else:
+                Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: Non trouvé dans la liste des fichiers livrer")
+                l_error.append((p_file_path, s_api_path))
+        return l_error
 
     def __close(self) -> None:
         """Ferme la livraison."""

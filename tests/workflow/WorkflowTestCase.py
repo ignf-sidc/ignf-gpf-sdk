@@ -17,6 +17,7 @@ from sdk_entrepot_gpf.workflow.action.ConfigurationAction import ConfigurationAc
 from sdk_entrepot_gpf.workflow.action.CopyConfigurationAction import CopyConfigurationAction
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.EditAction import EditAction
+from sdk_entrepot_gpf.workflow.action.EditUsedDataConfigurationAction import EditUsedDataConfigurationAction
 from sdk_entrepot_gpf.workflow.action.OfferingAction import OfferingAction
 from sdk_entrepot_gpf.workflow.action.PermissionAction import PermissionAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
@@ -90,11 +91,11 @@ class WorkflowTestCase(GpfTestCase):
             if isinstance(d_etape["iter_vals"][0], (str, float, int)):
                 # si la liste est une liste de string, un int ou flat : on remplace directement
                 for s_val in d_etape["iter_vals"]:
-                    l_actions += json.loads(s_actions.replace("{" + d_etape["iter_key"] + "}", s_val))
+                    l_actions += json.loads(s_actions.replace("{" + d_etape["iter_key"] + "}", s_val))  # json.loads ok car on est dans des tests
             else:
                 # on a une liste de sous dict ou apparenté on utilise un résolveur
                 for i, s_val in enumerate(d_etape["iter_vals"]):
-                    l_actions += json.loads(s_actions.replace(d_etape["iter_key"], f"iter_resolve_{i}"))
+                    l_actions += json.loads(s_actions.replace(d_etape["iter_key"], f"iter_resolve_{i}"))  # json.loads ok car on est dans des tests
         return l_actions
 
     def run_run_step(
@@ -373,6 +374,7 @@ class WorkflowTestCase(GpfTestCase):
         patch.object(OfferingAction, "__init__", wraps=new_init) as d_mock["OfferingAction"], \
         patch.object(SynchronizeOfferingAction, "__init__", wraps=new_init) as d_mock["SynchronizeOfferingAction"], \
         patch.object(CopyConfigurationAction, "__init__", wraps=new_init) as d_mock["CopyConfigurationAction"], \
+        patch.object(EditUsedDataConfigurationAction, "__init__", wraps=new_init) as d_mock["EditUsedDataConfigurationAction"], \
         patch.object(EditAction, "__init__", wraps=new_init) as d_mock["EditAction"]:
             # fmt: on
             # exécution
@@ -414,6 +416,8 @@ class WorkflowTestCase(GpfTestCase):
         self.run_generation(EditAction, "name", {"type": "edit-entity"}, o_mock_parent, with_beavior=False)
         # test type permission
         self.run_generation(PermissionAction, "name", {"type": "permission"}, o_mock_parent, with_beavior=False)
+        # test type used_data-configuration
+        self.run_generation(EditUsedDataConfigurationAction, "name", {"type": "used_data-configuration"}, o_mock_parent, with_beavior=False)
 
     def test_open_workflow(self) -> None:
         """Test de la fonction open_workflow."""

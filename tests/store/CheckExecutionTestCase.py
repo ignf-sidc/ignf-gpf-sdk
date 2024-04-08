@@ -1,3 +1,4 @@
+from typing import Any, Dict, List
 from unittest.mock import patch
 
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
@@ -14,15 +15,15 @@ class CheckExecutionTestCase(GpfTestCase):
     def test_api_logs(self) -> None:
         "Vérifie le bon fonctionnement de api_logs."
         s_data = "2022/05/18 14:29:25       INFO §USER§ Envoi du signal de début de l'exécution à l'API.\n2022/05/18 14:29:25       INFO §USER§ Signal transmis avec succès."
-        l_rep = [
-            {"datastore": "datastore_id", "data": s_data, "rep": s_data},
+        l_rep: List[Dict[str, Any]] = [
+            {"datastore": "datastore_id", "data": s_data.split("\n"), "rep": s_data},
             {"datastore": "datastore_id", "data": "", "rep": ""},
-            {"datastore": "datastore_id", "data": "[]", "rep": ""},
-            {"datastore": "datastore_id", "data": '["log1", "log2", " log \\"complexe\\""]', "rep": 'log1\nlog2\n log "complexe"'},
+            {"datastore": "datastore_id", "data": [], "rep": ""},
+            {"datastore": "datastore_id", "data": ["log1", "log2", ' log "complexe"'], "rep": 'log1\nlog2\n log "complexe"'},
         ]
 
         for d_rep in l_rep:
-            o_response = GpfTestCase.get_response(text=d_rep["data"])
+            o_response = GpfTestCase.get_response(json=d_rep["data"])
             # On mock la fonction route_request, on veut vérifier qu'elle est appelée avec les bons params
             with patch.object(ApiRequester, "route_request", return_value=o_response) as o_mock_request:
                 # on appelle la fonction à tester : api_logs

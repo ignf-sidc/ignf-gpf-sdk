@@ -17,15 +17,15 @@ class ProcessingExecutionTestCase(GpfTestCase):
         """Vérifie le bon fonctionnement de api_logs."""
         s_data = "2022/05/18 14:29:25       INFO §USER§ Envoi du signal de début de l'exécution à l'API.\n2022/05/18 14:29:25       INFO §USER§ Signal transmis avec succès."
         l_rep: List[Dict[str, Any]] = [
-            {"data": s_data, "rep": s_data, "datastore": None},
+            {"data": s_data.split("\n"), "rep": s_data, "datastore": None},
             {"data": "", "rep": "", "datastore": "datastore"},
-            {"data": "[]", "rep": "", "datastore": None},
-            {"data": '["log1", "log2", " log \\"complexe\\""]', "rep": 'log1\nlog2\n log "complexe"', "datastore": "datastore"},
+            {"data": [], "rep": "", "datastore": None},
+            {"data": ["log1", "log2", ' log "complexe"'], "rep": 'log1\nlog2\n log "complexe"', "datastore": "datastore"},
         ]
 
         for d_rep in l_rep:
             # Instanciation d'une fausse réponse HTTP
-            o_response = GpfTestCase.get_response(text=d_rep["data"])
+            o_response = GpfTestCase.get_response(json=d_rep["data"])
             # On mock la fonction route_request, on veut vérifier qu'elle est appelée avec les bons params
             with patch.object(ApiRequester, "route_request", return_value=o_response) as o_mock_request:
                 # on appelle la fonction à tester : api_logs
