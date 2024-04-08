@@ -6,7 +6,8 @@
 
 * workflow : ajout de EditUsedDataConfigurationAction #105
 * DeleteAction: meilleur gestion cas sans élément à supprimé #115
-* UploadAction: les conflits de livraisons ne bloquent pas la suite du traitement #119
+* UploadAction: les conflits de livraisons et timeout lors de la livraison ne bloquent pas la suite du traitement #119, #121
+* ApiRequester: ajout de timeout #121
 
 ### [Changed]
 
