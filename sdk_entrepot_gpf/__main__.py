@@ -6,8 +6,10 @@ import sys
 import argparse
 import traceback
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 import shutil
+import requests
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+
 
 import sdk_entrepot_gpf
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -880,7 +882,13 @@ if __name__ == "__main__":
         Config().om.debug(traceback.format_exc())
         Config().om.critical("La requête envoyée à l'Entrepôt génère un conflit. N'avez-vous pas déjà effectué l'action que vous essayez de faire ?")
         Config().om.error(e_error.message)
+    except requests.Timeout as e_error:
+        # gestion "globale" des timeout
+        Config().om.debug(traceback.format_exc())
+        Config().om.critical(f"Requête trop longe, timeout. URL : {e_error.request.method} {e_error.request.url}.")
+
     except Exception as e_exception:
+        print(e_exception)
         Config().om.critical("Erreur non spécifiée :")
         Config().om.error(traceback.format_exc())
         Config().om.critical("Erreur non spécifiée.")

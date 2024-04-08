@@ -3,7 +3,7 @@ from io import BufferedReader
 import json
 from pathlib import Path
 from typing import Dict, Tuple
-from unittest.mock import patch, mock_open
+from unittest.mock import MagicMock, patch, mock_open
 import requests
 import requests_mock
 
@@ -77,7 +77,45 @@ class ApiRequesterTestCase(GpfTestCase):
             )
             # Vérification sur o_mock_request
             s_url = "https://api.test.io/api/v1/datastores/TEST_DATASTORE/create/42"
-            o_mock_request.assert_called_once_with(s_url, ApiRequester.POST, self.param, self.data, self.files, {})
+            o_mock_request.assert_called_once_with(s_url, ApiRequester.POST, self.param, self.data, self.files, {}, -1000)
+            # Vérification sur la réponse renvoyée par la fonction : ça doit être celle renvoyée par url_request
+            self.assertEqual(o_fct_response, o_api_response)
+
+    def test_route_request_timeout(self) -> None:
+        """Test de route_request quand la route existe pour le timeout."""
+        # Instanciation d'une fausse réponse HTTP
+        o_api_response = GpfTestCase.get_response()
+        # timeout dans la requête
+        with patch.object(ApiRequester(), "url_request", return_value=o_api_response) as o_mock_request:
+            # On effectue une requête
+            o_fct_response = ApiRequester().route_request(
+                "test_timeout",
+                {"id": 42},
+                ApiRequester.POST,
+                params=self.param,
+                data=self.data,
+                files=self.files,
+                timeout=40,
+            )
+            # Vérification sur o_mock_request
+            s_url = "https://api.test.io/api/v1/datastores/TEST_DATASTORE/timeout/42"
+            o_mock_request.assert_called_once_with(s_url, ApiRequester.POST, self.param, self.data, self.files, {}, 40)
+            # Vérification sur la réponse renvoyée par la fonction : ça doit être celle renvoyée par url_request
+            self.assertEqual(o_fct_response, o_api_response)
+        # timeout pour la route
+        with patch.object(ApiRequester(), "url_request", return_value=o_api_response) as o_mock_request:
+            # On effectue une requête
+            o_fct_response = ApiRequester().route_request(
+                "test_timeout",
+                {"id": 42},
+                ApiRequester.POST,
+                params=self.param,
+                data=self.data,
+                files=self.files,
+            )
+            # Vérification sur o_mock_request
+            s_url = "https://api.test.io/api/v1/datastores/TEST_DATASTORE/timeout/42"
+            o_mock_request.assert_called_once_with(s_url, ApiRequester.POST, self.param, self.data, self.files, {}, 50)
             # Vérification sur la réponse renvoyée par la fonction : ça doit être celle renvoyée par url_request
             self.assertEqual(o_fct_response, o_api_response)
 
@@ -98,7 +136,7 @@ class ApiRequesterTestCase(GpfTestCase):
             )
             # Vérification sur o_mock_request
             s_url = "https://api.test.io/api/v1/datastores/OTHER_DATASTORE/create/42"
-            o_mock_request.assert_called_once_with(s_url, ApiRequester.POST, self.param, self.data, self.files, {})
+            o_mock_request.assert_called_once_with(s_url, ApiRequester.POST, self.param, self.data, self.files, {}, -1000)
             # Vérification sur la réponse renvoyée par la fonction : ça doit être celle renvoyée par url_request
             self.assertEqual(o_fct_response, o_api_response)
 
@@ -132,6 +170,8 @@ class ApiRequesterTestCase(GpfTestCase):
             # Requête 1 : vérification du corps de requête
             s_text = json.dumps(self.data)
             self.assertEqual(o_history[0].text, s_text, "check text")
+            # Requête 1 : timeout valeur par défaut
+            self.assertEqual(o_history[0].timeout, 600)
 
     def test_url_request_post(self) -> None:
         """Test de url_request dans le cadre d'une requête post."""
@@ -154,6 +194,53 @@ class ApiRequesterTestCase(GpfTestCase):
             # Requête 1 : vérification du corps de requête
             s_text = json.dumps(self.data)
             self.assertEqual(o_history[0].text, s_text, "check text")
+            # Requête 1 : timeout valeur par défaut
+            self.assertEqual(o_history[0].timeout, 600, "timeout")
+
+    def test_url_request_timeout_param(self) -> None:
+        """Test de url_request pour les timeout."""
+        # Timeout None
+        with requests_mock.Mocker() as o_mock:
+            # Une requête réussie
+            o_mock.post(self.url, json=self.response)
+            # On effectue une requête
+            o_response = ApiRequester().url_request(self.url, ApiRequester.POST, params=self.param, data=self.data, timeout=None)
+            # Vérification sur la réponse
+            self.assertDictEqual(o_response.json(), self.response)
+            # On a dû faire une requête
+            self.assertEqual(o_mock.call_count, 1, "o_mock.call_count == 1")
+            # Vérifications sur l'historique (enfin ici y'a une requête...)
+            o_history = o_mock.request_history
+            # Requête 1 : vérification de l'url
+            self.assertEqual(o_history[0].url, self.url + self.encoded_param, "check url")
+            # Requête 1 : vérification du type
+            self.assertEqual(o_history[0].method.lower(), "post", "method == post")
+            # Requête 1 : vérification du corps de requête
+            s_text = json.dumps(self.data)
+            self.assertEqual(o_history[0].text, s_text, "check text")
+            # Requête 1 : timeout
+            self.assertEqual(o_history[0].timeout, None)
+        # Timeout 10s
+        with requests_mock.Mocker() as o_mock:
+            # Une requête réussie
+            o_mock.post(self.url, json=self.response)
+            # On effectue une requête
+            o_response = ApiRequester().url_request(self.url, ApiRequester.POST, params=self.param, data=self.data, timeout=10)
+            # Vérification sur la réponse
+            self.assertDictEqual(o_response.json(), self.response)
+            # On a dû faire une requête
+            self.assertEqual(o_mock.call_count, 1, "o_mock.call_count == 1")
+            # Vérifications sur l'historique (enfin ici y'a une requête...)
+            o_history = o_mock.request_history
+            # Requête 1 : vérification de l'url
+            self.assertEqual(o_history[0].url, self.url + self.encoded_param, "check url")
+            # Requête 1 : vérification du type
+            self.assertEqual(o_history[0].method.lower(), "post", "method == post")
+            # Requête 1 : vérification du corps de requête
+            s_text = json.dumps(self.data)
+            self.assertEqual(o_history[0].text, s_text, "check text")
+            # Requête 1 : timeout
+            self.assertEqual(o_history[0].timeout, 10)
 
     def test_url_request_internal_server_error(self) -> None:
         """Test de url_request dans le cadre de 3 erreurs internes de suite."""
@@ -292,7 +379,7 @@ class ApiRequesterTestCase(GpfTestCase):
         """test de route_upload_file"""
         p_file = Path("rep/file")
         s_path_api = "key"
-        s_route_name = "route_mane"
+        s_route_name = "route_name"
         d_route_params = None
         s_method = "POST"
         d_params = None
@@ -301,8 +388,45 @@ class ApiRequesterTestCase(GpfTestCase):
         o_open = mock_open()
         o_tuple_file = (p_file.name, o_open.return_value)
         o_dict_files = {s_path_api: o_tuple_file}
+        o_mock_stat = MagicMock()
+        o_mock_stat.st_size = 10
+        # pas de timeout
         with patch.object(Path, "open", return_value=o_open.return_value) as o_mock_open:
-            with patch.object(ApiRequester, "route_request", return_value=None) as o_mock_request:
-                ApiRequester().route_upload_file(s_route_name, p_file, s_path_api, d_route_params, s_method, d_params, d_data)
-                o_mock_open.assert_called_once_with("rb")
-                o_mock_request.assert_called_once_with(s_route_name, route_params=d_route_params, method=s_method, params=d_params, data=d_data, files=o_dict_files)
+            with patch.object(Path, "stat", return_value=o_mock_stat):
+                with patch.object(ApiRequester, "route_request", return_value=None) as o_mock_request:
+                    ApiRequester().route_upload_file(s_route_name, p_file, s_path_api, d_route_params, s_method, d_params, d_data)
+                    o_mock_open.assert_called_once_with("rb")
+                    o_mock_request.assert_called_once_with(s_route_name, route_params=d_route_params, method=s_method, params=d_params, data=d_data, files=o_dict_files, timeout=-1000)
+        o_mock_stat.reset_mock()
+
+        # timeout None
+        for s_route_name in ["test_upload_none_1", "test_upload_none_2", "test_upload_none_3"]:
+            with patch.object(Path, "open", return_value=o_open.return_value) as o_mock_open:
+                with patch.object(Path, "stat", return_value=o_mock_stat):
+                    with patch.object(ApiRequester, "route_request", return_value=None) as o_mock_request:
+                        ApiRequester().route_upload_file(s_route_name, p_file, s_path_api, d_route_params, s_method, d_params, d_data)
+                        o_mock_open.assert_called_once_with("rb")
+                        o_mock_request.assert_called_once_with(s_route_name, route_params=d_route_params, method=s_method, params=d_params, data=d_data, files=o_dict_files, timeout=None)
+            o_mock_stat.reset_mock()
+
+        # timeout fixe
+        s_route_name = "test_upload_fixe"
+        with patch.object(Path, "open", return_value=o_open.return_value) as o_mock_open:
+            with patch.object(Path, "stat", return_value=o_mock_stat):
+                with patch.object(ApiRequester, "route_request", return_value=None) as o_mock_request:
+                    ApiRequester().route_upload_file(s_route_name, p_file, s_path_api, d_route_params, s_method, d_params, d_data)
+                    o_mock_open.assert_called_once_with("rb")
+                    o_mock_request.assert_called_once_with(s_route_name, route_params=d_route_params, method=s_method, params=d_params, data=d_data, files=o_dict_files, timeout=60)
+        o_mock_stat.reset_mock()
+
+        # timeout selon taille du fichier
+        s_route_name = "test_upload_variable"
+        for i_taille_ficher, i_timeout in [(1, -1000), (15, 15), (16, 15), (35, 30), (65, None), (70, 70), (700000, 70)]:
+            o_mock_stat.st_size = i_taille_ficher
+            with patch.object(Path, "open", return_value=o_open.return_value) as o_mock_open:
+                with patch.object(Path, "stat", return_value=o_mock_stat):
+                    with patch.object(ApiRequester, "route_request", return_value=None) as o_mock_request:
+                        ApiRequester().route_upload_file(s_route_name, p_file, s_path_api, d_route_params, s_method, d_params, d_data)
+                        o_mock_open.assert_called_once_with("rb")
+                        o_mock_request.assert_called_once_with(s_route_name, route_params=d_route_params, method=s_method, params=d_params, data=d_data, files=o_dict_files, timeout=i_timeout)
+            o_mock_stat.reset_mock()
