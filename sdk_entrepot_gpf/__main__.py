@@ -7,8 +7,8 @@ import argparse
 import traceback
 from pathlib import Path
 import shutil
-import requests
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+import requests
 
 
 import sdk_entrepot_gpf
@@ -885,7 +885,7 @@ if __name__ == "__main__":
     except requests.Timeout as e_error:
         # gestion "globale" des timeout
         Config().om.debug(traceback.format_exc())
-        Config().om.critical(f"Requête trop longe, timeout. URL : {e_error.request.method} {e_error.request.url}.")
+        Config().om.critical(f"Requête trop longe, timeout. URL : {str(e_error.request.method)+' ' +str(e_error.request.url) if e_error.request else ''}.")
 
     except Exception as e_exception:
         print(e_exception)
