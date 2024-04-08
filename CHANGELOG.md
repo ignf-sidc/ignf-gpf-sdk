@@ -1,5 +1,13 @@
 # CHANGE LOG
 
+## v0.1.26
+
+### [Added]
+
+### [Changed]
+
+### [Fixed]
+
 ## v0.1.25
 
 ### [Added]
