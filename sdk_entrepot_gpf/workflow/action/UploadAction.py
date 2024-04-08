@@ -1,7 +1,7 @@
 from pathlib import Path
 import time
-import requests
 from typing import Any, Callable, Dict, List, Optional, Tuple
+import requests
 
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -10,6 +10,7 @@ from sdk_entrepot_gpf.store.CheckExecution import CheckExecution
 from sdk_entrepot_gpf.store.Upload import Upload
 from sdk_entrepot_gpf.io.Dataset import Dataset
 from sdk_entrepot_gpf.io.Config import Config
+from sdk_entrepot_gpf.workflow.Errors import UploadFileError
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 
 
@@ -208,28 +209,34 @@ class UploadAction:
                 Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: conflict.")
                 l_conflict.append((p_file_path, s_data_api_path))
         if l_conflict:
-            Config().om.info(f"Livraison {self.__upload}: {len(l_conflict)} fichiers en conflict, vérification de leur livraisons.")
-            # on recharge la l'arborescence
-            l_arborescence = self.__upload.api_tree()
-            d_destination_taille = UploadAction.parse_tree(l_arborescence)
-            l_error = []
-            # vérifications
-            for p_file_path, s_api_path in l_conflict:
-                s_data_api_path = f"{s_api_path}/{p_file_path.name}" if s_api_path else p_file_path.name
-                if s_data_api_path in d_destination_taille:
-                    # le fichier est déjà livré, on check sa taille :
-                    if d_destination_taille[s_data_api_path] == p_file_path.stat().st_size:
-                        # le fichier a été complètement téléversé. On passe au fichier suivant.
-                        Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
-                    else:
-                        Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: à re-livré, problème de taille")
-                        l_error.append(str(p_file_path))
-                else:
-                    Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: Non trouvé dans la liste des fichiers livrer")
-                    l_error.append(str(p_file_path))
+            Config().om.info(f"Livraison {self.__upload}: {len(l_conflict)} fichiers en conflict, vérification de leur livraisons...")
+            l_error = self._check_file_uploaded(l_conflict)
             if l_error:
-                raise GpfSdkError(f"Livraison {self.__upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.")
+                raise UploadFileError(f"Livraison {self.__upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.", l_error)
         return i_file_upload
+
+    def _check_file_uploaded(self, l_files: List[Tuple[Path, str]]) -> List[Tuple[Path, str]]:
+        if self.__upload is None:
+            raise GpfSdkError("Aucune livraison de définie")
+        # on recharge la l'arborescence
+        l_arborescence = self.__upload.api_tree()
+        d_destination_taille = UploadAction.parse_tree(l_arborescence)
+        l_error: List[Tuple[Path, str]] = []
+        # vérifications
+        for p_file_path, s_api_path in l_files:
+            s_data_api_path = f"{s_api_path}/{p_file_path.name}" if s_api_path else p_file_path.name
+            if s_data_api_path in d_destination_taille:
+                # le fichier est déjà livré, on check sa taille :
+                if d_destination_taille[s_data_api_path] == p_file_path.stat().st_size:
+                    # le fichier a été complètement téléversé. On passe au fichier suivant.
+                    Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
+                else:
+                    Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: à re-livré, problème de taille")
+                    l_error.append((p_file_path, s_api_path))
+            else:
+                Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: Non trouvé dans la liste des fichiers livrer")
+                l_error.append((p_file_path, s_api_path))
+        return l_error
 
     def __close(self) -> None:
         """Ferme la livraison."""
