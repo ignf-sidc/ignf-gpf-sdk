@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* UploadAction: possibilité vérification totale des fichiers livrés avant de fermer la livraison #124
+
 ### [Changed]
 
 ### [Fixed]
