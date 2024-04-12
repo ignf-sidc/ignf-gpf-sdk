@@ -122,7 +122,7 @@ class UploadAction:
 
     def __add_tags(self) -> None:
         """Ajoute les tags."""
-        if self.__upload is not None and self.__dataset.tags is not None:
+        if self.__upload is not None and self.__dataset.tags:
             Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
             self.__upload.api_add_tags(self.__dataset.tags)
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
@@ -224,10 +224,10 @@ class UploadAction:
                 Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: terminé")
             except requests.Timeout:
                 Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: timeout.")
-                l_conflict.append((p_file_path, s_data_api_path))
+                l_conflict.append((p_file_path, s_api_path))
             except ConflictError:
                 Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: conflict.")
-                l_conflict.append((p_file_path, s_data_api_path))
+                l_conflict.append((p_file_path, s_api_path))
         if not check_conflict and l_conflict:
             # pas de vérification des conflicts
             Config().om.info(f"Livraison {self.__upload}: {len(l_conflict)} fichiers en conflict : " + "\n * ".join([s_data_api_path for (p_file_path, s_data_api_path) in l_conflict]))
@@ -240,6 +240,17 @@ class UploadAction:
         return i_file_upload
 
     def __check_file_uploaded(self, l_files: List[Tuple[Path, str]]) -> List[Tuple[Path, str]]:
+        """vérifie si les fichiers donnée en entrée soit bien livrer
+
+        Args:
+            l_files (List[Tuple[Path, str]]): liste des ficher à vérifier (path du fichier, chemin du fichier sur la GPF)
+
+        Raises:
+            GpfSdkError: _description_
+
+        Returns:
+            List[Tuple[Path, str]]: liste des fichiers en erreur (path du fichier, chemin du fichier sur la GPF)
+        """
         if self.__upload is None:
             raise GpfSdkError("Aucune livraison de définie")
         # on recharge la l'arborescence
