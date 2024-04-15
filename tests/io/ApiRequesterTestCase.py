@@ -396,7 +396,7 @@ class ApiRequesterTestCase(GpfTestCase):
                 with patch.object(ApiRequester, "route_request", return_value=None) as o_mock_request:
                     ApiRequester().route_upload_file(s_route_name, p_file, s_path_api, d_route_params, s_method, d_params, d_data)
                     o_mock_open.assert_called_once_with("rb")
-                    o_mock_request.assert_called_once_with(s_route_name, route_params=d_route_params, method=s_method, params=d_params, data=d_data, files=o_dict_files, timeout=-1000)
+                    o_mock_request.assert_called_once_with(s_route_name, route_params=d_route_params, method=s_method, params=d_params, data=d_data, files=o_dict_files, timeout=600)
         o_mock_stat.reset_mock()
 
         # timeout None
@@ -421,7 +421,7 @@ class ApiRequesterTestCase(GpfTestCase):
 
         # timeout selon taille du fichier
         s_route_name = "test_upload_variable"
-        for i_taille_ficher, i_timeout in [(1, -1000), (15, 15), (16, 15), (35, 30), (65, None), (70, 70), (700000, 70)]:
+        for i_taille_ficher, i_timeout in [(1, 600), (15, 15), (16, 15), (35, 30), (65, None), (70, 70), (700000, 70)]:
             o_mock_stat.st_size = i_taille_ficher
             with patch.object(Path, "open", return_value=o_open.return_value) as o_mock_open:
                 with patch.object(Path, "stat", return_value=o_mock_stat):
