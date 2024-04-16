@@ -295,6 +295,10 @@ class ApiRequester(metaclass=Singleton):
                 i_index_timeout = max(int(i) for i in d_timeout_dict if int(i) <= file_path.stat().st_size)
                 timeout = d_timeout_dict[str(i_index_timeout)]
 
+        if timeout and timeout < 0:
+            s_default_timeout = Config().get("store_api", "timeout")
+            timeout = None if not s_default_timeout or s_default_timeout == "null" else int(s_default_timeout)
+
         # Ouverture du fichier et remplissage du tuple de fichier
         with file_path.open("rb") as o_file_binary:
             o_tuple_file = (file_path.name, o_file_binary)

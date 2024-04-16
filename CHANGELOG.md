@@ -12,6 +12,8 @@
 
 ### [Fixed]
 
+* Timeout mauvaise gestion valeur par défaut pour les upload de fichiers #125
+
 ## v0.1.25
 
 ### [Added]
