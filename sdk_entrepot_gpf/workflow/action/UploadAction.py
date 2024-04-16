@@ -34,12 +34,13 @@ class UploadAction:
         # On suit le comportement donnée en paramètre ou à défaut celui de la config
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
 
-    def run(self, datastore: Optional[str]) -> Upload:
+    def run(self, datastore: Optional[str], check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
         retourner la livraison créée.
 
         Args:
             datastore (Optional[str]): id du datastore à utiliser. Si None, le datastore sera récupéré dans la configuration.
+            check_before_close (bool): Vérification de l'arborescence de la livraison avant fermeture.
 
         Raises:
             GpfSdkError: levée si création non effectuée
@@ -51,24 +52,32 @@ class UploadAction:
         # Création de la livraison
         self.__create_upload(datastore)
 
+        if not self.upload:
+            raise GpfSdkError("Erreur à la création de la livraison.")
         # Cas livraison fermé = déjà traité : on sort
-        if self.upload and not self.upload.is_open():
+        if not self.upload.is_open():
             return self.upload
 
         # Ajout des tags
         self.__add_tags()
         # Ajout des commentaires
         self.__add_comments()
-        # Envoie des fichiers de données
-        self.__push_data_files()
-        # Envoie des fichiers md5
-        self.__push_md5_files()
+        # Envoie des fichiers de données (pas de vérification sur les problèmes de livraison si check_before_close)
+        self.__push_data_files(not check_before_close)
+        # Envoie des fichiers md5 (pas de vérification sur les problèmes de livraison si check_before_close)
+        self.__push_md5_files(not check_before_close)
+        if check_before_close:
+            Config().om.info(f"Livraison {self.upload}: vérification de l'arborescent avant livraison ...")
+            # vérification de la livraison des fichiers de données + ficher md5
+            l_error = self.__check_file_uploaded(list(self.__dataset.data_files.items()) + [(p_file, "") for p_file in self.__dataset.md5_files])
+            if l_error:
+                raise UploadFileError(f"Livraison {self.upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.", l_error)
         # Fermeture de la livraison
         self.__close()
         # Affiche et retourne la livraison
         if self.upload is not None:
             # Affichage
-            Config().om.info(f"Livraison créée et complétée : {self.__upload}")
+            Config().om.info(f"Livraison créée et complétée : {self.upload}")
             Config().om.info("Création et complétion d'une livraison : terminé")
             # Retour
             return self.upload
@@ -113,7 +122,7 @@ class UploadAction:
 
     def __add_tags(self) -> None:
         """Ajoute les tags."""
-        if self.__upload is not None and self.__dataset.tags is not None:
+        if self.__upload is not None and self.__dataset.tags:
             Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
             self.__upload.api_add_tags(self.__dataset.tags)
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
@@ -128,8 +137,12 @@ class UploadAction:
                     self.__upload.api_add_comment({"text": s_comment})
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.comments)} commentaires ont été ajoutés avec succès.")
 
-    def __push_data_files(self) -> None:
-        """Téléverse les fichiers de données (listés dans le dataset)."""
+    def __push_data_files(self, check_conflict: bool = True) -> None:
+        """Téléverse les fichiers de données (listés dans le dataset).
+
+        Args:
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée.
+        """
         if self.__upload is not None:
             # Liste les fichiers déjà téléversés sur l'entrepôt et récupère leur taille
             Config().om.info(f"Livraison {self.__upload['name']} : récupération de l'arborescence des données déjà téléversées...")
@@ -137,19 +150,25 @@ class UploadAction:
                 list(self.__dataset.data_files.items()),
                 self.__upload.api_push_data_file,
                 self.__upload.api_delete_data_file,
+                check_conflict,
             )
 
-            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.data_files)} fichiers de données ont été ajoutés avec succès. ({i_file_upload} livrer lors de ce traitement)")
+            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.data_files)} fichiers de données ont été ajoutés avec succès. ({i_file_upload} livré(s) lors de ce traitement)")
 
-    def __push_md5_files(self) -> None:
-        """Téléverse les fichiers de clefs (listés dans le dataset)."""
+    def __push_md5_files(self, check_conflict: bool = True) -> None:
+        """Téléverse les fichiers de clefs (listés dans le dataset).
+
+        Args:
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée..
+        """
         if self.__upload is not None:
             i_file_upload = self.__push_files(
                 [(p_file, "") for p_file in self.__dataset.md5_files],
                 self.__normalise_api_push_md5_file,
                 self.__upload.api_delete_md5_file,
+                check_conflict,
             )
-            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.md5_files)} fichiers md5 ont été ajoutés avec succès. ({i_file_upload} livrer lors de ce traitement)")
+            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.md5_files)} fichiers md5 ont été ajoutés avec succès. ({i_file_upload} livré(s) lors de ce traitement)")
 
     def __normalise_api_push_md5_file(self, path: Path, nom: str) -> None:
         """fonction cachant api_push_md5_file pour avoir une fonction ayant les même entrées que api_push_data_file, utilisé comme paramétre de __push_files
@@ -162,13 +181,14 @@ class UploadAction:
             raise GpfSdkError(f"Aucune livraison de définie - impossible de livrer {nom}")
         self.__upload.api_push_md5_file(path)
 
-    def __push_files(self, l_files: List[Tuple[Path, str]], f_api_push: Callable[[Path, str], None], f_api_delete: Callable[[str], None]) -> int:
+    def __push_files(self, l_files: List[Tuple[Path, str]], f_api_push: Callable[[Path, str], None], f_api_delete: Callable[[str], None], check_conflict: bool = True) -> int:
         """pousse un ficher de données ou un ficher md5 sur le store. Gére la reprise de Livraison et les conflicts lors de la livraison.
 
         Args:
             l_files (List[Tuple[Path, str]]): liste de tuple Path du ficher à livre, nom du ficher sous la gpf
             f_api_push (Callable[[Path, str], None]): fonction pour livrer les données
             f_api_delete (Callable[[str], None]): fonction pour supprimé les données si livrer partiellement.
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée..
 
         Returns:
             int: nombre de ficher réellement téléverser durant l'action
@@ -204,18 +224,33 @@ class UploadAction:
                 Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: terminé")
             except requests.Timeout:
                 Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: timeout.")
-                l_conflict.append((p_file_path, s_data_api_path))
+                l_conflict.append((p_file_path, s_api_path))
             except ConflictError:
                 Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: conflict.")
-                l_conflict.append((p_file_path, s_data_api_path))
-        if l_conflict:
+                l_conflict.append((p_file_path, s_api_path))
+        if not check_conflict and l_conflict:
+            # pas de vérification des conflicts
+            Config().om.info(f"Livraison {self.__upload}: {len(l_conflict)} fichiers en conflict : " + "\n * ".join([s_data_api_path for (p_file_path, s_data_api_path) in l_conflict]))
+        elif l_conflict:
+            # vérification des fichiers en conflict
             Config().om.info(f"Livraison {self.__upload}: {len(l_conflict)} fichiers en conflict, vérification de leur livraisons...")
-            l_error = self._check_file_uploaded(l_conflict)
+            l_error = self.__check_file_uploaded(l_conflict)
             if l_error:
                 raise UploadFileError(f"Livraison {self.__upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.", l_error)
         return i_file_upload
 
-    def _check_file_uploaded(self, l_files: List[Tuple[Path, str]]) -> List[Tuple[Path, str]]:
+    def __check_file_uploaded(self, l_files: List[Tuple[Path, str]]) -> List[Tuple[Path, str]]:
+        """vérifie si les fichiers donnée en entrée soit bien livrer
+
+        Args:
+            l_files (List[Tuple[Path, str]]): liste des ficher à vérifier (path du fichier, chemin du fichier sur la GPF)
+
+        Raises:
+            GpfSdkError: _description_
+
+        Returns:
+            List[Tuple[Path, str]]: liste des fichiers en erreur (path du fichier, chemin du fichier sur la GPF)
+        """
         if self.__upload is None:
             raise GpfSdkError("Aucune livraison de définie")
         # on recharge la l'arborescence

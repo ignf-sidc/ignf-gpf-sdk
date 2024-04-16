@@ -1,8 +1,12 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+
+import requests
+from sdk_entrepot_gpf.io.Errors import ConflictError
 from sdk_entrepot_gpf.store.CheckExecution import CheckExecution
+from sdk_entrepot_gpf.workflow.Errors import UploadFileError
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 
 from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
@@ -11,6 +15,7 @@ from sdk_entrepot_gpf.io.Config import Config
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from tests.GpfTestCase import GpfTestCase
 
+# mypy: ignore-errors
 # pylint:disable=too-many-arguments
 # pylint:disable=too-many-locals
 # pylint:disable=too-many-branches
@@ -19,6 +24,81 @@ from tests.GpfTestCase import GpfTestCase
 # pylint:disable=protected-access
 # fmt: off
 # (on désactive le formatage en attendant Python 3.10 et la possibilité de mettre des parenthèses pour gérer le multi with proprement)
+
+class  UploadActionNoPrivate(UploadAction):
+    """Classe pour accéder aux fonction privée de UploadAction"""
+
+    def set_upload(self, o_upload: Optional[Upload]) -> None:
+        """change l'upload"""
+        self._UploadAction__upload = o_upload# pylint: disable=no-member,invalid-name,attribute-defined-outside-init
+
+    def create_upload(self, datastore: Optional[str]) -> None:
+        """Crée l'upload après avoir vérifié s'il n'existe pas déjà...
+
+        Args:
+            datastore (Optional[str]): id du datastore à utiliser.
+        """
+        self._UploadAction__create_upload(datastore) # pylint: disable=no-member
+    def add_tags(self) -> None:
+        """Ajoute les tags."""
+        self._UploadAction__add_tags() # pylint: disable=no-member
+
+    def add_comments(self) -> None:
+        """Ajoute les commentaires."""
+        self._UploadAction__add_comments() # pylint: disable=no-member
+
+    def push_data_files(self, check_conflict: bool = True) -> None:
+        """Téléverse les fichiers de données (listés dans le dataset).
+
+        Args:
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée.
+        """
+        self._UploadAction__push_data_files(check_conflict) # pylint: disable=no-member
+    def push_md5_files(self, check_conflict: bool = True) -> None:
+        """Téléverse les fichiers de clefs (listés dans le dataset).
+
+        Args:
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée..
+        """
+        self._UploadAction__push_md5_files(check_conflict) # pylint: disable=no-member
+    def normalise_api_push_md5_file(self, path: Path, nom: str) -> None:
+        """fonction cachant api_push_md5_file pour avoir une fonction ayant les même entrées que api_push_data_file, utilisé comme paramétre de __push_files
+
+        Args:
+            path (Path): chemin le la chef MD5
+            nom (str): non du ficher md5
+        """
+        self._UploadAction__normalise_api_push_md5_file(path, nom) # pylint: disable=no-member
+    def push_files(self, l_files: List[Tuple[Path, str]], f_api_push: Callable[[Path, str], None], f_api_delete: Callable[[str], None], check_conflict: bool = True) -> int:
+        """pousse un ficher de données ou un ficher md5 sur le store. Gére la reprise de Livraison et les conflicts lors de la livraison.
+
+        Args:
+            l_files (List[Tuple[Path, str]]): liste de tuple Path du ficher à livre, nom du ficher sous la gpf
+            f_api_push (Callable[[Path, str], None]): fonction pour livrer les données
+            f_api_delete (Callable[[str], None]): fonction pour supprimé les données si livrer partiellement.
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée..
+
+        Returns:
+            int: nombre de ficher réellement téléverser durant l'action
+        """
+        return self._UploadAction__push_files(l_files, f_api_push, f_api_delete, check_conflict) # pylint: disable=no-member
+    def check_file_uploaded(self, l_files: List[Tuple[Path, str]]) -> List[Tuple[Path, str]]:
+        """vérifie si les fichiers donnée en entrée soit bien livrer
+
+        Args:
+            l_files (List[Tuple[Path, str]]): liste des ficher à vérifier (path du fichier, chemin du fichier sur la GPF)
+
+        Raises:
+            GpfSdkError: _description_
+
+        Returns:
+            List[Tuple[Path, str]]: liste des fichiers en erreur (path du fichier, chemin du fichier sur la GPF)
+        """
+        return self._UploadAction__check_file_uploaded(l_files) # pylint: disable=no-member
+    def close(self) -> None:
+        """Ferme la livraison."""
+        self._UploadAction__close() # pylint: disable=no-member
+
 
 
 class UploadActionTestCase(GpfTestCase):
@@ -69,257 +149,521 @@ class UploadActionTestCase(GpfTestCase):
                 o_mock_get_filters.assert_called_once_with("upload", o_mock_dataset.upload_infos, o_mock_dataset.tags)
                 o_mock_api_list.assert_called_once_with(infos_filter={"info":"val"}, tags_filter={"tag":"val"}, datastore="datastore_id")
                 self.assertEqual(o_upload, o_u1)
+        with patch.object(ActionAbstract, "get_filters", return_value=({"info":"val"}, {"tag":"val"})) as o_mock_get_filters:
+            with patch.object(Upload, "api_list", return_value=[]) as o_mock_api_list :
+                # Appel de la fonction find_upload
+                o_upload = o_ua.find_upload("datastore_id")
+                # Vérifications
+                o_mock_get_filters.assert_called_once_with("upload", o_mock_dataset.upload_infos, o_mock_dataset.tags)
+                o_mock_api_list.assert_called_once_with(infos_filter={"info":"val"}, tags_filter={"tag":"val"}, datastore="datastore_id")
+                self.assertEqual(None, o_upload)
 
-    def run_args(
-        self,
-        behavior: Optional[str],
-        return_value_find_upload: Optional[Upload],
-        api_create: bool,
-        api_delete: bool,
-        run_fail: bool,
-        message_exception: Optional[str] = None,
-        files_on_api: Dict[str, int] = {},
-        nb_data_files_on_api_ok: int = 0,
-        nb_md5_files_on_api_ok: int = 0,
-        comment_exist: bool = False,
-        is_open: bool = True,
-    ) -> None:
-        """Lance le test UploadAction.run selon un cas de figure. Faire varier les paramètres permet de jouer sur le cas testé.
-        Args:
-            behavior (Optional[str]): mode lorsque la livraison existe déjà
-            return_value_find_upload (Optional[Upload]): liste des upload retourné par le mock de Upload.api_list
-            api_create (bool): vérification de l'exécution de Upload.api_create (True => api_create exécuté; False => api_create non exécuté)
-            api_delete (bool): vérification de l'exécution de Upload.api_delete (True => api_delete exécuté; False => api_delete non exécuté)
-            run_fail (bool): vérification de l'exécution avec erreur de UploadAction.run (True => run plant; False => run s'exécute sans erreur)
-            message_exception (Optional[str]): si run_fail==True le message d'erreur attendu
-            files_on_api (Dict[str, int]): liste des fichiers déjà livrés sur l'API et leur taille (SIZE_OK si ok)
-            nb_data_files_on_api_ok (int): nombre fichiers de données déjà livrés sur l'API et à ne pas re-livrer
-            nb_md5_files_on_api_ok (int): nombre fichiers de clé déjà livrés sur l'API et à ne pas re-livrer
-            comment_exist (bool): si on a un commentaire qui existe déjà
-            is_open (bool): si livraison ouverte
-        """
+    def test_run(self)->None:
+        """vérification de la fonction run"""
+        s_datastore="test"
 
-        def create(d_dict: Dict[str, Any], route_params: Optional[Dict[str, Any]] = None) -> Upload:
-            print("new creation")
-            if route_params is None:
-                route_params = {}
-            d_dict["status"] = "OPEN"
-            return Upload(d_dict, route_params.get("datastore", None))
+        # upload None
+        with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload:
 
-        def config_get(a: str, b: str) -> Optional[str]:  # pylint:disable=invalid-name,unused-argument
-            if b == "uniqueness_constraint_infos":
-                return "name"
-            if b == "uniqueness_constraint_tags":
-                return ""
-            if b == "behavior_if_exists":
-                return "STOP"
-            if b == "status_open":
-                return "OPEN"
-            raise Exception("cas non prévu", a, b)
-
-        l_return_api_list_comments = [{"text": "commentaire existe"}] if comment_exist else []
-        d_data_files : Dict[Path, str] = {Path("./a"): "a", Path("./b"): "b", Path("./c"): "c"}
-        l_md5_files: List[Path] = [Path("./a"), Path("./2")]
-        d_upload_infos: Dict[str, str] = {"_id": "upload_base", "name": "upload_name"}
-        d_tags: Dict[str, str] = {"tag1": "val1", "tag2": "val2"}
-        l_comments: List[str] = ["comm1", "comm2", "comm3"]
-
-        with patch.object(UploadAction, "find_upload", return_value=return_value_find_upload) as o_mock_find_upload, \
-            patch.object(Upload, "api_create", wraps=create) as o_mock_api_create, \
-            patch.object(Upload, "api_close", MagicMock()) as o_mock_close, \
-            patch.object(Upload, "api_delete", MagicMock()) as o_mock_api_delete, \
-            patch.object(Upload, "api_add_tags", MagicMock()) as o_mock_api_add_tags, \
-            patch.object(Upload, "api_list_comments", return_value=l_return_api_list_comments) as o_mock_api_list_comments, \
-            patch.object(Upload, "api_add_comment", MagicMock()) as o_mock_api_add_comment, \
-            patch.object(Upload, "api_push_data_file", MagicMock()) as o_mock_api_push_data_file, \
-            patch.object(Upload, "api_push_md5_file", MagicMock()) as o_mock_api_push_md5_file, \
-            patch.object(Upload, "api_tree", MagicMock()) as o_mock_api_tree, \
-            patch.object(UploadAction, "parse_tree", return_value=files_on_api) as o_mock_parse_tree, \
-            patch.object(Upload, "api_update", return_value=None), \
-            patch.object(Path, "stat") as o_mock_path_stat, \
-            patch.object(Config, "get", wraps=config_get) \
-        :
-            # Mock de la fonction stat
-            o_mock_path_stat.return_value.st_size = self.SIZE_OK
-            # création du dataset
             o_mock_dataset = MagicMock()
-            o_mock_dataset.data_files = d_data_files
-            o_mock_dataset.md5_files = l_md5_files
-            o_mock_dataset.upload_infos = d_upload_infos
-            o_mock_dataset.tags = d_tags
-            o_mock_dataset.comments = l_comments.copy()
-            if comment_exist:
-                o_mock_dataset.comments.append("commentaire existe")
-
-            # exécution de UploadAction
-            o_ua = UploadAction(o_mock_dataset, behavior)
-            if run_fail:
-                with self.assertRaises(GpfSdkError) as o_arc:
-                    o_ua.run("datastore_id")
-                self.assertEqual(o_arc.exception.message, message_exception)
-                return
-            o_ua.run("datastore_id")
-
-            # vérif de o_mock_find_upload
-            o_mock_find_upload.assert_called_once_with("datastore_id")
-
-            # cas livraison fermé : aucune action
-            if not is_open:
-                o_mock_api_create.assert_not_called()
-                o_mock_api_delete.assert_not_called()
-                o_mock_api_add_tags.assert_not_called()
-                o_mock_api_list_comments.assert_not_called()
-                o_mock_api_add_comment.assert_not_called()
-                o_mock_api_push_data_file.assert_not_called()
-                o_mock_api_push_md5_file.assert_not_called()
-
-                o_mock_api_tree.assert_not_called()
-                o_mock_parse_tree.assert_not_called()
-                o_mock_close.assert_not_called()
-                return
-
-            # vérif de o_mock_api_create
-            if api_create:
-                o_mock_api_create.assert_called_once_with(d_upload_infos, route_params={'datastore': 'datastore_id'})
-            else:
-                o_mock_api_create.assert_not_called()
-            # vérif de o_mock_api_delete
-            if api_delete:
-                o_mock_api_delete.assert_called_once_with()
-            else:
-                o_mock_api_delete.assert_not_called()
-            # vérif de o_mock_api_add_tags
-            if d_tags is not None:
-                o_mock_api_add_tags.assert_called_once_with(d_tags)
-            else:
-                o_mock_api_add_tags.assert_not_called()
-            # vérif de o_mock_api_add_comment
-            if l_comments is not None:
-                o_mock_api_list_comments.assert_called_once_with()
-                self.assertEqual(o_mock_api_add_comment.call_count, len(l_comments))
-                for s_comment in l_comments:
-                    o_mock_api_add_comment.assert_any_call({"text": s_comment})
-            else:
-                o_mock_api_add_comment.assert_not_called()
-            # vérif de o_mock_api_push_data_file
-            if len(d_data_files) == nb_data_files_on_api_ok:
-                o_mock_api_push_data_file.assert_not_called()
-            else:
-                # appelée une fois par fichiers à livrer moins le nb de fichiers déjà livrés
-                self.assertEqual(o_mock_api_push_data_file.call_count, len(d_data_files) - nb_data_files_on_api_ok)
-                # appelée selon le Path des fichiers à livrer
-                for p_file_path, s_api_path in d_data_files.items():
-                    # S'il ne sont pas déjà livrés et avec la bonne taille
-                    if files_on_api.get(f"data/{s_api_path}") != self.SIZE_OK:
-                        o_mock_api_push_data_file.assert_any_call(p_file_path, s_api_path)
-            # vérif de o_mock_api_push_md5_file
-            if len(l_md5_files) == nb_md5_files_on_api_ok:
-                o_mock_api_push_md5_file.assert_not_called()
-            else:
-                # appelée une fois par fichiers à livrer moins le nb de fichiers déjà livrés
-                self.assertEqual(o_mock_api_push_md5_file.call_count, len(l_md5_files) - nb_md5_files_on_api_ok)
-                # appelée selon le Path des fichiers à livrer
-                for p_file_path in l_md5_files:
-                    # S'il ne sont pas déjà livrés et avec la bonne taille
-                    if files_on_api.get(p_file_path.name) != self.SIZE_OK:
-                        o_mock_api_push_md5_file.assert_any_call(p_file_path)
-            # vérif de o_mock_api_tree (appelée par UploadAction.__push_data_files et UploadAction.__push_md5_files)
-            self.assertEqual(o_mock_api_tree.call_count, 2)
-            # vérif de o_mock_parse_tree (appelée par UploadAction.__push_data_files et UploadAction.__push_md5_files)
-            self.assertEqual(o_mock_parse_tree.call_count, 2)
-            # vérif de o_mock_close
-            o_mock_close.assert_called_once_with()
+            o_ua = UploadAction(o_mock_dataset)
+            with self.assertRaises(GpfSdkError) as o_err:
+                o_upload = o_ua.run(s_datastore)
+            self.assertEqual("Erreur à la création de la livraison.", o_err.exception.message)
 
 
-    def test_run(self) -> None:
-        """Lance le test de UploadAction.run selon plusieurs cas de figures."""
-        # tout mode sans doublon
-        self.run_args(
-            behavior=None,
-            return_value_find_upload=None,
-            api_create=True,
-            api_delete=False,
-            run_fail=False,
-        )
-        self.run_args(
-            behavior="STOP",
-            return_value_find_upload=None,
-            api_create=True,
-            api_delete=False,
-            run_fail=False,
-        )
-        self.run_args(
-            behavior="DELETE",
-            return_value_find_upload=None,
-            api_create=True,
-            api_delete=False,
-            run_fail=False,
-        )
-        self.run_args(
-            behavior="CONTINUE",
-            return_value_find_upload=None,
-            api_create=True,
-            api_delete=False,
-            run_fail=False,
-        )
+        # upload fermé
+        with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload, \
+            patch.object(UploadAction, "_UploadAction__add_tags") as o_mock__add_tags, \
+            patch.object(UploadAction, "_UploadAction__add_comments") as o_mock__add_comments, \
+            patch.object(UploadAction, "_UploadAction__push_data_files") as o_mock__push_data_files, \
+            patch.object(UploadAction, "_UploadAction__push_md5_files") as o_mock__push_md5_files, \
+            patch.object(UploadAction, "_UploadAction__check_file_uploaded") as o_mock__check_file_uploaded, \
+            patch.object(UploadAction, "_UploadAction__close") as o_mock__close:
 
-        # mode stop mais avec doublon => ça plante
-        o_return_value_find_upload = Upload({"_id": "upload_existant", "name": "Upload existant", "status": "OPEN"})
-        self.run_args(
-            behavior="STOP",
-            return_value_find_upload=o_return_value_find_upload,
-            api_create=True,
-            api_delete=False,
-            run_fail=True,
-            message_exception=f"Impossible de créer la livraison, une livraison identique {o_return_value_find_upload} existe déjà.",
-        )
-        # mode DELETE mais avec doublon => suppression mais OK
-        self.run_args(
-            behavior="DELETE",
-            return_value_find_upload = o_return_value_find_upload,
-            api_create=True,
-            api_delete=True,
-            run_fail=False,
-        )
+            o_mock_dataset = MagicMock()
+            o_ua = UploadActionNoPrivate(o_mock_dataset)
+            o_mock_upload = MagicMock()
+            o_mock_upload.is_open.return_value = False
+            o_ua.set_upload(o_mock_upload)
+            o_upload = o_ua.run(s_datastore)
+            self.assertEqual(o_upload, o_mock_upload)
+            o_mock__create_upload.assert_called_once_with(s_datastore)
+            o_mock__add_tags.assert_not_called()
+            o_mock__add_comments.assert_not_called()
+            o_mock__push_data_files.assert_not_called()
+            o_mock__push_md5_files.assert_not_called()
+            o_mock__check_file_uploaded.assert_not_called()
+            o_mock__close.assert_not_called()
 
-        # mode CONTINUE mais avec doublon (ouvert) => pas suppression ni création
-        self.run_args(
-            behavior="CONTINUE",
-            return_value_find_upload = o_return_value_find_upload,
-            api_create=False,
-            api_delete=False,
-            run_fail=False,
-        )
+        # upload ouvert sans vérification avant fermeture
+        with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload, \
+            patch.object(UploadAction, "_UploadAction__add_tags") as o_mock__add_tags, \
+            patch.object(UploadAction, "_UploadAction__add_comments") as o_mock__add_comments, \
+            patch.object(UploadAction, "_UploadAction__push_data_files") as o_mock__push_data_files, \
+            patch.object(UploadAction, "_UploadAction__push_md5_files") as o_mock__push_md5_files, \
+            patch.object(UploadAction, "_UploadAction__check_file_uploaded") as o_mock__check_file_uploaded, \
+            patch.object(UploadAction, "_UploadAction__close") as o_mock__close:
 
-        # mode CONTINUE mais avec doublon (ouvert) et commentaire déjà présent
-        self.run_args(
-            behavior="CONTINUE",
-            return_value_find_upload = o_return_value_find_upload,
-            api_create=False,
-            api_delete=False,
-            run_fail=False,
-            comment_exist=True
-        )
+            o_mock_dataset = MagicMock()
+            o_ua = UploadActionNoPrivate(o_mock_dataset)
+            o_mock_upload = MagicMock()
+            o_mock_upload.is_open.return_value = True
+            o_ua.set_upload(o_mock_upload)
+            o_upload = o_ua.run(s_datastore)
+            self.assertEqual(o_upload, o_mock_upload)
+            o_mock__create_upload.assert_called_once_with(s_datastore)
+            o_mock__add_tags.assert_called_once_with()
+            o_mock__add_comments.assert_called_once_with()
+            o_mock__push_data_files.assert_called_once_with(True)
+            o_mock__push_md5_files.assert_called_once_with(True)
+            o_mock__check_file_uploaded.assert_not_called()
+            o_mock__close.assert_called_once_with()
 
-        # mode CONTINUE mais avec doublon (fermé) => ça passe mais sans modifications
-        o_return_value_find_upload = Upload({"_id": "upload_existant", "name": "Upload existant", "status": "CLOSE"})
-        self.run_args(
-            behavior="CONTINUE",
-            return_value_find_upload=o_return_value_find_upload,
-            api_create=False,
-            api_delete=False,
-            run_fail=False,
-            is_open=False,
-        )
-        # mode CONTINUE mais avec doublon (ouvert) et commentaire déjà présent
-        self.run_args(
-            behavior="TOTO",
-            return_value_find_upload = o_return_value_find_upload,
-            run_fail=True,
-            api_create = False,
-            api_delete = False,
-            message_exception="Le comportement TOTO n'est pas reconnu, l'exécution de traitement est annulée."
-        )
+        # upload ouvert avec vérification avant fermeture ok
+        with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload, \
+            patch.object(UploadAction, "_UploadAction__add_tags") as o_mock__add_tags, \
+            patch.object(UploadAction, "_UploadAction__add_comments") as o_mock__add_comments, \
+            patch.object(UploadAction, "_UploadAction__push_data_files") as o_mock__push_data_files, \
+            patch.object(UploadAction, "_UploadAction__push_md5_files") as o_mock__push_md5_files, \
+            patch.object(UploadAction, "_UploadAction__check_file_uploaded", return_value=[]) as o_mock__check_file_uploaded, \
+            patch.object(UploadAction, "_UploadAction__close") as o_mock__close:
+
+            o_mock_dataset = MagicMock()
+            o_mock_dataset.data_files = {
+                Path("file1"): "file1",
+                Path("file2"): "file2",
+                Path("file3"): "file3",
+            }
+            o_mock_dataset.md5_files = [Path("md5.md5")]
+            o_ua = UploadActionNoPrivate(o_mock_dataset)
+            o_mock_upload = MagicMock()
+            o_mock_upload.is_open.return_value = True
+            o_ua.set_upload(o_mock_upload)
+            o_upload = o_ua.run(s_datastore, check_before_close=True)
+            self.assertEqual(o_upload, o_mock_upload)
+            o_mock__create_upload.assert_called_once_with(s_datastore)
+            o_mock__add_tags.assert_called_once_with()
+            o_mock__add_comments.assert_called_once_with()
+            o_mock__push_data_files.assert_called_once_with(False)
+            o_mock__push_md5_files.assert_called_once_with(False)
+            o_mock__check_file_uploaded.assert_called_once_with(
+                [
+                    (Path("file1"), "file1"),
+                    (Path("file2"), "file2"),
+                    (Path("file3"), "file3"),
+                    (Path("md5.md5"), ""),
+                ]
+            )
+            o_mock__close.assert_called_once_with()
+
+        l_error = [(Path("KO"), "ko")]
+        # upload ouvert avec vérification avant fermeture ko
+        with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload, \
+            patch.object(UploadAction, "_UploadAction__add_tags") as o_mock__add_tags, \
+            patch.object(UploadAction, "_UploadAction__add_comments") as o_mock__add_comments, \
+            patch.object(UploadAction, "_UploadAction__push_data_files") as o_mock__push_data_files, \
+            patch.object(UploadAction, "_UploadAction__push_md5_files") as o_mock__push_md5_files, \
+            patch.object(UploadAction, "_UploadAction__check_file_uploaded", return_value=l_error) as o_mock__check_file_uploaded, \
+            patch.object(UploadAction, "_UploadAction__close") as o_mock__close:
+
+            o_mock_dataset = MagicMock()
+            o_mock_dataset.data_files = {
+                Path("file1"): "file1",
+                Path("file2"): "file2",
+                Path("file3"): "file3",
+            }
+            o_mock_dataset.md5_files = [Path("md5.md5")]
+            o_ua = UploadActionNoPrivate(o_mock_dataset)
+            o_mock_upload = MagicMock()
+            o_mock_upload.is_open.return_value = True
+            o_ua.set_upload(o_mock_upload)
+            with self.assertRaises(UploadFileError) as o_err:
+                o_upload = o_ua.run(s_datastore, check_before_close=True)
+
+            self.assertEqual(f"Livraison {o_mock_upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.", o_err.exception.message)
+            self.assertEqual(l_error, o_err.exception.files)
+            o_mock__create_upload.assert_called_once_with(s_datastore)
+            o_mock__add_tags.assert_called_once_with()
+            o_mock__add_comments.assert_called_once_with()
+            o_mock__push_data_files.assert_called_once_with(False)
+            o_mock__push_md5_files.assert_called_once_with(False)
+            o_mock__check_file_uploaded.assert_called_once_with(
+                [
+                    (Path("file1"), "file1"),
+                    (Path("file2"), "file2"),
+                    (Path("file3"), "file3"),
+                    (Path("md5.md5"), ""),
+                ]
+            )
+            o_mock__close.assert_not_called()
+
+    def test_create_upload(self)->None:
+        """vérifie fonction __create_upload"""
+        s_datastore="test"
+        # find_upload vide
+        for s_behavior in UploadAction.BEHAVIORS:
+            with patch.object(UploadAction, "find_upload", return_value = None) as o_mock_find_upload, \
+                patch.object(Upload, "api_create") as o_mock_api_create:
+
+                o_dataset=MagicMock()
+                o_ua = UploadActionNoPrivate(o_dataset, behavior=s_behavior)
+                o_ua.create_upload(datastore=s_datastore)
+                o_mock_find_upload.assert_called_once_with(s_datastore)
+                o_mock_api_create.assert_called_once_with(o_dataset.upload_infos, route_params={"datastore": s_datastore})
+
+        # find_upload non vide et BEHAVIOR_STOP
+        s_behavior = UploadAction.BEHAVIOR_STOP
+        o_mock_upload = MagicMock()
+        o_dataset=MagicMock()
+        o_ua = UploadActionNoPrivate(o_dataset, behavior=s_behavior)
+        with patch.object(UploadAction, "find_upload", return_value = o_mock_upload) as o_mock_find_upload, \
+            patch.object(Upload, "api_create") as o_mock_api_create:
+            with self.assertRaises(GpfSdkError) as o_err:
+                o_ua.create_upload(datastore=s_datastore)
+            self.assertEqual(f"Impossible de créer la livraison, une livraison identique {o_mock_upload} existe déjà.", o_err.exception.message)
+            o_mock_find_upload.assert_called_once_with(s_datastore)
+            o_mock_api_create.assert_not_called()
+
+        # find_upload non vide et BEHAVIOR_CONTINUE
+        s_behavior = UploadAction.BEHAVIOR_CONTINUE
+        o_mock_upload = MagicMock()
+        o_dataset=MagicMock()
+        o_ua = UploadActionNoPrivate(o_dataset, behavior=s_behavior)
+        with patch.object(UploadAction, "find_upload", return_value = o_mock_upload) as o_mock_find_upload, \
+            patch.object(Upload, "api_create") as o_mock_api_create:
+
+            o_ua.create_upload(datastore=s_datastore)
+            o_mock_find_upload.assert_called_once_with(s_datastore)
+            o_mock_api_create.assert_not_called()
+            o_mock_upload.is_open.assert_called_once_with()
+            self.assertEqual(o_ua.upload, o_mock_upload)
+
+
+        # find_upload non vide et BEHAVIOR_DELETE
+        s_behavior = UploadAction.BEHAVIOR_DELETE
+        o_mock_upload_old = MagicMock()
+        o_mock_upload_new = MagicMock()
+        o_dataset=MagicMock()
+        o_ua = UploadActionNoPrivate(o_dataset, behavior=s_behavior)
+        with patch.object(UploadAction, "find_upload", return_value = o_mock_upload_old) as o_mock_find_upload, \
+            patch.object(Upload, "api_create", return_value=o_mock_upload_new) as o_mock_api_create:
+
+            o_ua.create_upload(datastore=s_datastore)
+            o_mock_find_upload.assert_called_once_with(s_datastore)
+            o_mock_upload_old.api_delete.assert_called_once_with()
+            o_mock_api_create.assert_called_once_with(o_dataset.upload_infos, route_params={"datastore": s_datastore})
+            self.assertEqual(o_ua.upload, o_mock_upload_new)
+
+        # BEHAVIOR non valide
+        s_behavior = "toto"
+        o_mock_upload = MagicMock()
+        o_dataset=MagicMock()
+        o_ua = UploadActionNoPrivate(o_dataset, behavior=s_behavior)
+        with patch.object(UploadAction, "find_upload", return_value = o_mock_upload) as o_mock_find_upload, \
+            patch.object(Upload, "api_create") as o_mock_api_create:
+            with self.assertRaises(GpfSdkError) as e_err:
+                o_ua.create_upload(datastore=s_datastore)
+            self.assertEqual(f"Le comportement {s_behavior} n'est pas reconnu, l'exécution de traitement est annulée.", e_err.exception.message)
+            o_mock_find_upload.assert_called_once_with(s_datastore)
+            o_mock_api_create.assert_not_called()
+            o_mock_upload.is_open.assert_not_called()
+
+    def test_add_tags(self) -> None:
+        """test de __add_tags"""
+        # pas d'upload ou pas de tags => rien de fait
+        o_mock_upload = MagicMock()
+        for o_upload, o_tags in [
+            (None, None),
+            (None, {"tag":"val"}),
+            (o_mock_upload, []),
+            (o_mock_upload, None),
+        ]:
+            o_dataset=MagicMock()
+            o_dataset.tags=o_tags
+            o_ua = UploadActionNoPrivate(o_dataset)
+            o_ua.set_upload(o_upload)
+            o_ua.add_tags()
+            o_mock_upload.api_add_tags.assert_not_called()
+
+        # on a upload et tags => ajout des tags
+        o_tags =  {"tag":"val"}
+        o_dataset=MagicMock()
+        o_dataset.tags=o_tags
+        o_ua = UploadActionNoPrivate(o_dataset)
+        o_ua.set_upload(o_mock_upload)
+        o_ua.add_tags()
+        o_mock_upload.api_add_tags.assert_called_once_with(o_tags)
+
+    def test_add_comments(self)->None:
+        """test de __add_comments"""
+        # pas de upload => rien n'est fait
+        o_dataset=MagicMock()
+        o_ua = UploadActionNoPrivate(o_dataset)
+        o_ua.set_upload(None)
+        with patch.object(Upload, "api_add_comment") as o_mock_api_add_comment:
+            o_ua.add_comments()
+            o_mock_api_add_comment.assert_not_called()
+
+        # un upload
+        for l_expected_comments, l_upload_comments in [
+            (["comm1", "comm2"], []),
+            (["comm1", "comm2"], ["comm3", "comm4"]),
+        ]:
+            o_dataset=MagicMock()
+            o_dataset.comments=l_expected_comments + l_upload_comments
+            o_mock_upload = MagicMock()
+            o_mock_upload.api_list_comments.return_value=[{"text": s_comment} for s_comment in  l_upload_comments]
+            o_ua = UploadActionNoPrivate(o_dataset)
+            o_ua.set_upload(o_mock_upload)
+            o_ua.add_comments()
+            self.assertEqual(len(l_expected_comments), o_mock_upload.api_add_comment.call_count)
+            for s_comment in l_expected_comments:
+                o_mock_upload.api_add_comment.assert_any_call({"text": s_comment})
+
+    def test_push_data_files(self)->None:
+        """test de __push_data_files"""
+        # pas de upload => rien n'est fait
+        o_ua = UploadActionNoPrivate(MagicMock())
+        o_ua.set_upload(None)
+        with patch.object(UploadAction, "_UploadAction__push_files") as o_mock_push_files:
+            o_ua.push_data_files()
+            o_mock_push_files.assert_not_called()
+
+        # upload :
+        o_dataset=MagicMock()
+        o_dataset.data_files = {Path("a"): "a", Path("b"): "b"}
+        o_ua = UploadActionNoPrivate(o_dataset)
+
+        for b_check_conflict in [True, False]:
+            o_mock_upload = MagicMock()
+            o_ua.set_upload(o_mock_upload)
+            with patch.object(UploadAction, "_UploadAction__push_files") as o_mock_push_files:
+                o_ua.push_data_files(b_check_conflict)
+            o_mock_push_files.assert_called_once_with(
+                list(o_dataset.data_files.items()),
+                o_mock_upload.api_push_data_file,
+                o_mock_upload.api_delete_data_file,
+                b_check_conflict,
+            )
+
+
+    def test_push_md5_files(self)->None:
+        """test de __push_md5_files"""
+        # pas de upload => rien n'est fait
+        o_ua = UploadActionNoPrivate(MagicMock())
+        o_ua.set_upload(None)
+        with patch.object(UploadAction, "_UploadAction__push_files") as o_mock_push_files:
+            o_ua.push_md5_files()
+            o_mock_push_files.assert_not_called()
+
+        # upload :
+        o_dataset=MagicMock()
+        o_dataset.md5_files = [Path("a"), Path("b")]
+        o_ua = UploadActionNoPrivate(o_dataset)
+
+        for b_check_conflict in [True, False]:
+            o_mock_upload = MagicMock()
+            o_ua.set_upload(o_mock_upload)
+            with patch.object(UploadAction, "_UploadAction__push_files") as o_mock_push_files:
+                with patch.object(UploadAction, "_UploadAction__normalise_api_push_md5_file") as o_mock_normalise_api_push_md5_file:
+                    o_ua.push_md5_files(b_check_conflict)
+                    o_mock_push_files.assert_called_once_with(
+                        [(p_file, "") for p_file in o_dataset.md5_files],
+                        o_mock_normalise_api_push_md5_file,
+                        o_mock_upload.api_delete_md5_file,
+                        b_check_conflict,
+                    )
+
+    def test_normalise_api_push_md5_file(self)->None:
+        """test de __normalise_api_push_md5_file"""
+        # pas d"upload
+        o_ua = UploadActionNoPrivate(MagicMock())
+        o_ua.set_upload(None)
+        p_path= Path("a")
+        s_nom = "a"
+        with self.assertRaises(GpfSdkError) as o_err:
+            o_ua.normalise_api_push_md5_file(p_path, s_nom)
+        self.assertEqual(f"Aucune livraison de définie - impossible de livrer {s_nom}", o_err.exception.message)
+
+        # un upload
+        o_mock_upload=MagicMock()
+        o_ua.set_upload(o_mock_upload)
+        o_ua.normalise_api_push_md5_file(p_path, s_nom)
+        o_mock_upload.api_push_md5_file.assert_called_once_with(p_path)
+
+
+
+    def run_push_files(self, i_file_err_uploaded, i_file_uploaded, i_files_upload)->None:
+        """lancement de test de __push_files dans raise au push"""
+
+        # upload, rien déjà livrer pas de conflict ou timeout sans check_conflict
+        o_mock_upload=MagicMock()
+        o_mock_upload.api_tree.return_value = []
+        o_ua = UploadActionNoPrivate(MagicMock())
+        o_ua.set_upload(o_mock_upload)
+        l_file_err_uploaded=[]
+        for i in range(i_file_err_uploaded):
+            o_mock = MagicMock()
+            o_mock.stat().st_size = 50
+            o_mock.name=f"err_uploaded_{i}"
+            l_file_err_uploaded.append(o_mock)
+        l_file_uploaded =[]
+        for i in range(i_file_uploaded):
+            o_mock = MagicMock()
+            o_mock.stat().st_size = 10
+            o_mock.name=f"uploaded_{i}"
+            l_file_uploaded.append(o_mock)
+        d_destination_taille = {f"base/{l_file.name}" : 10 for l_file in l_file_err_uploaded + l_file_uploaded}
+        l_files_upload = []
+        for i in range(i_files_upload):
+            o_mock = MagicMock()
+            o_mock.stat().st_size = 10
+            o_mock.name=f"upload_{i}"
+            l_files_upload.append(o_mock)
+        l_files = [(o_mock, "base") for o_mock in  l_files_upload+l_file_err_uploaded+ l_file_uploaded]
+        with patch.object(UploadAction, "parse_tree", return_value=d_destination_taille) as o_mock_parse_tree:
+            with patch.object(UploadAction, "_UploadAction__check_file_uploaded") as o_mock_check_file:
+
+                i=o_ua.push_files(l_files, o_mock_upload.push, o_mock_upload.delete, check_conflict=False)
+                # récupération de l'arborescence
+                o_mock_upload.api_tree.assert_called_once_with()
+                o_mock_parse_tree.assert_called_once_with([])
+                # suppression
+                self.assertEqual(len(l_file_err_uploaded), o_mock_upload.delete.call_count)
+                for o_file in l_file_err_uploaded:
+                    o_mock_upload.delete.assert_any_call(f"base/{o_file.name}")
+                # upload
+                self.assertEqual(len(l_files_upload+l_file_err_uploaded), o_mock_upload.push.call_count)
+                for o_file in l_files_upload+l_file_err_uploaded:
+                    o_mock_upload.push.assert_any_call(o_file, "base")
+                self.assertEqual(len(l_files_upload+l_file_err_uploaded), i)
+                o_mock_check_file.assert_not_called()
+
+
+
+
+
+    def test_push_files(self)->None:
+        """test de __push_files"""
+        # pas d'upload
+        o_ua = UploadActionNoPrivate(MagicMock())
+        o_ua.set_upload(None)
+        with self.assertRaises(GpfSdkError) as o_err:
+            o_ua.push_files([], MagicMock(), MagicMock())
+        self.assertEqual("Aucune livraison de définie", o_err.exception.message)
+
+        # push sans erreur
+        for i_file_err_uploaded in [0,4]:
+            for i_file_uploaded in [0,4]:
+                for i_files_upload in [0,4]:
+                    self.run_push_files(i_file_err_uploaded, i_file_uploaded, i_files_upload)
+
+        for e_push_side_effect in [ConflictError("", "", {}, {}, ''), requests.Timeout(request=None, response=None)]:
+            # conflict lors du push, pas de vérifications
+            o_mock_upload=MagicMock(**{"api_tree.return_value" : [], "push.side_effect": e_push_side_effect})
+            o_ua = UploadActionNoPrivate(MagicMock())
+            o_ua.set_upload(o_mock_upload)
+            l_files_upload = [MagicMock(**{"name": f"upload_{i}"}) for i in range(4)]
+            l_files = [(o_mock, f"base/{o_mock.name}") for o_mock in  l_files_upload]
+            with patch.object(UploadAction, "parse_tree", return_value={}) as o_mock_parse_tree:
+                with patch.object(UploadAction, "_UploadAction__check_file_uploaded") as o_mock_check_file:
+                    i=o_ua.push_files(l_files, o_mock_upload.push, o_mock_upload.delete, check_conflict=False)
+                    # récupération de l'arborescence
+                    o_mock_upload.api_tree.assert_called_once_with()
+                    o_mock_parse_tree.assert_called_once_with([])
+                    # suppression
+                    o_mock_upload.delete.assert_not_called()
+                    # upload
+                    self.assertEqual(len(l_files_upload), o_mock_upload.push.call_count)
+                    for o_file in l_files_upload:
+                        o_mock_upload.push.assert_any_call(o_file, f"base/{o_file.name}")
+                    self.assertEqual(0, i)
+                    o_mock_check_file.assert_not_called()
+            # conflict lors du push, avec vérifications ok
+            o_mock_upload=MagicMock(**{"api_tree.return_value" : [], "push.side_effect": e_push_side_effect})
+            o_ua = UploadActionNoPrivate(MagicMock())
+            o_ua.set_upload(o_mock_upload)
+            l_files_upload = [MagicMock(**{"name": f"upload_{i}"}) for i in range(4)]
+            l_files = [(o_mock, f"base/{o_mock.name}") for o_mock in  l_files_upload]
+            with patch.object(UploadAction, "parse_tree", return_value={}) as o_mock_parse_tree:
+                with patch.object(UploadAction, "_UploadAction__check_file_uploaded", return_value=[]) as o_mock_check_file:
+                    i=o_ua.push_files(l_files, o_mock_upload.push, o_mock_upload.delete, check_conflict=True)
+                    # récupération de l'arborescence
+                    o_mock_upload.api_tree.assert_called_once_with()
+                    o_mock_parse_tree.assert_called_once_with([])
+                    # suppression
+                    o_mock_upload.delete.assert_not_called()
+                    # upload
+                    self.assertEqual(len(l_files_upload), o_mock_upload.push.call_count)
+                    for o_file in l_files_upload:
+                        o_mock_upload.push.assert_any_call(o_file, f"base/{o_file.name}")
+                    self.assertEqual(0, i)
+                    o_mock_check_file.assert_called_once_with(l_files)
+            # conflict lors du push, avec vérifications ko
+            o_mock_upload=MagicMock(**{"api_tree.return_value" : [], "push.side_effect": e_push_side_effect})
+            o_ua = UploadActionNoPrivate(MagicMock())
+            o_ua.set_upload(o_mock_upload)
+            l_files_upload = [MagicMock(**{"name": f"upload_{i}"}) for i in range(4)]
+            l_files = [(o_mock, f"base/{o_mock.name}") for o_mock in  l_files_upload]
+            l_error=l_files[:2]
+            with patch.object(UploadAction, "parse_tree", return_value={}) as o_mock_parse_tree:
+                with patch.object(UploadAction, "_UploadAction__check_file_uploaded", return_value=l_error) as o_mock_check_file:
+                    with self.assertRaises(UploadFileError) as o_err:
+                        i=o_ua.push_files(l_files, o_mock_upload.push, o_mock_upload.delete, check_conflict=True)
+                    self.assertEqual(f"Livraison {o_mock_upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.", o_err.exception.message)
+                    self.assertEqual(l_error, o_err.exception.files)
+                    # récupération de l'arborescence
+                    o_mock_upload.api_tree.assert_called_once_with()
+                    o_mock_parse_tree.assert_called_once_with([])
+                    # suppression
+                    o_mock_upload.delete.assert_not_called()
+                    # upload
+                    self.assertEqual(len(l_files_upload), o_mock_upload.push.call_count)
+                    for o_file in l_files_upload:
+                        o_mock_upload.push.assert_any_call(o_file, f"base/{o_file.name}")
+                    o_mock_check_file.assert_called_once_with(l_files)
+
+    def test_check_file_uploaded(self)->None:
+        """test de __check_file_uploaded"""
+        # pas d'upload
+        o_ua = UploadActionNoPrivate(MagicMock())
+        o_ua.set_upload(None)
+        with self.assertRaises(GpfSdkError) as o_err:
+            o_ua.check_file_uploaded([])
+        self.assertEqual("Aucune livraison de définie", o_err.exception.message)
+
+        # upload ok
+        o_mock_upload=MagicMock(**{"api_tree.return_value" : []})
+        o_ua = UploadActionNoPrivate(MagicMock())
+        o_ua.set_upload(o_mock_upload)
+        l_files_ok = []
+        for i in range(4):
+            o_mock = MagicMock(**{"name": f"ok_{i}"})
+            o_mock.stat().st_size= 10
+            l_files_ok.append(o_mock)
+        l_files_ko = []
+        for i in range(4):
+            o_mock = MagicMock(**{"name": f"ko_{i}"})
+            o_mock.stat().st_size= 10
+            l_files_ko.append(o_mock)
+        l_files_pb = [MagicMock(**{"name": f"pb_{i}"}) for i in range(4)]
+        l_files = [(p_file, "base") for p_file in l_files_ok + l_files_ko + l_files_pb]
+        d_tree = {f"base/{p_file.name}": 10 for p_file in l_files_ok+l_files_pb}
+        with patch.object(UploadAction, "parse_tree", return_value=d_tree) as o_mock_parse_tree:
+            l_err = o_ua.check_file_uploaded(l_files)
+            o_mock_parse_tree.assert_called_once_with([])
+            self.assertListEqual([(p_file, "base") for p_file in l_files_ko + l_files_pb], l_err)
+
+    def test_close(self)->None:
+        """test de __close"""# pas d'upload
+        # upload ok
+        o_mock_upload=MagicMock(**{"api_tree.return_value" : []})
+        o_ua = UploadActionNoPrivate(MagicMock())
+        o_ua.set_upload(o_mock_upload)
+        o_ua.close()
+        o_mock_upload.api_close.assert_called_once_with()
+
 
     def test_monitor_until_end_ok(self) -> None:
         """Vérifie le bon fonctionnement de monitor_until_end si à la fin c'est ok."""
