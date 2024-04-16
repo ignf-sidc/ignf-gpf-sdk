@@ -6,6 +6,8 @@
 
 ### [Changed]
 
+* Plus de limitation sur le type de l'upload dans le fichier upload_descriptor, permet la livraison des nouveaux types sans mise à jour du SDK. #117
+
 ### [Fixed]
 
 * Timeout mauvaise gestion valeur par défaut pour les upload de fichiers #125

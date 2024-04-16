@@ -45,12 +45,7 @@
                                 "type": "string"
                             },
                             "type": {
-                                "type": "string",
-                                "enum": [
-                                    "RASTER",
-                                    "VECTOR",
-                                    "ARCHIVE"
-                                ]
+                                "type": "string"
                             }
                         }
                     },
