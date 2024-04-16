@@ -8,6 +8,8 @@
 
 ### [Changed]
 
+* Plus de limitation sur le type de l'upload dans le fichier upload_descriptor, permet la livraison des nouveaux types sans mise à jour du SDK. #117
+
 ### [Fixed]
 
 ## v0.1.25
