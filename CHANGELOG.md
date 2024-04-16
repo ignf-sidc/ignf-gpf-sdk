@@ -13,6 +13,7 @@
 ### [Fixed]
 
 * Timeout mauvaise gestion valeur par défaut pour les upload de fichiers #125
+* ajout upload_partial_edit et stored_data_partial_edit #129
 
 ## v0.1.25
 
