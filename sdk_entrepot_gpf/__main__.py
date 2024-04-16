@@ -114,13 +114,13 @@ class Main:
 
         # Parser pour upload
         s_epilog_upload = """Trois types de lancement :
-        * création / mise à jour de livraison : `--file FILE [--behavior BEHAVIOR] [--check_before_close]`
+        * création / mise à jour de livraison : `--file FILE [--behavior BEHAVIOR] [--check-before-close]`
         * détail d'une livraison, optionnel ouverture ou fermeture : `--id ID [--open | --close]`
         * liste des livraisons, optionnel filtre sur l'info et tags : `[--infos INFOS] [--tags TAGS]`
         """
         o_sub_parser = o_sub_parsers.add_parser("upload", help="Livraisons", epilog=s_epilog_upload, formatter_class=argparse.RawTextHelpFormatter)
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier descriptor dont on veut effectuer la livraison)")
-        o_sub_parser.add_argument("--check_before_close", action="store_true", default=False, help="Si on vérifie l'ensemble de la livraison avant de fermer la livraison (uniquement avec --file|-f)")
+        o_sub_parser.add_argument("--check-before-close", action="store_true", default=False, help="Si on vérifie l'ensemble de la livraison avant de fermer la livraison (uniquement avec --file|-f)")
         o_sub_parser.add_argument("--behavior", "-b", choices=UploadAction.BEHAVIORS, default=None, help="Action à effectuer si la livraison existe déjà (uniquement avec -f)")
         o_sub_parser.add_argument("--id", type=str, default=None, help="Affiche la livraison demandée")
         o_exclusive = o_sub_parser.add_mutually_exclusive_group()
