@@ -1,5 +1,21 @@
 # CHANGE LOG
 
+## v0.1.26
+
+### [Added]
+
+* UploadAction: possibilité vérification totale des fichiers livrés avant de fermer la livraison #124
+
+### [Changed]
+
+* Plus de limitation sur le type de l'upload dans le fichier upload_descriptor, permet la livraison des nouveaux types sans mise à jour du SDK. #117
+* Authentification : affichage du code TOTP en mode debug et affichage de la pile d'exécution que si l'authentification échoue complètement.
+
+### [Fixed]
+
+* Timeout mauvaise gestion valeur par défaut pour les upload de fichiers #125
+* ajout upload_partial_edit et stored_data_partial_edit #129
+
 ## v0.1.25
 
 ### [Added]

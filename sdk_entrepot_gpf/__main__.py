@@ -114,12 +114,13 @@ class Main:
 
         # Parser pour upload
         s_epilog_upload = """Trois types de lancement :
-        * création / mise à jour de livraison : `--file FILE [--behavior BEHAVIOR]`
+        * création / mise à jour de livraison : `--file FILE [--behavior BEHAVIOR] [--check-before-close]`
         * détail d'une livraison, optionnel ouverture ou fermeture : `--id ID [--open | --close]`
         * liste des livraisons, optionnel filtre sur l'info et tags : `[--infos INFOS] [--tags TAGS]`
         """
         o_sub_parser = o_sub_parsers.add_parser("upload", help="Livraisons", epilog=s_epilog_upload, formatter_class=argparse.RawTextHelpFormatter)
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier descriptor dont on veut effectuer la livraison)")
+        o_sub_parser.add_argument("--check-before-close", action="store_true", default=False, help="Si on vérifie l'ensemble de la livraison avant de fermer la livraison (uniquement avec --file|-f)")
         o_sub_parser.add_argument("--behavior", "-b", choices=UploadAction.BEHAVIORS, default=None, help="Action à effectuer si la livraison existe déjà (uniquement avec -f)")
         o_sub_parser.add_argument("--id", type=str, default=None, help="Affiche la livraison demandée")
         o_exclusive = o_sub_parser.add_mutually_exclusive_group()
@@ -342,13 +343,14 @@ class Main:
         return b_res
 
     @staticmethod
-    def upload_from_descriptor_file(file: Union[Path, str], behavior: Optional[str] = None, datastore: Optional[str] = None) -> Dict[str, Any]:
+    def upload_from_descriptor_file(file: Union[Path, str], behavior: Optional[str] = None, datastore: Optional[str] = None, check_before_close: bool = False) -> Dict[str, Any]:
         """réalisation des livraison décrite par le fichier
 
         Args:
             file (Union[Path, str]): chemin du fichier descripteur de livraison
             behavior (Optional[str]): comportement dans le cas où une livraison de même nom existe, comportment par défaut su None
             datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
+            check_before_close (bool): Vérification de l'arborescence de la livraison avant fermeture.
 
         Returns:
             Dict[str, Any]: dictionnaire avec le résultat des livraisons :
@@ -370,7 +372,7 @@ class Main:
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
             try:
                 o_ua = UploadAction(o_dataset, behavior=s_behavior)
-                o_upload = o_ua.run(datastore)
+                o_upload = o_ua.run(datastore, check_before_close=check_before_close)
                 l_uploads.append(o_upload)
             except Exception as e:
                 s_nom = o_dataset.upload_infos["name"]
@@ -454,7 +456,7 @@ class Main:
         """
         if self.o_args.file is not None:
             # on livre les données selon le fichier descripteur donné
-            d_res = self.upload_from_descriptor_file(self.o_args.file, self.o_args.behavior, self.o_args.datastore)
+            d_res = self.upload_from_descriptor_file(self.o_args.file, self.o_args.behavior, self.o_args.datastore, self.o_args.check_before_close)
             # Affichage du bilan
             Config().om.info("-" * 100)
             if d_res["upload_fail"] or d_res["check_fail"]:
