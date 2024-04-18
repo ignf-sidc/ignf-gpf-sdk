@@ -9,6 +9,7 @@
 ### [Changed]
 
 * Plus de limitation sur le type de l'upload dans le fichier upload_descriptor, permet la livraison des nouveaux types sans mise à jour du SDK. #117
+* Authentification : affichage du code TOTP en mode debug et affichage de la pile d'exécution que si l'authentification échoue complètement.
 
 ### [Fixed]
 
