@@ -1,3 +1,4 @@
+import datetime
 import time
 import traceback
 from http import HTTPStatus
@@ -87,6 +88,8 @@ class Authentifier(metaclass=Singleton):
             d_data = self.__request_params.copy()
             if self.__totp:
                 d_data["totp"] = self.__totp.now()
+                # On affiche le TOTP Code en mode debug :
+                Config().om.debug(f"TOTP code : {d_data['totp']} ({datetime.datetime.now():%H:%M:%S})")
             # Requête KeyCloak de récupération du jeton
             o_response = requests.post(
                 self.__token_url,
@@ -103,22 +106,24 @@ class Authentifier(metaclass=Singleton):
                 try:
                     s_message = o_response.json()["error_description"]
                 except Exception:
-                    s_message = "pas de raison indiqué"
+                    s_message = "pas de raison indiquée"
                 raise requests.exceptions.HTTPError(f"Code retour authentification KeyCloak = {o_response.status_code} ({s_message})", response=o_response, request=o_response.request)
         except Exception as e_error:
             if isinstance(e_error, requests.exceptions.HTTPError):
                 Config().om.warning(e_error.args[0])
             else:
                 Config().om.warning("La récupération du jeton d'authentification a échoué...")
-            # Affiche la pile d'exécution
-            Config().om.debug(traceback.format_exc())
             # Une erreur s'est produite : attend un peu et relance une nouvelle fois la fonction
             if nb_attempts > 0:
                 time.sleep(self.__sec_between_attempt)
                 self.__request_new_token(nb_attempts - 1)
             # Le nombre de tentatives est atteint : comme dirait Jim, this is the end...
             else:
+                # On affiche un message d'erreur
                 Config().om.error(f"La récupération du jeton d'authentification a échoué après {self.__nb_attempts} tentatives")
+                # Affiche la pile d'exécution
+                Config().om.debug(traceback.format_exc())
+                # On propage l'erreur
                 raise e_error
 
     def get_access_token_string(self) -> str:
