@@ -40,7 +40,7 @@
                 ],
                 "parents": []
             },
-            // Etape n°2 : patch info por téléchargement
+            // Etape n°2 : patch descrtiption donnée stocké pour téléchargement
             "patch-donné-stocké": {
                 "actions": [
                     {
@@ -60,7 +60,8 @@
                     "tags": {"edit":"oui"},
                     "comments": ["modification de la donnée pour mise en téléchargement"]
                 }
-            ]
+            ],
+            "parents": []
         },
         // Étape n°3 : configuration pour la génération de l'archive
         "configuration-archive-livrée": {
