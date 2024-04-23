@@ -6,6 +6,8 @@
 
 ### [Changed]
 
+* Mise à jour de la documetentation de publication d'une archives pour l'ajout de l'étape de patch sur la donnée stockée
+
 ### [Fixed]
 
 * upload_descriptor_file.json: ajout de type_infos suite à l'ajout du paramètre dans la requête GPF. #117
