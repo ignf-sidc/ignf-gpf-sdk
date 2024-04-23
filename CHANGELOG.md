@@ -8,6 +8,8 @@
 
 ### [Fixed]
 
+* upload_descriptor_file.json: ajout de type_infos suite à l'ajout du paramètre dans la requête GPF. #117
+
 ## v0.1.26
 
 ### [Added]
