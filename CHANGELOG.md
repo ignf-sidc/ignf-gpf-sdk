@@ -10,6 +10,7 @@
 ### [Changed]
 
 * Mise à jour de la documentation de publication d'une archive pour ajouter l'étape de patch sur la donnée stockée
+* affichage des actions: harmonisation des affichages pour les actions #138
 
 ### [Fixed]
 

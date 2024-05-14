@@ -25,7 +25,7 @@ class EditAction(ActionAbstract):
     UPDATABLE_TYPES = [Upload.entity_name(), StoredData.entity_name(), Configuration.entity_name(), Offering.entity_name()]
 
     def run(self, datastore: Optional[str] = None) -> None:
-        Config().om.info("Suppression...")
+        Config().om.info("Edition ...")
         if "entity_type" not in self.definition_dict:
             raise StepActionError('La clef "entity_type" est obligatoire pour cette action')
         if self.definition_dict["entity_type"] not in EditAction.UPDATABLE_TYPES:
@@ -34,9 +34,12 @@ class EditAction(ActionAbstract):
             raise StepActionError('La clef "entity_id" est obligatoire pour cette action.')
         o_entity: StoreEntity = store.TYPE__ENTITY[self.definition_dict["entity_type"]].api_get(self.definition_dict["entity_id"], datastore=datastore)
 
+        Config().om.info(f"Edition de {o_entity}.")
+
         # Lancement de la mise à jour si demandé
         if self.definition_dict.get("body_parameters"):
             o_entity.edit(self.definition_dict["body_parameters"])
+            Config().om.info(f"Mise à jour de {o_entity} .")
 
         # ajout des tags si possible
         if self.definition_dict.get("tags") and isinstance(o_entity, TagInterface):
@@ -52,3 +55,4 @@ class EditAction(ActionAbstract):
                 if s_comment not in l_actual_comments:
                     o_entity.api_add_comment({"text": s_comment})
             Config().om.info(f"Les {len(self.definition_dict['comments'])} commentaires ont été ajoutés avec succès.")
+        Config().om.info("Edition : terminé")

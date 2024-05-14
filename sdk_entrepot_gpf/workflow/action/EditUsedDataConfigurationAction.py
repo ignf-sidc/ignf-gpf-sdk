@@ -41,7 +41,7 @@ class EditUsedDataConfigurationAction(ActionAbstract):
         Config().om.info(f"Modification de la configuration {o_base_config} ...")
 
         o_base_config.api_full_edit(d_parameter)
-        Config().om.info("Modification de la configuration : terminé", green_colored=True)
+        Config().om.info("Modification de la configuration : terminé")
 
     def _delete_used_data(self, d_data_delete: Dict[str, str], l_used_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         l_new_use_data = []
