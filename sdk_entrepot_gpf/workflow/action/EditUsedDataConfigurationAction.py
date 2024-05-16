@@ -33,6 +33,10 @@ class EditUsedDataConfigurationAction(ActionAbstract):
         # enregistrement de la modification
         d_parameter["type_infos"]["used_data"] = l_new_use_data
 
+        # suppression de la bbox pour qu'elle soit mise à jour avec les données
+        if self.definition_dict.get("reset_bbox", False) and "bbox" in d_parameter["type_infos"]:
+            del d_parameter["type_infos"]["bbox"]
+
         # lancement de la modification
         Config().om.info(f"Modification de la configuration {o_base_config} ...")
 

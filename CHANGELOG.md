@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* EditUsedDataConfigurationAction: possibilité de mise à jour de la BBox de la configuration selon les données. #140
+
 ### [Changed]
 
 ### [Fixed]

@@ -105,6 +105,9 @@
                                             "items": {
                                                 "type": "object"
                                             }
+                                        },
+                                        "reset_bbox": {
+                                            "type": "boolean"
                                         }
                                     }
                                 }
