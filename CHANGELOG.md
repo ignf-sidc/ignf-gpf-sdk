@@ -5,6 +5,7 @@
 ### [Added]
 
 * ProcessingExecutionAction: ajout d'un mode reprise (`RESUME`). #143
+* EditUsedDataConfigurationAction: possibilité de mise à jour de la BBox de la configuration selon les données. #140
 
 ### [Changed]
 
