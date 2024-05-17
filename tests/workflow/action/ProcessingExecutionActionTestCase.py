@@ -55,6 +55,15 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                     o_mock_get_filters.assert_called_once_with("processing_execution", d_action["body_parameters"]["output"]["stored_data"], d_action["tags"])
                     o_mock_api_list.assert_called_once_with(infos_filter={"info":"val"}, tags_filter={"tag":"val"}, datastore=s_datastore)
                     self.assertEqual(o_stored_data, o_pe1)
+        # pas de stored data trouvé
+        with patch.object(ActionAbstract, "get_filters", return_value=({"info":"val"}, {"tag":"val"})) as o_mock_get_filters:
+            with patch.object(StoredData, "api_list", return_value=[]) as o_mock_api_list :
+                # Appel de la fonction find_stored_data
+                o_stored_data = o_ua.find_stored_data(s_datastore)
+                # Vérifications
+                o_mock_get_filters.assert_called_once_with("processing_execution", d_action["body_parameters"]["output"]["stored_data"], d_action["tags"])
+                o_mock_api_list.assert_called_once_with(infos_filter={"info":"val"}, tags_filter={"tag":"val"}, datastore=s_datastore)
+                self.assertEqual(o_stored_data, None)
 
     def run_args(self,
         tags: Optional[Dict[str,Any]],
@@ -269,6 +278,87 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
         self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "REPRISE")
         self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "Toto")
         self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, None)
+
+        # cas en erreurs non spécifique
+        d_action: Dict[str, Any] = {"type": "processing-execution", "body_parameters":{"output":{s_key:"test"}}, "tags": {"key":"val"}, "comments": ["comm"]}
+        o_mock_processing_execution = MagicMock()
+        o_mock_processing_execution.get_store_properties.return_value = {"output":None}
+
+        ## processing_execution.get_store_properties vide après création
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior="STOP")
+        with patch.object(ProcessingExecution, "api_create", return_value=o_mock_processing_execution), \
+            patch.object(ProcessingExecutionAction, "output_new_entity", new_callable=PropertyMock, return_value=False), \
+            patch.object(Config, "get_str", return_value="STOP") \
+        :
+            with self.assertRaises(GpfSdkError) as o_err_gpf:
+                o_pea.run()
+            s_message = "Erreur à la création de l'exécution de traitement : impossible de récupérer l'entité en sortie."
+            self.assertEqual(o_err_gpf.exception.message, s_message)
+
+        ## impossible de récupérer le donnée en sortie depuis processing_execution
+        d_output={"autre": "", "key": ""}
+        o_mock_processing_execution.get_store_properties.return_value = {"output":d_output}
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior="STOP")
+        with patch.object(ProcessingExecution, "api_create", return_value=o_mock_processing_execution), \
+            patch.object(ProcessingExecutionAction, "output_new_entity", new_callable=PropertyMock, return_value=False), \
+            patch.object(Config, "get_str", return_value="STOP") \
+        :
+            with self.assertRaises(StepActionError) as o_err_step:
+                o_pea.run()
+            s_message = f"Aucune correspondance pour {d_output.keys()}"
+            self.assertEqual(o_err_step.exception.message, s_message)
+
+        ## impossible d'ajouté un tag, pas de donnée en sortie
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior="STOP")
+        with patch.object(ProcessingExecutionAction, "upload", new_callable=PropertyMock, return_value=None), \
+            patch.object(ProcessingExecutionAction, "stored_data", new_callable=PropertyMock, return_value=None), \
+            patch.object(Config, "get_str", return_value="STOP"), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__create_processing_execution", return_value=None) \
+        :
+            with self.assertRaises(StepActionError) as o_err_step:
+                o_pea.run()
+            s_message = "ni upload ni stored-data trouvé. Impossible d'ajouter les tags"
+            self.assertEqual(o_err_step.exception.message, s_message)
+
+        ## impossible d'ajouté un commentaire, pas de donnée en sortie
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior="STOP")
+        with patch.object(ProcessingExecutionAction, "upload", new_callable=PropertyMock, return_value=None), \
+            patch.object(ProcessingExecutionAction, "stored_data", new_callable=PropertyMock, return_value=None), \
+            patch.object(Config, "get_str", return_value="STOP"), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__create_processing_execution", return_value=None), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__add_tags", return_value=None) \
+        :
+            with self.assertRaises(StepActionError) as o_err_step:
+                o_pea.run()
+            s_message = "ni upload ni stored-data trouvé. Impossible d'ajouter les commentaires"
+            self.assertEqual(o_err_step.exception.message, s_message)
+
+        ## __launch pas de processing_execution
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior="STOP")
+        with patch.object(ProcessingExecutionAction, "processing_execution", new_callable=PropertyMock, return_value=None), \
+            patch.object(Config, "get_str", return_value="STOP"), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__create_processing_execution", return_value=None), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__add_tags", return_value=None), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__add_comments", return_value=None) \
+        :
+            with self.assertRaises(StepActionError) as o_err_step:
+                o_pea.run()
+            s_message = "Aucune exécution de traitement trouvée. Impossible de lancer le traitement"
+            self.assertEqual(o_err_step.exception.message, s_message)
+
+        ## __launch traitement pas déjà lancé et pas en mode continue ou reprise
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior="STOP")
+        with patch.object(ProcessingExecutionAction, "processing_execution", new_callable=PropertyMock, return_value={"status": "autre"}), \
+            patch.object(Config, "get_str", return_value="STOP"), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__create_processing_execution", return_value=None), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__add_tags", return_value=None), \
+            patch.object(ProcessingExecutionAction, "_ProcessingExecutionAction__add_comments", return_value=None) \
+        :
+            with self.assertRaises(StepActionError) as o_err_step:
+                o_pea.run()
+            s_message = "L'exécution de traitement est déjà lancée."
+            self.assertEqual(o_err_step.exception.message, s_message)
+
 
     def monitoring_until_end_args(self, s_status_end: str, b_waits: bool, b_callback: bool) -> None:
         """lancement + test de ProcessingExecutionAction.monitoring_until_end() selon param
