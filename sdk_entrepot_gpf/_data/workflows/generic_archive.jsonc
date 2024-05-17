@@ -40,15 +40,18 @@
                 ],
                 "parents": []
             },
-            // Etape n°2 : patch descrtiption donnée stocké pour téléchargement
-            "patch-donné-stocké": {
+            // Etape n°2 : mise à jour de la description de la donnée stockée pour téléchargement
+            "patch-donnée-stockée": {
                 "actions": [
                     {
                         "type": "edit-entity",
                         "entity_type": "stored_data",
                         // On récupère l'id de la donnée stocké créée à l'étape précédente grâce à son nom et l'un de ses tags
                         "entity_id": "{store_entity.stored_data.infos._id [INFOS(name={user.last_name}__Archive)]}",
-                        // Optionnel si non présent requête n'ai pas lancée ( => mise à jour des tags et commentaires uniquement), si l'entité hérite de FullEditInterface (mise à jour totale) => fusion des informations récupérées sur l'API (GET) et de celle fournies, sinon on envoie que celles fournies
+                        // Optionnel : (dans l'exemple on veut màj description et edition, donc on les indique)
+                        //   - si non présent requête n'est pas lancée (=> mise à jour des tags et commentaires uniquement),
+                        //   - si l'entité hérite de FullEditInterface (mise à jour totale) => fusion des informations récupérées sur l'API (GET) et de celles fournies,
+                        //   - sinon on n'envoie que celles fournies
                         "body_parameters": {
                             "description": "Couche test Canton.",
                             "edition": {
@@ -58,7 +61,7 @@
                         },
 
                     "tags": {"edit":"oui"},
-                    "comments": ["modification de la donnée pour mise en téléchargement"]
+                    "comments": ["modification de la donnée stockée pour mise en téléchargement"]
                 }
             ],
             "parents": []
