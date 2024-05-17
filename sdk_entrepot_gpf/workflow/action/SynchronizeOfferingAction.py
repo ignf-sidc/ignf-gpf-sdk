@@ -77,7 +77,7 @@ class SynchronizeOfferingAction(ActionAbstract):
             StepActionError: Plusieurs offres trouvées pour la synchronisation (uniquement si "if_multi" == "error")
             StepActionError: La synchronisation d'au moins une offre est terminée en erreur
         """
-        Config().om.info("Synchronisation d'une offre...")
+        Config().om.info("Synchronisation d'offres ...")
         # récupération des offres
         l_offering = self._find_offerings(datastore)
         # gestion des cas particuliers
@@ -135,3 +135,4 @@ class SynchronizeOfferingAction(ActionAbstract):
                 time.sleep(1)
         if l_errors:
             raise StepActionError("La synchronisation d'au moins une offre est terminée en erreur \n * " + "\n * ".join(l_errors))
+        Config().om.info("Synchronisation d'offres : terminé")

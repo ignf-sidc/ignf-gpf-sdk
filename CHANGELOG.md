@@ -8,6 +8,9 @@
 
 ### [Changed]
 
+* Mise à jour de la documentation de publication d'une archive pour ajouter l'étape de patch sur la donnée stockée
+* affichage des actions: harmonisation des affichages pour les actions #138
+
 ### [Fixed]
 
 * upload_descriptor_file.json: ajout de type_infos suite à l'ajout du paramètre dans la requête GPF. #117
