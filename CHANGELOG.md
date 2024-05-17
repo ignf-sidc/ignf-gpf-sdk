@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* ProcessingExecutionAction: ajout d'un mode reprise. #143
+
 ### [Changed]
 
 ### [Fixed]
