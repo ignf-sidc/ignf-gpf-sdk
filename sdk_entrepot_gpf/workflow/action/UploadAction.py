@@ -114,7 +114,7 @@ class UploadAction:
                     Config().om.info(f"Livraison identique {o_upload} trouvée, le programme va la reprendre et la compléter.")
                 self.__upload = o_upload
             else:
-                raise GpfSdkError(f"Le comportement {self.__behavior} n'est pas reconnu, l'exécution de traitement est annulée.")
+                raise GpfSdkError(f"Le comportement {self.__behavior} n'est pas reconnu ({'|'.join(self.BEHAVIORS)}), l'exécution de traitement est annulée.")
         else:
             # Si la livraison est nulle, on en crée une nouvelle (on utilise les champs de "upload_infos" du dataset)
             self.__upload = Upload.api_create(self.__dataset.upload_infos, route_params={"datastore": datastore})
@@ -182,7 +182,7 @@ class UploadAction:
         self.__upload.api_push_md5_file(path)
 
     def __push_files(self, l_files: List[Tuple[Path, str]], f_api_push: Callable[[Path, str], None], f_api_delete: Callable[[str], None], check_conflict: bool = True) -> int:
-        """pousse un ficher de données ou un ficher md5 sur le store. Gére la reprise de Livraison et les conflicts lors de la livraison.
+        """pousse un ficher de données ou un ficher md5 sur le store. Gère la reprise de Livraison et les conflicts lors de la livraison.
 
         Args:
             l_files (List[Tuple[Path, str]]): liste de tuple Path du ficher à livre, nom du ficher sous la gpf

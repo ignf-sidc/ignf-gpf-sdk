@@ -25,6 +25,7 @@ from sdk_entrepot_gpf.store.Metadata import Metadata
 from sdk_entrepot_gpf.store.Static import Static
 from sdk_entrepot_gpf.workflow.Workflow import Workflow
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
+from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.workflow.resolver.DateResolver import DateResolver
 from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
 from sdk_entrepot_gpf.workflow.resolver.StoreEntityResolver import StoreEntityResolver
@@ -145,7 +146,7 @@ class Main:
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin du fichier à utiliser OU chemin où extraire le dataset")
         o_sub_parser.add_argument("--name", "-n", type=str, default=None, help="Nom du workflow à extraire")
         o_sub_parser.add_argument("--step", "-s", type=str, default=None, help="Étape du workflow à lancer")
-        o_sub_parser.add_argument("--behavior", "-b", type=str, default=None, help="Action à effectuer si l'exécution de traitement existe déjà")
+        o_sub_parser.add_argument("--behavior", "-b", choices=ProcessingExecutionAction.BEHAVIORS, default=None, help="Action à effectuer si l'exécution de traitement existe déjà")
         o_sub_parser.add_argument("--tag", "-t", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Tag à ajouter aux actions (plusieurs tags possible)")
         o_sub_parser.add_argument(
             "--comment",
