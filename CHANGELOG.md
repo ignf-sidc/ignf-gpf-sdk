@@ -11,6 +11,7 @@
 ### [Fixed]
 
 * upload_descriptor_file.json: ajout de type_infos suite à l'ajout du paramètre dans la requête GPF. #117
+* LogsInterface: récupération des logs en prenant compte de la pagination (+ refonte test api_logs). #135
 
 ## v0.1.26
 
