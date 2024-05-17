@@ -4,7 +4,7 @@
 
 ### [Added]
 
-* ProcessingExecutionAction: ajout d'un mode reprise. #143
+* ProcessingExecutionAction: ajout d'un mode reprise (`RESUME`). #143
 
 ### [Changed]
 

@@ -169,7 +169,7 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                         self.assertEqual(o_err.exception.message, f"Impossible de trouver l'exécution de traitement liée à la donnée stockée {o_mock_exist_output}")
 
                         return
-                    elif behavior == "REPRISE":
+                    elif behavior == "RESUME":
                         # premier test sur la stored data créée
                         o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_CREATED
                         o_pea.run(datastore)
@@ -199,7 +199,7 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                         # behavior non reconnu. On attend une erreur
                         with self.assertRaises(GpfSdkError) as o_err:
                             o_pea.run(datastore)
-                        self.assertEqual(o_err.exception.message, f"Le comportement {behavior} n'est pas reconnu (STOP|DELETE|CONTINUE|REPRISE), l'exécution de traitement n'est pas possible.")
+                        self.assertEqual(o_err.exception.message, f"Le comportement {behavior} n'est pas reconnu (STOP|DELETE|CONTINUE|RESUME), l'exécution de traitement n'est pas possible.")
                         return
 
                 else:
@@ -278,7 +278,7 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
         self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "STOP")
         self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "DELETE")
         self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "CONTINUE")
-        self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "REPRISE")
+        self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "RESUME")
         self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "Toto")
         self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, None)
 

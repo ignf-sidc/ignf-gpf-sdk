@@ -22,6 +22,14 @@ class ProcessingExecutionAction(ActionAbstract):
         __StoredData (Optional[StoredData]): représentation Python de la donnée stockée en sortie (null si livraison en sortie)
     """
 
+    # Comportements possibles pour une ProcessingExecutionAction
+    BEHAVIORS = [
+        ActionAbstract.BEHAVIOR_STOP,
+        ActionAbstract.BEHAVIOR_DELETE,
+        ActionAbstract.BEHAVIOR_CONTINUE,
+        ActionAbstract.BEHAVIOR_RESUME,
+    ]
+
     # status possibles d'une ProcessingExecution (status délivrés par l'api)
     # STATUS_CREATED
     # STATUS_ABORTED STATUS_SUCCESS STATUS_FAILURE
@@ -77,15 +85,15 @@ class ProcessingExecutionAction(ActionAbstract):
                 # on met à jour o_stored_data pour avoir son status
                 o_stored_data.api_update()
                 # Comportement de suppression des entités détectées
-                if self.__behavior == self.BEHAVIOR_DELETE or (o_stored_data["status"] == StoredData.STATUS_UNSTABLE and self.__behavior == self.BEHAVIOR_REPRISE):
+                if self.__behavior == self.BEHAVIOR_DELETE or (o_stored_data["status"] == StoredData.STATUS_UNSTABLE and self.__behavior == self.BEHAVIOR_RESUME):
                     Config().om.warning(f"Une donnée stockée équivalente à {o_stored_data} va être supprimée puis recréée.")
                     # Suppression de la donnée stockée
                     o_stored_data.api_delete()
                     # on force à None pour que la création soit faite
                     self.__processing_execution = None
                 # Comportement "on continue l'exécution"
-                elif self.__behavior in [self.BEHAVIOR_CONTINUE, self.BEHAVIOR_REPRISE]:
-                    # on regarde si le résultat du traitement précédent est en échec (cas pour self.BEHAVIOR_REPRISE, déjà traité)
+                elif self.__behavior in [self.BEHAVIOR_CONTINUE, self.BEHAVIOR_RESUME]:
+                    # on regarde si le résultat du traitement précédent est en échec (cas pour self.BEHAVIOR_RESUME, déjà traité)
                     if o_stored_data["status"] == StoredData.STATUS_UNSTABLE:
                         raise GpfSdkError(f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_stored_data}. Impossible de lancer le traitement demandé.")
 
@@ -103,10 +111,7 @@ class ProcessingExecutionAction(ActionAbstract):
                     return
                 # Comportement non reconnu
                 else:
-                    raise GpfSdkError(
-                        f"Le comportement {self.__behavior} n'est pas reconnu ({self.BEHAVIOR_STOP}|{self.BEHAVIOR_DELETE}|{self.BEHAVIOR_CONTINUE}|{self.BEHAVIOR_REPRISE})"
-                        + ", l'exécution de traitement n'est pas possible."
-                    )
+                    raise GpfSdkError(f"Le comportement {self.__behavior} n'est pas reconnu ({'|'.join(self.BEHAVIORS)}), l'exécution de traitement n'est pas possible.")
 
         # A ce niveau là, si on a encore self.__processing_execution qui est None, c'est qu'on peut créer l'Exécution de Traitement sans problème
         if self.__processing_execution is None:
@@ -181,7 +186,7 @@ class ProcessingExecutionAction(ActionAbstract):
             Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : lancement...")
             self.processing_execution.api_launch()
             Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : lancée avec succès.")
-        elif self.__behavior in [self.BEHAVIOR_CONTINUE, self.BEHAVIOR_REPRISE]:
+        elif self.__behavior in [self.BEHAVIOR_CONTINUE, self.BEHAVIOR_RESUME]:
             Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : déjà lancée.")
         else:
             # processing_execution est déjà lancé ET le __behavior n'est pas en "continue", on ne devrait pas être ici :

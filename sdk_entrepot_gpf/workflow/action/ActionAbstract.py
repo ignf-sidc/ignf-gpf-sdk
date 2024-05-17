@@ -26,7 +26,7 @@ class ActionAbstract(ABC):
     BEHAVIOR_STOP = "STOP"
     BEHAVIOR_DELETE = "DELETE"
     BEHAVIOR_CONTINUE = "CONTINUE"
-    BEHAVIOR_REPRISE = "REPRISE"
+    BEHAVIOR_RESUME = "RESUME"
 
     def __init__(self, workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional["ActionAbstract"] = None) -> None:
         super().__init__()
