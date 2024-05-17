@@ -299,7 +299,7 @@ Possibilité de supprimer des entités de type : upload, stored_data, configurat
 }
 ```
 
-***ATTENTION** ici la valeur **`{uuid}` doit être une uuid en dure et non une uuid récupérée par le résolveur `store_entity`**(StoreEntityResolver) pour que l'option `"not_found_ok": true,`(valeur par défaut) fonctionne. **S'il y a besoin d'utiliser le résolveur `store_entity` il faut utiliser la solution suivante**. Avec l'utilisation du résolveur `store_entity` si l'entité n'existe pas une erreur sera levé pendant la résolution de l'action et les résolveurs gardant en mémoire les valeurs déjà trouvés la réutilisation du résolveur avc les même filtre pointera vers l'entité supprimée.*
+***ATTENTION** ici la valeur **`{uuid}` doit être une uuid en dur et non une uuid récupérée par le résolveur `store_entity`**(StoreEntityResolver) pour que l'option `"not_found_ok": true,`(valeur par défaut) fonctionne. **S'il y a besoin d'utiliser le résolveur `store_entity` il faut utiliser la solution suivante**. Avec l'utilisation du résolveur `store_entity` si l'entité n'existe pas une erreur sera levée pendant la résolution de l'action et les résolveurs gardant en mémoire les valeurs déjà trouvées la réutilisation du résolveur avec les même filtre pointera vers l'entité supprimée.*
 
 * suppression par filtre sur la liste :
 
@@ -350,13 +350,13 @@ Pour le `body_parameters` se référer à la documentation API GPF:
   * Seul le nom de la donnée et sa visibilité sont modifiables, et uniquement par le propriétaire. Les autres informations, comme le type de la donnée, sont figées pour une donnée.
 * configuration *(totale)* : PUT [/datastores/{datastore}/configurations/{configuration}](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/update_1)
   * Si la configuration est liée à des offres en cours de publication, la modification n'est pas possible. Si la configuration est liée à des offres publiées, les modifications sont répercutées sur les serveurs de diffusion. Le nom technique et le type ne sont pas modifiable.
-  * Cas particulier de la modification des use_data (`[type_infos][use_data]`), la liste doit être de la même longueur que celle de la configuration et chaque dictionnaire sera fusionner avec l'ancien cf [#83](https://github.com/Geoplateforme/sdk-entrepot/issues/83) [#66](https://github.com/Geoplateforme/sdk-entrepot/issues/66). Pour supprimer/ajouté une used_data cf action suivante [Mise à jour des used_data d'une configuration](#mise-à-jour-des-used_data-dune-configuration)
+  * Cas particulier de la modification des used_data (`[type_infos][used_data]`), la liste doit être de la même longueur que celle de la configuration et chaque dictionnaire sera fusionné avec l'ancien cf [#83](https://github.com/Geoplateforme/sdk-entrepot/issues/83) [#66](https://github.com/Geoplateforme/sdk-entrepot/issues/66). Pour supprimer/ajouter une used_data cf action suivante [Mise à jour des used_data d'une configuration](#mise-à-jour-des-used_data-dune-configuration)
 * offering *(partiel)*: PATCH [/datastores/{datastore}/offerings/{offering}](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/update_4)
-  * Il est possible de modifier la visibilité d'une offre afin qu'elle apparaisse dans les catalogues ou qu'on puisse donner des permissions, ou au contraire qu'elle en disparaisse. On peut également désactiver une offre pour en couper la consommation rapidement, sans déconfigurer les permissions
+  * Il est possible de modifier la visibilité d'une offre afin qu'elle apparaisse dans les catalogues ou qu'on puisse donner des permissions, ou au contraire qu'elle en disparaisse. On peut également désactiver une offre pour en couper la consommation rapidement, sans déconfigurer les permissions.
 
-### Mise à jour des used_data et bbox d'une configuration
+### Mise à jour des used_data et bbox d'une Configuration
 
-L'action d'édition d'une configuration ne permet pas de supprimer ni ajouté une used_data. Cette action permet donc de supprimer/ajouté une used_data ainsi que de pouvoir mettre à jour la BBox avec les données utilisée.
+L'action d'édition d'une configuration ne permet pas de supprimer ni ajouter une used_data. Cette action permet donc de supprimer/ajouter une used_data ainsi que de pouvoir mettre à jour la BBox avec les données utilisées.
 
 ```jsonc
 {
@@ -365,10 +365,10 @@ L'action d'édition d'une configuration ne permet pas de supprimer ni ajouté un
   "entity_id":  "{uuid_config}",
   // Optionnel : liste des used_data à supprimer, toutes les used_data existantes qui sont l'intersection des clefs spécifiées seront supprimées
   // dans l'exemple, on supprime toutes les used_data liées à la stored_data "id_store_data" et toutes celles qui sont liées à la zone "ZONE"
-  "delete_used_data": [{"param1": "val1"}, {"param1": "val3", "param2": "val3"}],
+  "delete_used_data": [{"stored_data": "id_store_data"}, {"zone": "ZONE"}],
   // Optionnel : liste des used_data à ajouter, selon le format demandé par l'API Entrepôt
   "append_used_data": [{...}],
-  // Optionnel : si on mettre à jour la BBox avec les données utilisée (bbox calculé après la modification des used_data). Par défaut à false.
+  // Optionnel : si on veut mettre à jour la BBox avec les données utilisées (bbox calculée après la modification des used_data). Par défaut à false.
   "reset_bbox": true
 }
 ```
