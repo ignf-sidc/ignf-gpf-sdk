@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* EditUsedDataConfigurationAction: possibilité de mise à jour de la BBox de la configuration selon les données. #140
+
 ### [Changed]
 
 * Mise à jour de la documentation de publication d'une archive pour ajouter l'étape de patch sur la donnée stockée
