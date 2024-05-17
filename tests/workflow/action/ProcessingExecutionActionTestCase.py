@@ -151,7 +151,10 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                         o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_UNSTABLE
                         with self.assertRaises(GpfSdkError) as o_err:
                             o_pea.run(datastore)
-                        self.assertEqual(o_err.exception.message, f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_exist_output}. Impossible de lancer le traitement demandé.")
+                        self.assertEqual(
+                            o_err.exception.message,
+                            f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_exist_output}. Impossible de lancer le traitement demandé."
+                        )
 
                         # deuxième test sur la stored data créée
                         o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_CREATED
