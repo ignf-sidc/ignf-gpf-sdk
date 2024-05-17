@@ -76,8 +76,9 @@ Ouvrez le fichier. Vous trouverez plus de détails dans la [documentation sur le
 %% doc mermaid ici https://mermaid-js.github.io/mermaid/#/flowchart?id=flowcharts-basic-syntax
 flowchart TD
     A("upload") -->|intégration-archive-livrée| B("dataset")
-    B -->|configuration-archive-livrée| C(configuration)
-    C -->|publication-archive-livrée| D(publication)
+    B -->|patch-donnée-stockée|C("patch")
+    C-->|configuration-archive-livrée| D(configuration)
+    D -->|publication-archive-livrée| E(publication)
 ```
 
 ## Traitement et publication
@@ -85,6 +86,7 @@ flowchart TD
 Le workflow « generic_archive » permet de passer de la livraison à une lien permettant de télécharger la donnée. Il comporte 3 étapes :
 
 * `intégration-archive-livrée` : transformation des données livrées temporaires en une Donnée Stockée pérenne ;
+* `patch-donnée-stockée` : ajout de la description des Données Stockée;
 * `configuration-archive-livrée` : configuration d'un service de téléchargement permettant de télécharger les données ;
 * `publication-archive-livrée` : publication du service de téléchargement.
 
@@ -92,13 +94,14 @@ Lancez les 3 commandes suivantes pour exécuter les 3 étapes :
 
 ```sh
 python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s intégration-archive-livrée
+python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s patch-donnée-stockée
 python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s configuration-archive-livrée
 python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s publication-archive-livrée
 ```
 
 La première commande ne doit pas être instantanée : un traitement est effectué et les logs doivent vous être remontés.
 
-Les deux étapes suivantes sont instantanées. A la fin, vous devez voir s'afficher un lien.
+Les trois étapes suivantes sont instantanées. A la fin, vous devez voir s'afficher un lien.
 
 Exemple :
 
@@ -130,8 +133,9 @@ python -m sdk_entrepot_gpf dataset -n 2_dataset_archive
 python -m sdk_entrepot_gpf upload -f 2_dataset_archive/upload_descriptor.json
 # récupération du workflow de traitement et publication d'une archive
 python -m sdk_entrepot_gpf workflow -n generic_archive.jsonc
-# exécution des 3 étapes pour le traitement et la publication de l'archive
+# exécution des 4 étapes pour le traitement et la publication de l'archive
 python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s intégration-archive-livrée
+python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s patch-donnée-stockée
 python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s configuration-archive-livrée
 python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s publication-archive-livrée
 ```
