@@ -364,7 +364,7 @@ class UploadActionTestCase(GpfTestCase):
             patch.object(Upload, "api_create") as o_mock_api_create:
             with self.assertRaises(GpfSdkError) as e_err:
                 o_ua.create_upload(datastore=s_datastore)
-            self.assertEqual(f"Le comportement {s_behavior} n'est pas reconnu, l'exécution de traitement est annulée.", e_err.exception.message)
+            self.assertEqual(f"Le comportement {s_behavior} n'est pas reconnu (STOP|CONTINUE|DELETE), l'exécution de traitement est annulée.", e_err.exception.message)
             o_mock_find_upload.assert_called_once_with(s_datastore)
             o_mock_api_create.assert_not_called()
             o_mock_upload.is_open.assert_not_called()
