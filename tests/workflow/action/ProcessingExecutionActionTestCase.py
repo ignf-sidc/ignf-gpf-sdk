@@ -25,6 +25,8 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
     cmd : python3 -m unittest -b tests.workflow.action.ProcessingExecutionActionTestCase
     """
 
+    i = 0
+
     def test_find_stored_data(self) -> None:
         """Test find_stored_data."""
         o_pe1 = ProcessingExecution({"_id": "pe_1"})
@@ -70,178 +72,180 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
             comments (Optional[List]): liste des commentaires ou None
             s_type_output (str): type de l'output (stored_data ou upload)
         """
-        d_action: Dict[str, Any] = {"type": "processing-execution", "body_parameters":{"output":{s_key:"test"}}}
-        if tags is not None:
-            d_action["tags"] = tags
-        if comments is not None:
-            d_action["comments"] = comments
+        self.i += 1
+        with self.subTest(i=self.i):
+            d_action: Dict[str, Any] = {"type": "processing-execution", "body_parameters":{"output":{s_key:"test"}}}
+            if tags is not None:
+                d_action["tags"] = tags
+            if comments is not None:
+                d_action["comments"] = comments
 
-        # initialisation de ProcessingExecutionAction
-        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=behavior)
+            # initialisation de ProcessingExecutionAction
+            o_pea = ProcessingExecutionAction("contexte", d_action, behavior=behavior)
 
-        # mock de processing execution
-        d_store_properties = {"output": {s_type_output: {"_id": "id"}}}
-        o_mock_processing_execution = MagicMock()
-        o_mock_processing_execution.get_store_properties.return_value = d_store_properties
-        o_mock_processing_execution.api_launch.return_value = None
-        # o_mock_processing_execution.__getitem__.return_value = ProcessingExecution.STATUS_CREATED
-        # ça veut dire que : o_mock_processing_execution["quelchechose"] = "CREATED"
-        def get_items_processing(key:str) -> Any:
-            if key == "status":
-                return "CREATED"
-            return MagicMock()
-        o_mock_processing_execution.__getitem__.side_effect = get_items_processing
+            # mock de processing execution
+            d_store_properties = {"output": {s_type_output: {"_id": "id"}}}
+            o_mock_processing_execution = MagicMock()
+            o_mock_processing_execution.get_store_properties.return_value = d_store_properties
+            o_mock_processing_execution.api_launch.return_value = None
+            # o_mock_processing_execution.__getitem__.return_value = ProcessingExecution.STATUS_CREATED
+            # ça veut dire que : o_mock_processing_execution["quelchechose"] = "CREATED"
+            def get_items_processing(key:str) -> Any:
+                if key == "status":
+                    return "CREATED"
+                return MagicMock()
+            o_mock_processing_execution.__getitem__.side_effect = get_items_processing
 
-        # mock de upload d'entrée
-        o_mock_upload = MagicMock()
-        o_mock_upload.api_add_tags.return_value = None
-        o_mock_upload.api_add_comment.return_value = None
+            # mock de upload d'entrée
+            o_mock_upload = MagicMock()
+            o_mock_upload.api_add_tags.return_value = None
+            o_mock_upload.api_add_comment.return_value = None
 
-        # mock de stored_data d'entrée
-        o_mock_stored_data = MagicMock()
-        o_mock_stored_data.api_add_tags.return_value = None
-        o_mock_stored_data.api_add_comment.return_value = None
+            # mock de stored_data d'entrée
+            o_mock_stored_data = MagicMock()
+            o_mock_stored_data.api_add_tags.return_value = None
+            o_mock_stored_data.api_add_comment.return_value = None
 
-        # résultat de ProcessingExecutionAction."find_stored_data" : stored_data de sortie
-        o_exist_output = None
-        if output_already_exist:
-            o_mock_exist_output = MagicMock()
-            o_mock_exist_output.api_delete.return_value = None
-            o_exist_output = o_mock_exist_output
-
-        # suppression de la mise en page forcée pour le with
-        with patch.object(Upload, "api_get", return_value=o_mock_upload) as o_mock_upload_api_get, \
-            patch.object(StoredData, "api_get", return_value=o_mock_stored_data) as o_mock_stored_data_api_get, \
-            patch.object(ProcessingExecution, "api_create", return_value=o_mock_processing_execution) as o_mock_pe_api_create, \
-            patch.object(ProcessingExecution, "api_list", return_value=[o_mock_processing_execution]) as o_mock_pe_api_list, \
-            patch.object(ProcessingExecutionAction, "find_stored_data", return_value=o_exist_output) as o_mock_pea_find_stored_data, \
-            patch.object(ProcessingExecutionAction, "output_new_entity", new_callable=PropertyMock, return_value=output_already_exist), \
-            patch.object(Config, "get_str", return_value="STOP") \
-        :
-            # dans le cas où une entité existe déjà dans la gpf :
+            # résultat de ProcessingExecutionAction."find_stored_data" : stored_data de sortie
+            o_exist_output = None
             if output_already_exist:
-                if not behavior or behavior == "STOP":
-                    # on attend une erreur
-                    with self.assertRaises(GpfSdkError) as o_err:
+                o_mock_exist_output = MagicMock()
+                o_mock_exist_output.api_delete.return_value = None
+                o_exist_output = o_mock_exist_output
+
+            # suppression de la mise en page forcée pour le with
+            with patch.object(Upload, "api_get", return_value=o_mock_upload) as o_mock_upload_api_get, \
+                patch.object(StoredData, "api_get", return_value=o_mock_stored_data) as o_mock_stored_data_api_get, \
+                patch.object(ProcessingExecution, "api_create", return_value=o_mock_processing_execution) as o_mock_pe_api_create, \
+                patch.object(ProcessingExecution, "api_list", return_value=[o_mock_processing_execution]) as o_mock_pe_api_list, \
+                patch.object(ProcessingExecutionAction, "find_stored_data", return_value=o_exist_output) as o_mock_pea_find_stored_data, \
+                patch.object(ProcessingExecutionAction, "output_new_entity", new_callable=PropertyMock, return_value=output_already_exist), \
+                patch.object(Config, "get_str", return_value="STOP") \
+            :
+                # dans le cas où une entité existe déjà dans la gpf :
+                if output_already_exist:
+                    if not behavior or behavior == "STOP":
+                        # on attend une erreur
+                        with self.assertRaises(GpfSdkError) as o_err:
+                            o_pea.run(datastore)
+                        self.assertEqual(o_err.exception.message, f"Impossible de créer l’exécution de traitement, une donnée stockée en sortie équivalente {o_exist_output} existe déjà.")
+                        return
+
+                    if behavior == "DELETE":
+                        # suppression de l'existant puis normal
                         o_pea.run(datastore)
-                    self.assertEqual(o_err.exception.message, f"Impossible de créer l’exécution de traitement, une donnée stockée en sortie équivalente {o_exist_output} existe déjà.")
-                    return
+                        # un appel à find_stored_data
+                        o_mock_pea_find_stored_data.assert_called_once_with(datastore)
+                        o_mock_exist_output.api_delete.assert_called_once_with()
+                    elif behavior == "CONTINUE":
+                        # premier test sur STATUS_UNSTABLE
+                        o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_UNSTABLE
+                        with self.assertRaises(GpfSdkError) as o_err:
+                            o_pea.run(datastore)
+                        self.assertEqual(o_err.exception.message, f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_exist_output}. Impossible de lancer le traitement demandé.")
 
-                if behavior == "DELETE":
-                    # suppression de l'existant puis normal
-                    o_pea.run(datastore)
-                    # un appel à find_stored_data
-                    o_mock_pea_find_stored_data.assert_called_once_with(datastore)
-                    o_mock_exist_output.api_delete.assert_called_once_with()
-                elif behavior == "CONTINUE":
-                    # premier test sur STATUS_UNSTABLE
-                    o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_UNSTABLE
-                    with self.assertRaises(GpfSdkError) as o_err:
+                        # deuxième test sur la stored data créée
+                        o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_CREATED
                         o_pea.run(datastore)
-                    self.assertEqual(o_err.exception.message, f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_exist_output}. Impossible de lancer le traitement demandé.")
+                        o_mock_pe_api_list.assert_called_once_with({"output_stored_data":o_mock_exist_output.id}, datastore=datastore)
+                        self.assertEqual(o_pea.processing_execution, o_mock_processing_execution)
 
-                    # deuxième test sur la stored data créée
-                    o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_CREATED
-                    o_pea.run(datastore)
-                    o_mock_pe_api_list.assert_called_once_with({"output_stored_data":o_mock_exist_output.id}, datastore=datastore)
-                    self.assertEqual(o_pea.processing_execution, o_mock_processing_execution)
+                        # troisième test sur l'absence de la processing execution
+                        o_mock_pe_api_list.return_value = []
+                        with self.assertRaises(GpfSdkError) as o_err:
+                            o_pea.run(datastore)
+                        self.assertEqual(o_err.exception.message, f"Impossible de trouver l'exécution de traitement liée à la donnée stockée {o_mock_exist_output}")
 
-                    # troisième test sur l'absence de la processing execution
-                    o_mock_pe_api_list.return_value = []
-                    with self.assertRaises(GpfSdkError) as o_err:
+                        return
+                    elif behavior == "REPRISE":
+                        # premier test sur la stored data créée
+                        o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_CREATED
                         o_pea.run(datastore)
-                    self.assertEqual(o_err.exception.message, f"Impossible de trouver l'exécution de traitement liée à la donnée stockée {o_mock_exist_output}")
+                        o_mock_pe_api_list.assert_called_once_with({"output_stored_data":o_mock_exist_output.id}, datastore=datastore)
+                        self.assertEqual(o_pea.processing_execution, o_mock_processing_execution)
 
-                    return
-                elif behavior == "REPRISE":
-                    # premier test sur la stored data créée
-                    o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_CREATED
-                    o_pea.run(datastore)
-                    o_mock_pe_api_list.assert_called_once_with({"output_stored_data":o_mock_exist_output.id}, datastore=datastore)
-                    self.assertEqual(o_pea.processing_execution, o_mock_processing_execution)
+                        o_mock_exist_output.reset_mock()
+                        o_mock_pea_find_stored_data.reset_mock()
 
-                    o_mock_exist_output.reset_mock()
-                    o_mock_pea_find_stored_data.reset_mock()
+                        # deuxième test sur l'absence de la processing execution
+                        o_mock_pe_api_list.return_value = []
+                        with self.assertRaises(GpfSdkError) as o_err:
+                            o_pea.run(datastore)
+                        self.assertEqual(o_err.exception.message, f"Impossible de trouver l'exécution de traitement liée à la donnée stockée {o_mock_exist_output}")
 
-                    # deuxième test sur l'absence de la processing execution
-                    o_mock_pe_api_list.return_value = []
-                    with self.assertRaises(GpfSdkError) as o_err:
+                        o_mock_exist_output.reset_mock()
+                        o_mock_pea_find_stored_data.reset_mock()
+                        o_mock_processing_execution.api_launch.reset_mock()
+
+                        # troisième test sur STATUS_UNSTABLE => suppression puis normal
+                        o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_UNSTABLE
                         o_pea.run(datastore)
-                    self.assertEqual(o_err.exception.message, f"Impossible de trouver l'exécution de traitement liée à la donnée stockée {o_mock_exist_output}")
+                        # un appel à find_stored_data
+                        o_mock_pea_find_stored_data.assert_called_once_with(datastore)
+                        o_mock_exist_output.api_delete.assert_called_once_with()
+                    else:
+                        # behavior non reconnu. On attend une erreur
+                        with self.assertRaises(GpfSdkError) as o_err:
+                            o_pea.run(datastore)
+                        self.assertEqual(o_err.exception.message, f"Le comportement {behavior} n'est pas reconnu (STOP|DELETE|CONTINUE|REPRISE), l'exécution de traitement n'est pas possible.")
+                        return
 
-                    o_mock_exist_output.reset_mock()
-                    o_mock_pea_find_stored_data.reset_mock()
-                    o_mock_processing_execution.api_launch.reset_mock()
-
-                    # troisième test sur STATUS_UNSTABLE => suppression puis normal
-                    o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_UNSTABLE
-                    o_pea.run(datastore)
-                    # un appel à find_stored_data
-                    o_mock_pea_find_stored_data.assert_called_once_with(datastore)
-                    o_mock_exist_output.api_delete.assert_called_once_with()
                 else:
-                    # behavior non reconnu. On attend une erreur
-                    with self.assertRaises(GpfSdkError) as o_err:
-                        o_pea.run(datastore)
-                    self.assertEqual(o_err.exception.message, f"Le comportement {behavior} n'est pas reconnu (STOP|DELETE|CONTINUE|REPRISE), l'exécution de traitement n'est pas possible.")
-                    return
+                    # on appelle la méthode à tester
+                    o_pea.run(datastore)
+                    o_mock_pea_find_stored_data.assert_not_called()
 
-            else:
-                # on appelle la méthode à tester
-                o_pea.run(datastore)
-                o_mock_pea_find_stored_data.assert_not_called()
+                # test de l'appel à ProcessingExecution.api_create
+                o_mock_pe_api_create.assert_called_once_with(d_action['body_parameters'], {"datastore":datastore})
+                # un appel à ProcessingExecution().get_store_properties
+                o_mock_processing_execution.get_store_properties.assert_called_once_with()
 
-            # test de l'appel à ProcessingExecution.api_create
-            o_mock_pe_api_create.assert_called_once_with(d_action['body_parameters'], {"datastore":datastore})
-            # un appel à ProcessingExecution().get_store_properties
-            o_mock_processing_execution.get_store_properties.assert_called_once_with()
+                # verif appel à Upload/StoredData
+                if "stored_data" in d_store_properties["output"]:
+                    # test  .api_get
+                    o_mock_stored_data_api_get.assert_called_once_with("id", datastore=datastore)
+                    o_mock_upload_api_get.assert_not_called()
 
-            # verif appel à Upload/StoredData
-            if "stored_data" in d_store_properties["output"]:
-                # test  .api_get
-                o_mock_stored_data_api_get.assert_called_once_with("id", datastore=datastore)
-                o_mock_upload_api_get.assert_not_called()
-
-                # test api_add_tags
-                if "tags" in d_action and d_action["tags"]:
-                    o_mock_stored_data.api_add_tags.assert_called_once_with(d_action["tags"])
-                else:
-                    o_mock_stored_data.api_add_tags.assert_not_called()
-                o_mock_upload.api_add_tags.assert_not_called()
-
-                # test commentaires
-                if "comments" in d_action and d_action["comments"]:
-                    self.assertEqual(len(d_action["comments"]), o_mock_stored_data.api_add_comment.call_count)
-                    for s_comm in d_action["comments"]:
-                        o_mock_stored_data.api_add_comment.assert_any_call({"text": s_comm})
-                else:
-                    o_mock_stored_data.api_add_comment.assert_not_called()
-                o_mock_upload.api_add_comment.assert_not_called()
-
-
-            elif "upload" in  d_store_properties["output"]:
-                # test api_get
-                o_mock_upload_api_get.assert_called_once_with("id", datastore=datastore)
-                o_mock_stored_data_api_get.assert_not_called()
-
-                # test api_add_tags
-                if "tags" in d_action and d_action["tags"]:
-                    o_mock_upload.api_add_tags.assert_called_once_with(d_action["tags"])
-                else:
+                    # test api_add_tags
+                    if "tags" in d_action and d_action["tags"]:
+                        o_mock_stored_data.api_add_tags.assert_called_once_with(d_action["tags"])
+                    else:
+                        o_mock_stored_data.api_add_tags.assert_not_called()
                     o_mock_upload.api_add_tags.assert_not_called()
-                o_mock_stored_data.api_add_tags.assert_not_called()
 
-                # test commentaires
-                if "comments" in d_action and d_action["comments"]:
-                    self.assertEqual(len(d_action["comments"]), o_mock_upload.api_add_comment.call_count)
-                    for s_comm in d_action["comments"]:
-                        o_mock_upload.api_add_comment.assert_any_call({"text": s_comm})
-                else:
+                    # test commentaires
+                    if "comments" in d_action and d_action["comments"]:
+                        self.assertEqual(len(d_action["comments"]), o_mock_stored_data.api_add_comment.call_count)
+                        for s_comm in d_action["comments"]:
+                            o_mock_stored_data.api_add_comment.assert_any_call({"text": s_comm})
+                    else:
+                        o_mock_stored_data.api_add_comment.assert_not_called()
                     o_mock_upload.api_add_comment.assert_not_called()
-                o_mock_stored_data.api_add_comment.assert_not_called()
 
-            # un appel à api_launch
-            o_mock_processing_execution.api_launch.assert_called_once_with()
+
+                elif "upload" in  d_store_properties["output"]:
+                    # test api_get
+                    o_mock_upload_api_get.assert_called_once_with("id", datastore=datastore)
+                    o_mock_stored_data_api_get.assert_not_called()
+
+                    # test api_add_tags
+                    if "tags" in d_action and d_action["tags"]:
+                        o_mock_upload.api_add_tags.assert_called_once_with(d_action["tags"])
+                    else:
+                        o_mock_upload.api_add_tags.assert_not_called()
+                    o_mock_stored_data.api_add_tags.assert_not_called()
+
+                    # test commentaires
+                    if "comments" in d_action and d_action["comments"]:
+                        self.assertEqual(len(d_action["comments"]), o_mock_upload.api_add_comment.call_count)
+                        for s_comm in d_action["comments"]:
+                            o_mock_upload.api_add_comment.assert_any_call({"text": s_comm})
+                    else:
+                        o_mock_upload.api_add_comment.assert_not_called()
+                    o_mock_stored_data.api_add_comment.assert_not_called()
+
+                # un appel à api_launch
+                o_mock_processing_execution.api_launch.assert_called_once_with()
 
     def test_run(self) -> None:
         """test de run"""
