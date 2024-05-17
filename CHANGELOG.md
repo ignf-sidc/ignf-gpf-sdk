@@ -9,7 +9,7 @@
 
 ### [Changed]
 
-* Mise à jour de la documetentation de publication d'une archives pour l'ajout de l'étape de patch sur la donnée stockée
+* Mise à jour de la documentation de publication d'une archive pour ajouter l'étape de patch sur la donnée stockée
 
 ### [Fixed]
 

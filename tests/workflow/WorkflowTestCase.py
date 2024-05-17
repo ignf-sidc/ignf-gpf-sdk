@@ -462,7 +462,7 @@ class WorkflowTestCase(GpfTestCase):
             l_errors = o_workflow_1.validate()
             self.assertTrue(l_errors)
             self.assertEqual(l_errors[0], "L'action n°1 de l'étape « intégration-archive-livrée » lève une erreur inattendue (error).")
-            self.assertEqual(l_errors[1], "L'action n°1 de l'étape « patch-donné-stocké » lève une erreur inattendue (error).")
+            self.assertEqual(l_errors[1], "L'action n°1 de l'étape « patch-donnée-stockée » lève une erreur inattendue (error).")
             self.assertEqual(l_errors[2], "L'action n°1 de l'étape « configuration-archive-livrée » lève une erreur inattendue (error).")
             self.assertEqual(l_errors[3], "L'action n°1 de l'étape « publication-archive-livrée » lève une erreur inattendue (error).")
 
