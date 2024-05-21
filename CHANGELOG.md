@@ -6,6 +6,8 @@
 
 ### [Changed]
 
+* ci : mise à jour des GitHub Actions
+
 ### [Fixed]
 
 ## v0.1.27
