@@ -25,6 +25,7 @@ from sdk_entrepot_gpf.store.Metadata import Metadata
 from sdk_entrepot_gpf.store.Static import Static
 from sdk_entrepot_gpf.workflow.Workflow import Workflow
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
+from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.workflow.resolver.DateResolver import DateResolver
 from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
 from sdk_entrepot_gpf.workflow.resolver.StoreEntityResolver import StoreEntityResolver
@@ -100,14 +101,14 @@ class Main:
         o_sub_parsers = o_parser.add_subparsers(dest="task", metavar="TASK", required=True, help="Tâche à effectuer")
 
         # Parser pour auth
-        o_sub_parser = o_sub_parsers.add_parser("auth", help="Authentification")
+        o_sub_parser = o_sub_parsers.add_parser("auth", help="Gestion de l'authentification")
         o_sub_parser.add_argument("--show", type=str, choices=["token", "header"], default=None, help="Donnée à renvoyer")
 
         # Parser pour me
         o_sub_parser = o_sub_parsers.add_parser("me", help="Mes informations")
 
         # Parser pour config
-        o_sub_parser = o_sub_parsers.add_parser("config", help="Configuration")
+        o_sub_parser = o_sub_parsers.add_parser("config", help="Affichage de la configuration")
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin du fichier où sauvegarder la configuration (si null, la configuration est affichée)")
         o_sub_parser.add_argument("--section", "-s", type=str, default=None, help="Se limiter à une section")
         o_sub_parser.add_argument("--option", "-o", type=str, default=None, help="Se limiter à une option (la section doit être renseignée)")
@@ -118,7 +119,7 @@ class Main:
         * détail d'une livraison, optionnel ouverture ou fermeture : `--id ID [--open | --close]`
         * liste des livraisons, optionnel filtre sur l'info et tags : `[--infos INFOS] [--tags TAGS]`
         """
-        o_sub_parser = o_sub_parsers.add_parser("upload", help="Livraisons", epilog=s_epilog_upload, formatter_class=argparse.RawTextHelpFormatter)
+        o_sub_parser = o_sub_parsers.add_parser("upload", help="Livraisons (téléversement, listing, ...)", epilog=s_epilog_upload, formatter_class=argparse.RawTextHelpFormatter)
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier descriptor dont on veut effectuer la livraison)")
         o_sub_parser.add_argument("--check-before-close", action="store_true", default=False, help="Si on vérifie l'ensemble de la livraison avant de fermer la livraison (uniquement avec --file|-f)")
         o_sub_parser.add_argument("--behavior", "-b", choices=UploadAction.BEHAVIORS, default=None, help="Action à effectuer si la livraison existe déjà (uniquement avec -f)")
@@ -130,22 +131,22 @@ class Main:
         o_sub_parser.add_argument("--tags", "-t", type=str, default=None, help="Filtrer les livraisons selon les tags")
 
         # Parser pour dataset
-        o_sub_parser = o_sub_parsers.add_parser("dataset", help="Jeux de données")
+        o_sub_parser = o_sub_parsers.add_parser("dataset", help="Jeux de données d'exemple (listing, récupération)")
         o_sub_parser.add_argument("--name", "-n", type=str, default=None, help="Nom du dataset à extraire")
         o_sub_parser.add_argument("--folder", "-f", type=str, default=None, help="Dossier où enregistrer le dataset")
 
         # Parser pour workflow
-        s_epilog_workflow = """Quatre types de lancement :
+        s_epilog_workflow = """quatre types de lancement :
         * liste des exemples de workflow disponibles : `` (aucun arguments)
         * Récupération d'un workflow exemple : `--name NAME`
         * Vérification de la structure du fichier workflow et affichage des étapes : `--file FILE`
         * Lancement l'une étape d'un workflow: `--file FILE --step STEP [--behavior BEHAVIOR]`
         """
-        o_sub_parser = o_sub_parsers.add_parser("workflow", help="Workflow", epilog=s_epilog_workflow, formatter_class=argparse.RawTextHelpFormatter)
+        o_sub_parser = o_sub_parsers.add_parser("workflow", help="Workflow (lancement, vérification)", epilog=s_epilog_workflow, formatter_class=argparse.RawTextHelpFormatter)
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin du fichier à utiliser OU chemin où extraire le dataset")
         o_sub_parser.add_argument("--name", "-n", type=str, default=None, help="Nom du workflow à extraire")
         o_sub_parser.add_argument("--step", "-s", type=str, default=None, help="Étape du workflow à lancer")
-        o_sub_parser.add_argument("--behavior", "-b", type=str, default=None, help="Action à effectuer si l'exécution de traitement existe déjà")
+        o_sub_parser.add_argument("--behavior", "-b", choices=ProcessingExecutionAction.BEHAVIORS, default=None, help="Action à effectuer si l'exécution de traitement existe déjà")
         o_sub_parser.add_argument("--tag", "-t", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Tag à ajouter aux actions (plusieurs tags possible)")
         o_sub_parser.add_argument(
             "--comment",
@@ -158,56 +159,56 @@ class Main:
         )
 
         # Parser pour delete
-        o_sub_parser = o_sub_parsers.add_parser("delete", help="Delete")
+        o_sub_parser = o_sub_parsers.add_parser("delete", help="Suppression d'entité")
         o_sub_parser.add_argument("--type", choices=DeleteAction.DELETABLE_TYPES, required=True, help="Type de l'entité à supprimer")
         o_sub_parser.add_argument("--id", type=str, required=True, help="Identifiant de l'entité à supprimer")
         o_sub_parser.add_argument("--cascade", action="store_true", help="Action à effectuer si l'exécution de traitement existe déjà")
         o_sub_parser.add_argument("--force", action="store_true", help="Mode forcé, les suppressions sont faites sans aucune interaction")
 
         # Parser pour annexes
-        s_epilog_annexe = """quatre types de lancement :
+        s_epilog_annexe = """Quatre types de lancement :
         * livraison d'annexes : `-f FICHIER`
         * liste des annexes, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
-        * détail d'une annexe, avec option publication/dépublication : `--id ID [--publish|--unpublish]`
-        * publication /dépublication par label : `--publish-by-label label1,lable2` et `--unpublish-by-label label1,lable2`
+        * détail d'une annexe, avec option publication / dépublication : `--id ID [--publish|--unpublish]`
+        * publication / dépublication par label : `--publish-by-label label1,label2` et `--unpublish-by-label label1,label2`
         """
-        o_sub_parser = o_sub_parsers.add_parser("annexe", help="Annexes", epilog=s_epilog_annexe, formatter_class=argparse.RawTextHelpFormatter)
+        o_sub_parser = o_sub_parsers.add_parser("annexe", help="Gestion des annexes", epilog=s_epilog_annexe, formatter_class=argparse.RawTextHelpFormatter)
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier descriptor dont on veut effectuer la livraison)")
         o_sub_parser.add_argument("--infos", "-i", type=str, default=None, help="Filtrer les livraisons selon les infos")
         o_sub_parser.add_argument("--id", type=str, default=None, help="Affiche l'annexe demandée")
-        o_sub_parser.add_argument("--publish", action="store_true", help="publication de l'annexe (uniquement avec --id)")
-        o_sub_parser.add_argument("--unpublish", action="store_true", help="dépublication de l'annexe (uniquement avec --id)")
-        o_sub_parser.add_argument("--publish-by-label", type=str, default=None, help="publication des annexes portant les labels donnés (ex: label1,label2)")
-        o_sub_parser.add_argument("--unpublish-by-label", type=str, default=None, help="dépublication des annexes portant les labels donnés (ex: label1,label2)")
+        o_sub_parser.add_argument("--publish", action="store_true", help="Publication de l'annexe (uniquement avec --id)")
+        o_sub_parser.add_argument("--unpublish", action="store_true", help="Dépublication de l'annexe (uniquement avec --id)")
+        o_sub_parser.add_argument("--publish-by-label", type=str, default=None, help="Publication des annexes portant les labels donnés (ex: label1,label2)")
+        o_sub_parser.add_argument("--unpublish-by-label", type=str, default=None, help="Dépublication des annexes portant les labels donnés (ex: label1,label2)")
 
         # Parser pour static
-        s_epilog_static = """trois types de lancement :
+        s_epilog_static = """Trois types de lancement :
         * livraison de fichiers statics : `-f FICHIER`
         * liste des fichiers statics, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
         * détail d'un ficher static : `--id ID`
         """
-        o_sub_parser = o_sub_parsers.add_parser("static", help="Fichiers statiques", epilog=s_epilog_static, formatter_class=argparse.RawTextHelpFormatter)
+        o_sub_parser = o_sub_parsers.add_parser("static", help="Gestion des fichiers statiques", epilog=s_epilog_static, formatter_class=argparse.RawTextHelpFormatter)
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier descriptor dont on veut effectuer la livraison)")
         o_sub_parser.add_argument("--infos", "-i", type=str, default=None, help="Filtrer les livraisons selon les infos")
         o_sub_parser.add_argument("--id", type=str, default=None, help="Affiche du fichier demandée")
 
         # Parser pour metadata
-        s_epilog_metadata = """quatre types de lancement :
-        * livraison d'une metadonnées : `-f FICHIER`
-        * liste des metadonnées, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]` ``
-        * détail d'une metadonnée : `--id ID`
-        * publication /dépublication : `--publish NOM_FICHIER [NOM_FICHIER] --id-endpoint ID_ENDPOINT` et `--unpublish NOM_FICHIER [NOM_FICHIER] --id-endpoint ID_ENDPOINT`
+        s_epilog_metadata = """Quatre types de lancement :
+        * livraison d'une métadonnée : `-f FICHIER`
+        * liste des métadonnées, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
+        * détail d'une métadonnée : `--id ID`
+        * publication / dépublication : `--publish NOM_FICHIER [NOM_FICHIER] --id-endpoint ID_ENDPOINT` et `--unpublish NOM_FICHIER [NOM_FICHIER] --id-endpoint ID_ENDPOINT`
         """
-        o_sub_parser = o_sub_parsers.add_parser("metadata", help="Métadonnées", epilog=s_epilog_metadata, formatter_class=argparse.RawTextHelpFormatter)
-        o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier descriptor dont on veut effectuer la livraison)")
-        o_sub_parser.add_argument("--infos", "-i", type=str, default=None, help="Filtrer les livraisons selon les infos")
-        o_sub_parser.add_argument("--id", type=str, default=None, help="Affiche du fichier métadonnée demandée")
-        o_sub_parser.add_argument("--id-endpoint", type=str, default=None, metavar="ID_ENDPOINT", help="endpoint sur le quel est fait la publication ou la dépublication")
+        o_sub_parser = o_sub_parsers.add_parser("metadata", help="Gestion des métadonnées", epilog=s_epilog_metadata, formatter_class=argparse.RawTextHelpFormatter)
+        o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier de métadonnées que l'on veut téléverser)")
+        o_sub_parser.add_argument("--infos", "-i", type=str, default=None, help="Filtrer les métadonnées selon les infos")
+        o_sub_parser.add_argument("--id", type=str, default=None, help="Affiche la métadonnée demandée")
+        o_sub_parser.add_argument("--id-endpoint", type=str, default=None, metavar="ID_ENDPOINT", help="Point d'accès sur lequel est faite la publication ou la dépublication")
         o_sub_parser.add_argument(
-            "--publish", type=str, action="extend", nargs="+", default=None, metavar=("NOM_FICHIER"), help="publie les métadonnées listées sur le endpoint donné par --id-endpoint"
+            "--publish", type=str, action="extend", nargs="+", default=None, metavar=("NOM_FICHIER"), help="Publie les métadonnées listées sur le point d'accès donné par --id-endpoint"
         )
         o_sub_parser.add_argument(
-            "--unpublish", type=str, action="extend", nargs="+", default=None, metavar=("NOM_FICHIER"), help="dépublie les métadonnées listées sur le endpoint donné par --id-endpoint"
+            "--unpublish", type=str, action="extend", nargs="+", default=None, metavar=("NOM_FICHIER"), help="Dé-publie les métadonnées listées sur le point d'accès donné par --id-endpoint"
         )
 
         return o_parser.parse_args(args)
@@ -521,21 +522,21 @@ class Main:
         # sortie => sortie du monitoring, ne pas arrêter le traitement
         # stopper l’exécution de traitement => stopper le traitement (et donc le monitoring) [par défaut] (raise une erreur d'interruption volontaire)
         # ignorer / "erreur de manipulation" => reprendre le suivi
-        s_reponse = "rien"
-        while s_reponse not in ["a", "s", "c", ""]:
+        s_response = "rien"
+        while s_response not in ["a", "s", "c", ""]:
             Config().om.info(
                 "Vous avez taper ctrl-C. Que souhaitez-vous faire ?\n\
                                 \t* 'a' : pour sortir et <Arrêter> le traitement [par défaut]\n\
                                 \t* 's' : pour sortir <Sans arrêter> le traitement\n\
                                 \t* 'c' : pour annuler et <Continuer> le traitement"
             )
-            s_reponse = input().lower()
+            s_response = input().lower()
 
-        if s_reponse == "s":
+        if s_response == "s":
             Config().om.info("\t 's' : sortir <Sans arrêter> le traitement")
             sys.exit(0)
 
-        if s_reponse == "c":
+        if s_response == "c":
             Config().om.info("\t 'c' : annuler et <Continuer> le traitement")
             return False
 
@@ -552,21 +553,21 @@ class Main:
         # sortie => sortie du monitoring, ne pas arrêter le traitement
         # stopper l’exécution de traitement => stopper le traitement (et donc le monitoring) [par défaut] (raise une erreur d'interruption volontaire)
         # ignorer / "erreur de manipulation" => reprendre le suivi
-        s_reponse = "rien"
-        while s_reponse not in ["a", "s", "c", ""]:
+        s_response = "rien"
+        while s_response not in ["a", "s", "c", ""]:
             Config().om.info(
                 "Vous avez taper ctrl-C. Que souhaitez-vous faire ?\n\
                                 \t* 'a' : pour sortir et <Arrêter> les vérifications [par défaut]\n\
                                 \t* 's' : pour sortir <Sans arrêter> les vérifications\n\
                                 \t* 'c' : pour annuler et <Continuer> les vérifications"
             )
-            s_reponse = input().lower()
+            s_response = input().lower()
 
-        if s_reponse == "s":
+        if s_response == "s":
             Config().om.info("\t 's' : sortir <Sans arrêter> les vérifications")
             sys.exit(0)
 
-        if s_reponse == "c":
+        if s_response == "c":
             Config().om.info("\t 'c' : annuler et <Continuer> les vérifications")
             return False
 
@@ -710,7 +711,7 @@ class Main:
         elif self.o_args.unpublish_by_label is not None:
             l_labels = self.o_args.unpublish_by_label.split(",")
             i_nb = Annexe.unpublish_by_label(l_labels, datastore=self.datastore)
-            Config().om.info(f"{i_nb} annexe(s) viennent d'être dépublié.")
+            Config().om.info(f"{i_nb} annexe(s) viennent d'être dépubliée(s).")
         else:
             # on liste toutes les annexes selon les filtres
             d_infos_filter = StoreEntity.filter_dict_from_str(self.o_args.infos)
@@ -817,13 +818,13 @@ class Main:
             # affichage
             Config().om.info(o_metadata.to_json(indent=3))
         elif (self.o_args.publish or self.o_args.unpublish) and self.o_args.id_endpoint is None:
-            raise GpfSdkError("Pour pubiler/depublier les métadonnées il faut définir --id-endpoint")
+            raise GpfSdkError("Pour publier / dépublier les métadonnées il faut définir --id-endpoint")
         elif self.o_args.publish is not None:
             Metadata.publish(self.o_args.publish, self.o_args.id_endpoint, self.o_args.datastore)
-            Config().om.info(f"Les métadonnées ont été publié sur le endpoint {self.o_args.id_endpoint}")
+            Config().om.info(f"Les métadonnées ont été publiées sur le endpoint {self.o_args.id_endpoint}")
         elif self.o_args.unpublish is not None:
             Metadata.unpublish(self.o_args.unpublish, self.o_args.id_endpoint, self.o_args.datastore)
-            Config().om.info(f"Les métadonnées ont été dépublié sur le endpoint {self.o_args.id_endpoint}")
+            Config().om.info(f"Les métadonnées ont été dépubliées sur le endpoint {self.o_args.id_endpoint}")
         else:
             # on liste toutes les fichiers métadonnées selon les filtres
             d_infos_filter = StoreEntity.filter_dict_from_str(self.o_args.infos)

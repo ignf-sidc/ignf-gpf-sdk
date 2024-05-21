@@ -106,3 +106,4 @@ class DeleteAction(ActionAbstract):
 
         # suppression
         StoreEntity.delete_liste_entities(l_entities, o_before_delete)
+        Config().om.info("Suppression : terminé")

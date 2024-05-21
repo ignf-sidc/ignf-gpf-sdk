@@ -1,5 +1,23 @@
 # CHANGE LOG
 
+## v0.1.27
+
+### [Added]
+
+* ProcessingExecutionAction: ajout d'un mode reprise (`RESUME`). #143
+* EditUsedDataConfigurationAction: possibilité de mise à jour de la BBox de la configuration selon les données. #140
+
+### [Changed]
+
+* Mise à jour de la documentation de publication d'une archive pour ajouter l'étape de patch sur la donnée stockée
+* affichage des actions: harmonisation des affichages pour les actions #138
+* utilisation en ligne de commande : enrichissement de l'aide.
+
+### [Fixed]
+
+* upload_descriptor_file.json: ajout de type_infos suite à l'ajout du paramètre dans la requête GPF. #117
+* LogsInterface: récupération des logs en prenant compte de la pagination (+ refonte test api_logs). #135
+
 ## v0.1.26
 
 ### [Added]

@@ -425,7 +425,7 @@ class WorkflowTestCase(GpfTestCase):
         # On teste le workflow generic_archive.jsonc
         o_workflow_1 = Workflow.open_workflow(p_workflows / "generic_archive.jsonc")
         self.assertEqual(o_workflow_1.name, "generic_archive.jsonc")
-        self.assertEqual(len(o_workflow_1.steps), 3)
+        self.assertEqual(len(o_workflow_1.steps), 4)
         # On teste le workflow generic_vecteur.jsonc
         o_workflow_2 = Workflow.open_workflow(p_workflows / "generic_vecteur.jsonc", "wfs generic")
         self.assertEqual(o_workflow_2.name, "wfs generic")
@@ -462,8 +462,9 @@ class WorkflowTestCase(GpfTestCase):
             l_errors = o_workflow_1.validate()
             self.assertTrue(l_errors)
             self.assertEqual(l_errors[0], "L'action n°1 de l'étape « intégration-archive-livrée » lève une erreur inattendue (error).")
-            self.assertEqual(l_errors[1], "L'action n°1 de l'étape « configuration-archive-livrée » lève une erreur inattendue (error).")
-            self.assertEqual(l_errors[2], "L'action n°1 de l'étape « publication-archive-livrée » lève une erreur inattendue (error).")
+            self.assertEqual(l_errors[1], "L'action n°1 de l'étape « patch-donnée-stockée » lève une erreur inattendue (error).")
+            self.assertEqual(l_errors[2], "L'action n°1 de l'étape « configuration-archive-livrée » lève une erreur inattendue (error).")
+            self.assertEqual(l_errors[3], "L'action n°1 de l'étape « publication-archive-livrée » lève une erreur inattendue (error).")
 
         # problème avec le schema du fichier workflow
         p_schema = Config.conf_dir_path / "json_schemas" / "workflow.json"
