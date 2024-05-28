@@ -9,6 +9,7 @@
 ### [Changed]
 
 * ci : mise à jour des GitHub Actions
+* ApiRequester: réduction de l'affichage #150
 
 ### [Fixed]
 
