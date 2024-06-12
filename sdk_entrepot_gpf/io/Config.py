@@ -32,8 +32,7 @@ class Config(metaclass=Singleton):
             raise ConfigReaderError("Fichier de configuration par défaut {ConfigReader.ini_file_path} non trouvé.")
 
         self.__config_parser: configparser.ConfigParser = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-        with Config.ini_file_path.open(encoding="UTF-8") as f_ini:
-            self.__config_parser.read_file(f_ini)
+        self.read(Config.ini_file_path)
 
         # Définition du niveau de log pour l'OutputManager par défaut
         s_level: str = self.get_str("logging", "log_level", "INFO")
@@ -79,7 +78,10 @@ class Config(metaclass=Singleton):
         Returns:
             Optional[str]: la valeur du paramètre
         """
-        s_value: Optional[str] = self.__config_parser.get(section, option, fallback=fallback)
+        try:
+            s_value: Optional[str] = self.__config_parser.get(section, option, fallback=fallback)
+        except configparser.InterpolationSyntaxError as e_err:
+            raise ConfigReaderError(f"Veuillez vérifier la config ({section}-[{option}]]), les caractères spéciaux doivent être doublés. ({e_err.message}) ") from e_err
         if s_value == "":
             return None
         return s_value
@@ -95,7 +97,10 @@ class Config(metaclass=Singleton):
         Returns:
             Optional[str]: la valeur du paramètre
         """
-        return self.__config_parser.get(section, option, fallback=fallback)  # type: ignore
+        try:
+            return self.__config_parser.get(section, option, fallback=fallback)  # type: ignore
+        except configparser.InterpolationSyntaxError as e_err:
+            raise ConfigReaderError(f"Veuillez vérifier la config ([{section}-[{option}]]), les caractères spéciaux doivent être doublés. ({e_err.message}) ") from e_err
 
     def get_int(self, section: str, option: str, fallback: Optional[int] = None) -> int:
         """Récupère la valeur associée au paramètre demandé, convertie en `int`.
