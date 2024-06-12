@@ -5,6 +5,10 @@
 ### [Added]
 
 * cli : possibilité d'ajouter des clefs-valeurs à la résolution du workflow
+* Config: erreur spécifique pour les char spéciaux (`get()`, `get_str()`). #155
+* Authentifier: ajout erreur spécifique pour "Account is not fully set up", mot de passe expiré. #155
+* ajout classe Permission : gère les permissions sur les offres #93
+* ajout classe PermissionAction : gère les permissions sur les offres depuis le workflow #94
 
 ### [Changed]
 
