@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* cli : possibilité d'ajouter des clefs-valeurs à la résolution du workflow
+
 ### [Changed]
 
 * ci : mise à jour des GitHub Actions
