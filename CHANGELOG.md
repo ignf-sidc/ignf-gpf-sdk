@@ -12,6 +12,8 @@
 
 ### [Fixed]
 
+* orthographe : corrections diverses
+
 ## v0.1.27
 
 ### [Added]
