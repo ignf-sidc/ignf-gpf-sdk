@@ -266,10 +266,10 @@ class UploadAction:
                     # le fichier a été complètement téléversé. On passe au fichier suivant.
                     Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
                 else:
-                    Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: à re-livré, problème de taille")
+                    Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: à re-livrer, problème de taille")
                     l_error.append((p_file_path, s_api_path))
             else:
-                Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: Non trouvé dans la liste des fichiers livrer")
+                Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: non trouvé dans la liste des fichiers livrés")
                 l_error.append((p_file_path, s_api_path))
         return l_error
 
