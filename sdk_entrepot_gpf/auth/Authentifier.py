@@ -105,9 +105,20 @@ class Authentifier(metaclass=Singleton):
                 # On tente de récupérer le message
                 try:
                     s_message = o_response.json()["error_description"]
+                    if "Account is not fully set up" in s_message:
+                        raise AuthentificationError(
+                            "Problème lors de l'authentification, veuillez vous connecter via l'interface en ligne KeyCloak pour vérifier son compte."
+                            + f" Votre mot de passe est sûrement expiré. ({s_message})"
+                        )
                 except Exception:
                     s_message = "pas de raison indiquée"
                 raise requests.exceptions.HTTPError(f"Code retour authentification KeyCloak = {o_response.status_code} ({s_message})", response=o_response, request=o_response.request)
+        except AuthentificationError as e_auth:
+            Config().om.error(e_auth.message)
+            # Affiche la pile d'exécution
+            Config().om.debug(traceback.format_exc())
+            # On propage l'erreur
+            raise e_auth
         except Exception as e_error:
             if isinstance(e_error, requests.exceptions.HTTPError):
                 Config().om.warning(e_error.args[0])
