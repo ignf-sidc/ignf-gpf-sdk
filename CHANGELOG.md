@@ -4,6 +4,9 @@
 
 ### [Added]
 
+* Config: erreur spécifique pour les char spéciaux (`get()`, `get_str()`). #155
+* Authentifier: ajout erreur spécifique pour "Account is not fully set up", mot de passe expiré. #155
+
 ### [Changed]
 
 * ci : mise à jour des GitHub Actions
