@@ -27,6 +27,7 @@ from sdk_entrepot_gpf.workflow.Workflow import Workflow
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.workflow.resolver.DateResolver import DateResolver
+from sdk_entrepot_gpf.workflow.resolver.DictResolver import DictResolver
 from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
 from sdk_entrepot_gpf.workflow.resolver.StoreEntityResolver import StoreEntityResolver
 from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
@@ -157,6 +158,7 @@ class Main:
             metavar='"Le commentaire"',
             help="Commentaire à ajouter aux actions (plusieurs commentaires possible, mettre le commentaire entre guillemets)",
         )
+        o_sub_parser.add_argument("--params", "-p", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Paramètres supplémentaires à passer au workflow à résoudre.")
 
         # Parser pour delete
         o_sub_parser = o_sub_parsers.add_parser("delete", help="Suppression d'entité")
@@ -621,6 +623,8 @@ class Main:
                 GlobalResolver().add_resolver(StoreEntityResolver("store_entity"))
                 GlobalResolver().add_resolver(UserResolver("user"))
                 GlobalResolver().add_resolver(DateResolver("datetime"))
+                # Résolveur params qui permet d'accéder aux paramètres supplémentaires passés par l'utilisateur
+                GlobalResolver().add_resolver(DictResolver("params", {x[0]: x[1] for x in self.o_args.params}))
 
                 # le comportement
                 s_behavior = str(self.o_args.behavior).upper() if self.o_args.behavior is not None else None

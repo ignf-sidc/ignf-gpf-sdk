@@ -4,6 +4,7 @@
 
 ### [Added]
 
+* cli : possibilité d'ajouter des clefs-valeurs à la résolution du workflow
 * Config: erreur spécifique pour les char spéciaux (`get()`, `get_str()`). #155
 * Authentifier: ajout erreur spécifique pour "Account is not fully set up", mot de passe expiré. #155
 
@@ -13,6 +14,8 @@
 * ApiRequester: réduction de l'affichage #150
 
 ### [Fixed]
+
+* orthographe : corrections diverses
 
 ## v0.1.27
 

@@ -83,7 +83,7 @@ class DeleteAction(ActionAbstract):
             if not self.definition_dict.get("not_found_ok"):
                 raise StepActionError("Aucune entité trouvée pour la suppression")
             # sinon OK
-            Config().om.info("Aucune entité à supprimé.", green_colored=True)
+            Config().om.info("Aucune entité à supprimer.", green_colored=True)
             return
         if len(l_entities) > 1 and self.definition_dict.get("if_multi") == "error":
             # On sort en erreur

@@ -59,7 +59,7 @@ class ApiRequester(metaclass=Singleton):
             method (str, optional): méthode de la requête.
             data (Optional[Dict[str, Any]], optional): Données de la requête.
             files (Optional[Dict[str, Tuple[Any]]], optional): Liste des fichiers à envoyer {"file":('fichier.ext', File)}.
-            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactiver le timeout.
 
         Raises:
             RouteNotFoundError: levée si la route demandée n'est pas définie dans les paramètres
@@ -129,7 +129,7 @@ class ApiRequester(metaclass=Singleton):
             data (Optional[Union[Dict[str, Any], List[Any]]], optional): contenue de la requête (ajouté au corp)
             files (Optional[Dict[str, Tuple[Any]]], optional): fichiers à envoyer
             header (Dict[str, str], optional): Header additionnel pour la requête
-            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactiver le timeout.
 
         Returns:
             réponse si succès
@@ -195,7 +195,7 @@ class ApiRequester(metaclass=Singleton):
             data (Optional[Union[Dict[str, Any], List[Any]]], optional): données.
             files (Optional[Dict[str, Tuple[Any]]], optional): fichiers.
             header (Dict[str, str], optional): Header additionnel pour la requête.
-            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactiver le timeout.
 
         Returns:
             réponse si succès
