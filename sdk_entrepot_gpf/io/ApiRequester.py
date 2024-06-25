@@ -72,7 +72,7 @@ class ApiRequester(metaclass=Singleton):
         Returns:
             réponse vérifiée
         """
-        Config().om.debug(f"route_request({route_name}, {method}, {route_params}, {params})")
+        Config().om.debug(f"route_request(route={route_name}, route_params={route_params})")
 
         # gestion timeout
         if timeout and timeout < 0:
@@ -134,7 +134,6 @@ class ApiRequester(metaclass=Singleton):
         Returns:
             réponse si succès
         """
-        Config().om.debug(f"url_request({url}, {method}, {params}, {data})")
 
         # gestion timeout
         if timeout and timeout < 0:
@@ -201,7 +200,7 @@ class ApiRequester(metaclass=Singleton):
         Returns:
             réponse si succès
         """
-        Config().om.debug(f"__url_request({url}, {method}, {params}, {data}, {timeout})")
+        Config().om.debug(f"__url_request(url={url}, method={method}, params={params}, data={data}, timeout={timeout})")
 
         # Définition du header
         d_headers = Authentifier().get_http_header(json_content_type=files is None)
