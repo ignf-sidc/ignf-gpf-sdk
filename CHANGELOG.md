@@ -18,6 +18,7 @@
 ### [Fixed]
 
 * orthographe : corrections diverses
+* tag de `uniqueness_constraint_tags` non obligatoire #159
 
 ## v0.1.27
 
