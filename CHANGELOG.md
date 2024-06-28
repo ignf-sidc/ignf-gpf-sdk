@@ -12,6 +12,7 @@
 
 * ci : mise à jour des GitHub Actions
 * ApiRequester: réduction de l'affichage #150
+* Dataset: les fichiers dans .md5 sont ordonnés dans ordre alphabétique #162
 
 ### [Fixed]
 
