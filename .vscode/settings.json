@@ -76,7 +76,7 @@
         "--config-file mypy.ini",
     ],
     "[python]": {
-        "editor.defaultFormatter": "ms-python.python",
+        "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.formatOnSave": true,
     },
     // ASSOCIATIONS DE FICHIERS
@@ -96,5 +96,4 @@
     "python.testing.pytestEnabled": false,
     "python.testing.unittestEnabled": true,
     "pylint.importStrategy": "fromEnvironment",
-    "python.formatting.provider": "black",
 }

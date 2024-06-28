@@ -14,7 +14,7 @@ class PermissionAction(ActionAbstract):
         __workflow_context (str): nom du contexte du workflow
         __definition_dict (Dict[str, Any]): définition de l'action
         __parent_action (Optional["Action"]): action parente
-        __offering (Optional[Offering]): représentation Python de la Offering créée
+        __permission (Optional[Permission]): représentation Python de la permission créée
     """
 
     def __init__(self, workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional["ActionAbstract"] = None) -> None:
