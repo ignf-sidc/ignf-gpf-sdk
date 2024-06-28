@@ -7,8 +7,8 @@
 * cli : possibilité d'ajouter des clefs-valeurs à la résolution du workflow
 * Config: erreur spécifique pour les char spéciaux (`get()`, `get_str()`). #155
 * Authentifier: ajout erreur spécifique pour "Account is not fully set up", mot de passe expiré. #155
-* ajout classe Permission : gère les permissions sur les offres #93
-* ajout classe PermissionAction : gère les permissions sur les offres depuis le workflow #94
+* ajout classe Access : gère les accès sur les offres #97
+* ajout classe AccessAction : gère les accès sur les offres depuis le workflow #95
 
 ### [Changed]
 
@@ -81,6 +81,8 @@
 ### [Added]
 
 * StoreEntityResolver: possibilité de récupérer une liste d'entités ou d’informations sur une entité #85
+* ajout classe Permission : gère les permissions sur les offres #93
+* ajout classe PermissionAction : gère les permissions sur les offres depuis le workflow #94
 
 ### [Changed]
 
