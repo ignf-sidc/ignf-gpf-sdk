@@ -16,6 +16,8 @@
 * ApiRequester: réduction de l'affichage #150
 * EditAction : entités `Key` et `Permission` gérées
 * DeleteAction : entités `Key` et `Permission` gérées
+* Doc : ajout de la création des permission et des accès via workflow
+* Doc : ajout des classes manquantes
 
 ### [Fixed]
 
