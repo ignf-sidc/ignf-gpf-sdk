@@ -121,6 +121,25 @@ Ensuite, vous pouvez simplement lancer une étape :
 python -m sdk_entrepot_gpf workflow -f mon_workflow.json -s mon_étape
 ```
 
+En lançant des workflows via l'executable du SDK, vous pouvez utiliser les 4 résolveurs suivants :
+
+* `store_entity` : de type `StoreEntityResolver` pour récupérer des entités de l'API ;
+* `user` : de type `UserResolver` pour récupérer des informations sur l'utilisateur connecté ;
+* `datetime` : de type `DateResolver` pour récupérer des informations sur la date et l'heure ;
+* `params` : de type `DictResolver` pour récupérer des informations arbitraires que vous aurez passé en ligne de commande (via `-p`).
+
+Par exemple, la ligne de commande suivante :
+
+```sh
+python -m sdk_entrepot_gpf workflow -f mon_workflow.json -s mon_étape -p edition 2024-01
+```
+
+Permet d'avoir un workflow avec une gestion dynamique de l'édition traitée grâce au résolveur `params` :
+
+```txt
+{store_entity.stored_data.infos._id [INFOS(name=MES_DONNÉES_{params.edition})]}
+```
+
 ## Tutoriels
 
 Vous pouvez maintenant livrer et publier vos données en utilisant le module comme un exécutable. Voici quelques exemples :

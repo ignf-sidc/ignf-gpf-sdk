@@ -5,6 +5,8 @@ from sdk_entrepot_gpf.store.Offering import Offering
 from sdk_entrepot_gpf.store.StoreEntity import StoreEntity
 from sdk_entrepot_gpf.store.StoredData import StoredData
 from sdk_entrepot_gpf.store.Upload import Upload
+from sdk_entrepot_gpf.store.Key import Key
+from sdk_entrepot_gpf.store.Permission import Permission
 from sdk_entrepot_gpf.store.interface.CommentInterface import CommentInterface
 from sdk_entrepot_gpf.store.interface.TagInterface import TagInterface
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
@@ -22,7 +24,14 @@ class EditAction(ActionAbstract):
         __parent_action (Optional["Action"]): action parente
     """
 
-    UPDATABLE_TYPES = [Upload.entity_name(), StoredData.entity_name(), Configuration.entity_name(), Offering.entity_name()]
+    UPDATABLE_TYPES = [
+        Upload.entity_name(),
+        StoredData.entity_name(),
+        Configuration.entity_name(),
+        Offering.entity_name(),
+        Key.entity_name(),
+        Permission.entity_name(),
+    ]
 
     def run(self, datastore: Optional[str] = None) -> None:
         Config().om.info("Edition ...")

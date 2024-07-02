@@ -5,6 +5,8 @@ from sdk_entrepot_gpf.store.Offering import Offering
 from sdk_entrepot_gpf.store.StoreEntity import StoreEntity
 from sdk_entrepot_gpf.store.StoredData import StoredData
 from sdk_entrepot_gpf.store.Upload import Upload
+from sdk_entrepot_gpf.store.Permission import Permission
+from sdk_entrepot_gpf.store.Key import Key
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 from sdk_entrepot_gpf.io.Config import Config
 from sdk_entrepot_gpf.io.Errors import NotFoundError
@@ -21,7 +23,14 @@ class DeleteAction(ActionAbstract):
         __parent_action (Optional["Action"]): action parente
     """
 
-    DELETABLE_TYPES = [Upload.entity_name(), StoredData.entity_name(), Configuration.entity_name(), Offering.entity_name()]
+    DELETABLE_TYPES = [
+        Upload.entity_name(),
+        StoredData.entity_name(),
+        Configuration.entity_name(),
+        Offering.entity_name(),
+        Permission.entity_name(),
+        Key.entity_name(),
+    ]
 
     @staticmethod
     def question_before_delete(l_delete: List[StoreEntity]) -> List[StoreEntity]:
@@ -83,7 +92,7 @@ class DeleteAction(ActionAbstract):
             if not self.definition_dict.get("not_found_ok"):
                 raise StepActionError("Aucune entité trouvée pour la suppression")
             # sinon OK
-            Config().om.info("Aucune entité à supprimé.", green_colored=True)
+            Config().om.info("Aucune entité à supprimer.", green_colored=True)
             return
         if len(l_entities) > 1 and self.definition_dict.get("if_multi") == "error":
             # On sort en erreur

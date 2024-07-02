@@ -59,7 +59,7 @@ class ApiRequester(metaclass=Singleton):
             method (str, optional): méthode de la requête.
             data (Optional[Dict[str, Any]], optional): Données de la requête.
             files (Optional[Dict[str, Tuple[Any]]], optional): Liste des fichiers à envoyer {"file":('fichier.ext', File)}.
-            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactiver le timeout.
 
         Raises:
             RouteNotFoundError: levée si la route demandée n'est pas définie dans les paramètres
@@ -72,7 +72,7 @@ class ApiRequester(metaclass=Singleton):
         Returns:
             réponse vérifiée
         """
-        Config().om.debug(f"route_request({route_name}, {method}, {route_params}, {params})")
+        Config().om.debug(f"route_request(route={route_name}, route_params={route_params})")
 
         # gestion timeout
         if timeout and timeout < 0:
@@ -129,12 +129,11 @@ class ApiRequester(metaclass=Singleton):
             data (Optional[Union[Dict[str, Any], List[Any]]], optional): contenue de la requête (ajouté au corp)
             files (Optional[Dict[str, Tuple[Any]]], optional): fichiers à envoyer
             header (Dict[str, str], optional): Header additionnel pour la requête
-            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactiver le timeout.
 
         Returns:
             réponse si succès
         """
-        Config().om.debug(f"url_request({url}, {method}, {params}, {data})")
 
         # gestion timeout
         if timeout and timeout < 0:
@@ -196,12 +195,12 @@ class ApiRequester(metaclass=Singleton):
             data (Optional[Union[Dict[str, Any], List[Any]]], optional): données.
             files (Optional[Dict[str, Tuple[Any]]], optional): fichiers.
             header (Dict[str, str], optional): Header additionnel pour la requête.
-            timeout (Optional[int], optional): timeout en seconde ou None pour désactivé le timeout.
+            timeout (Optional[int], optional): timeout en seconde ou None pour désactiver le timeout.
 
         Returns:
             réponse si succès
         """
-        Config().om.debug(f"__url_request({url}, {method}, {params}, {data}, {timeout})")
+        Config().om.debug(f"__url_request(url={url}, method={method}, params={params}, data={data}, timeout={timeout})")
 
         # Définition du header
         d_headers = Authentifier().get_http_header(json_content_type=files is None)

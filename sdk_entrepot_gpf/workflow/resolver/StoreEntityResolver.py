@@ -15,6 +15,8 @@ from sdk_entrepot_gpf.store.Upload import Upload
 from sdk_entrepot_gpf.store.Endpoint import Endpoint
 from sdk_entrepot_gpf.store.Static import Static
 from sdk_entrepot_gpf.store.Datastore import Datastore
+from sdk_entrepot_gpf.store.Permission import Permission
+from sdk_entrepot_gpf.store.Key import Key
 from sdk_entrepot_gpf.io.Config import Config
 
 
@@ -36,6 +38,8 @@ class StoreEntityResolver(AbstractResolver):
         Endpoint.entity_name(): Endpoint,
         Static.entity_name(): Static,
         Datastore.entity_name(): Datastore,
+        Permission.entity_name(): Permission,
+        Key.entity_name(): Key,
     }
 
     def __init__(self, name: str) -> None:

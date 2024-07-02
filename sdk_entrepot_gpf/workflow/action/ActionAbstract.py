@@ -114,7 +114,7 @@ class ActionAbstract(ABC):
         l_tags = Config().get_str(config_key, "uniqueness_constraint_tags", "").split(";")
         d_tags = {}
         for s_tag in l_tags:
-            if s_tag != "":
+            if s_tag != "" and s_tag in tags:
                 d_tags[s_tag] = tags[s_tag]
         # On peut maintenant renvoyer les filtres
         return d_infos, d_tags

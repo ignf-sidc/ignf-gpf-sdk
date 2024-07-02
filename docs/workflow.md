@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/workflow/
+-->
+
 # Workflows
 
 Le fichier workflow est un fichier au format JSON permettant de décrire les actions à réaliser sur des données stockées où livrées.
@@ -11,7 +20,7 @@ Les actions sont les suivantes :
 * publier un géoservice (càd créer une offering) ;
 * supprimer une entité de type upload, stored_data, configuration ou offering ;
 * modifier une entité de type upload, stored_data, configuration ou offering ;
-* mise à jour des used_data et bbox d'une configuration
+* Mettre à jour les used_data et la bbox d'une configuration
 * copier une configuration (création d'une nouvelle configuration en reprenant les paramètres non précisés de la précédente) ;
 * synchroniser une offre (mettre à jour avec la donnée stockée et une offering).
 
@@ -21,10 +30,10 @@ Le fichier doit contenir un dictionnaire `workflow`. Qui contient deux clefs :
 
 * `datastore`: (optionnel) uuid du datastore à utiliser pour le workflow.
 * `step`: (obligatoire) dictionnaire des étapes à lancer ;
-  * la clef sera le nom de l'étape qui servira à la lancer ;
-  * sa valeur est un dictionnaire décriant l'étape :
-    * `actions` : (obligatoire) listes des actions à lancer, la liste sera exécutée dans l'ordre. Le dictionnaire décrivant l'action dépend du type d'action à lancer, la clef `type` permet de définir le type d'action à effectuer (description plus bas) ;
-    * `parents` : (obligatoire) liste des étapes devant précéder celle-ci. Pour une actions sans dépendances la liste doit être vide.
+    * la clef sera le nom de l'étape qui servira à la lancer ;
+    * sa valeur est un dictionnaire décriant l'étape :
+        * `actions` : (obligatoire) listes des actions à lancer, la liste sera exécutée dans l'ordre. Le dictionnaire décrivant l'action dépend du type d'action à lancer, la clef `type` permet de définir le type d'action à effectuer (description plus bas) ;
+        * `parents` : (obligatoire) liste des étapes devant précéder celle-ci. Pour une actions sans dépendances la liste doit être vide.
 
 ce qui donne :
 
@@ -49,23 +58,23 @@ Ce workflow permet de lancé 2 étapes `etape 1` et `etape 2`.
 
 Les actions possibles sont les suivante :
 
-* [exécuter un traitement](Exécuter un traitement)
-* [configurer d'un flux](Configurer d'un flux)
-* [publier un flux](Publier un flux)
-* [supprimer une entité](Supprimer une entité)
-* [modifier une entité](Modifier une entité)
-* [mise à jour des used_data et bbox d'une configuration](Mise à jour des used_data et bbox d'une configuration)
-* [copier une configuration](Copier une configuration)
-* [synchroniser une publication](Synchroniser une publication)
+* [Exécuter un traitement](Exécuter un traitement)
+* [Configurer un géoservice](Configurer un géoservice)
+* [Publier un géoservice](Publier un géoservice)
+* [Supprimer une entité](Supprimer une entité)
+* [Modifier une entité](Modifier une entité)
+* [Mettre à jour les used_data et la bbox d'une configuration](Mettre à jour les used_data et la bbox d'une configuration)
+* [Copier une configuration](Copier une configuration)
+* [Synchroniser une publication](Synchroniser une publication)
 
 ### Exécuter un traitement
 
 * `type`: `processing-execution`
 * `body_parameters`: dictionnaire paramétrant l’exécution :
-  * `processing`: id du traitement à utiliser
-  * `inputs` : dictionnaire décrivant la/les données d'entrée (se référer à la documentation du traitement)
-  * `output`: dictionnaire décrivant la sortie du traitement (se référer à la documentation du traitement)
-  * `parameters`: dictionnaire des paramètres à utiliser pour le traitement (se référer à la documentation du traitement)
+    * `processing`: id du traitement à utiliser
+    * `inputs` : dictionnaire décrivant la/les données d'entrée (se référer à la documentation du traitement)
+    * `output`: dictionnaire décrivant la sortie du traitement (se référer à la documentation du traitement)
+    * `parameters`: dictionnaire des paramètres à utiliser pour le traitement (se référer à la documentation du traitement)
 * `comments` : liste des commentaires à ajouter à la donnée en sortie (si mise à jour : les commentaires déjà présents ne sont pas ajoutés).
 * `tags` : tags à ajouter à la donnée en sortie (clef-valeur) (si mise à jour : les tags déjà présents ne sont pas ajoutés).
 
@@ -74,113 +83,113 @@ La liste des traitement est disponible ici : [/datastores/{datastore}/processing
 
 Le détail d'un traitement est disponible ici : [/datastores/{datastore}/processings/{processing}](https://data.geopf.fr/api/swagger-ui/index.html#/Traitements/get_6)
 
-### Configurer d'un flux
+### Configurer un géoservice
 
 * `type`*: `configuration`
 * `body_parameters`*: dictionnaire paramétrant la configuration :
-  * `type`*: type du flux (WMS-VECTOR, WFS, WMTS-TMS, WMS-RASTER, DOWNLOAD, ITINERARY-ISOCURVE, ALTIMETRY, SEARCH, VECTOR-TMS)
-  * `name`*: Nom de la configuration
-  * `layer_name`*: Nom technique de la ressource. Ce nom doit être unique sur la plateforme pour un type de configuration donné. Uniquement des caractères alphanumériques, tiret, tiret bas, point (pattern: ^[A-Za-z0-9_\-.]+$)
-  * `type_infos`* : description des données à utiliser (dépend du flux)
-  * `attribution`: (optionnel) Métadonnées liées au propriétaire de la configuration
-    * `title`*: Nom du propriétaire
-    * `url`*: URL vers le site du propriétaire
-    * `logo`: Dictionnaire décrivant le logo du propriétaire
-    * `format`*: le format (mime-type) du logo (pattern: `\w+/[-+.\w]+`, example: `image/jpeg`)
-    * `url`*: l'URL d'accès au logo
-    * `width`*: la largeur du logo
-    * `height`*: la hauteur du logo
+    * `type`*: type du flux (WMS-VECTOR, WFS, WMTS-TMS, WMS-RASTER, DOWNLOAD, ITINERARY-ISOCURVE, ALTIMETRY, SEARCH, VECTOR-TMS)
+    * `name`*: Nom de la configuration
+    * `layer_name`*: Nom technique de la ressource. Ce nom doit être unique sur la plateforme pour un type de configuration donné. Uniquement des caractères alphanumériques, tiret, tiret bas, point (pattern: ^[A-Za-z0-9_\-.]+$)
+    * `type_infos`* : description des données à utiliser (dépend du flux)
+    * `attribution`: (optionnel) Métadonnées liées au propriétaire de la configuration
+        * `title`*: Nom du propriétaire
+        * `url`*: URL vers le site du propriétaire
+        * `logo`: Dictionnaire décrivant le logo du propriétaire
+        * `format`*: le format (mime-type) du logo (pattern: `\w+/[-+.\w]+`, example: `image/jpeg`)
+        * `url`*: l'URL d'accès au logo
+        * `width`*: la largeur du logo
+        * `height`*: la hauteur du logo
 * `comments` : liste des commentaires à ajouter à la configuration.
 * `tags` : tags à ajouter à la configuration (clef-valeur).
 
-type_infos selon le flux :
+`type_infos` selon le géoservice :
 
 #### WFS
 
 * `bbox`: dictionnaire Bounding box :
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
+    * `west`*
+    * `south`*
+    * `east`*
+    * `north`*
 * `used_data`*: liste de dictionnaires :
-  * `stored_data`*: Identifiant de la donnée stockée
-  * `relations`*: liste de dictionnaire décrivant la relation :
-    * `native_name`*: Nom de la table
-    * `public_name`: Nom public de la table
-    * `title`*: Titre
-    * `keywords`: Liste de mots clés (doivent être uniques)
-    * `abstract`*: Description
+    * `stored_data`*: Identifiant de la donnée stockée
+    * `relations`*: liste de dictionnaire décrivant la relation :
+        * `native_name`*: Nom de la table
+        * `public_name`: Nom public de la table
+        * `title`*: Titre
+        * `keywords`: Liste de mots clés (doivent être uniques)
+        * `abstract`*: Description
 
 #### WMTS-TMS
 
 * `bbox`: dictionnaire Bounding box :
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
+    * `west`*
+    * `south`*
+    * `east`*
+    * `north`*
 * `title`*: titre
 * `keywords`: Liste de mots clés (doivent être uniques)
 * `styles`: lists des identifiants des fichiers statiques de style Rok4
 * `used_data`*: liste de dictionnaire :
-  * `bottom_level`*:niveau minimum
-  * `top_level`*: niveau maximum
-  * `stored_data`*: Identifiant de la donnée stockée
+    * `bottom_level`*:niveau minimum
+    * `top_level`*: niveau maximum
+    * `stored_data`*: Identifiant de la donnée stockée
 * `abstract`*: Description
 * `getfeatureinfo`: Dictionnaire décrivant la ressource cible du GetFeatureInfo. Une des structure suivante :
-  * avec la stored data, dictionnaire :
-    * `stored_data`*: Indique si on va utiliser directement la donnée stockée
-  * avec une url, dictionnaire :
-    * `server_url`* url utiliser pour le GetFeatureInfo
+    * avec la stored data, dictionnaire :
+        * `stored_data`*: Indique si on va utiliser directement la donnée stockée
+    * avec une url, dictionnaire :
+        * `server_url`* url utiliser pour le GetFeatureInfo
 
 #### VECTOR-TMS
 
 * `used_data`*: liste de dictionnaires :
-  * `stored_data`*: Identifiant de la donnée stockée
-  * `relations`*: liste de dictionnaire décrivant la relation :
-    * `native_name`*: Nom de la table
-    * `public_name`: Nom public de la table
-    * `abstract`*: Description
+    * `stored_data`*: Identifiant de la donnée stockée
+    * `relations`*: liste de dictionnaire décrivant la relation :
+        * `native_name`*: Nom de la table
+        * `public_name`: Nom public de la table
+        * `abstract`*: Description
 
 #### WMS-VECTOR
 
 * `bbox`: dictionnaire Bounding box :
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
+    * `west`*
+    * `south`*
+    * `east`*
+    * `north`*
 * `title`*: titre
 * `keywords`: Liste de mots clés (doivent être uniques)
 * `abstract`*: Description
 * `used_data`*: liste de dictionnaire :
-  * `stored_data`*: Identifiant de la donnée stockée
-  * `relations`*: liste de dictionnaire décrivant la relation :
-    * `name`*: Nom de la table
-    * `style`*: uuid du statiques de style
-    * `ftl`: uuid de ?????
+    * `stored_data`*: Identifiant de la donnée stockée
+    * `relations`*: liste de dictionnaire décrivant la relation :
+        * `name`*: Nom de la table
+        * `style`*: uuid du statiques de style
+        * `ftl`: uuid de ?????
 
 #### WMS-RASTER
 
 * `bbox`: dictionnaire Bounding box :
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
+    * `west`*
+    * `south`*
+    * `east`*
+    * `north`*
 * `title`*: titre
 * `keywords`: Liste de mots clés (doivent être uniques)
 * `styles`: lists des identifiants des fichiers statiques de style Rok4
 * `used_data`*: liste de dictionnaire :
-  * `bottom_level`*:niveau minimum
-  * `top_level`*: niveau maximum
-  * `stored_data`*: Identifiant de la donnée stockée
+    * `bottom_level`*:niveau minimum
+    * `top_level`*: niveau maximum
+    * `stored_data`*: Identifiant de la donnée stockée
 * `interpolation`: Interpolation utilisée pour les conversions de résolution : [ NEAREST-NEIGHBOUR, LINEAR, BICUBIC, LANCZOS2, LANCZOS3, LANCZOS4 ] (default: BICUBIC)
 * `bottom_resolution`: Résolution minimale de la couche
 * `top_resolution`: Résolution maximale de la couche
 * `abstract`*: Description
 * `getfeatureinfo`: Dictionnaire décrivant la ressource cible du GetFeatureInfo. Une des structure suivante :
-  * avec la stored data, dictionnaire :
-    * `stored_data`*: Indique si on va utiliser directement la donnée stockée
-  * avec une url, dictionnaire :
-    * `server_url`* url utiliser pour le GetFeatureInfo
+    * avec la stored data, dictionnaire :
+        * `stored_data`*: Indique si on va utiliser directement la donnée stockée
+    * avec une url, dictionnaire :
+        * `server_url`* url utiliser pour le GetFeatureInfo
 
 #### DOWNLOAD
 
@@ -188,46 +197,46 @@ type_infos selon le flux :
 * `keywords`: Liste de mots clés (doivent être uniques)
 * `abstract`*: Description
 * `used_data`*: liste de dictionnaire :
-  * `sub_name`*: nom
-  * `title`: titre
-  * `keywords`: Liste de mots clés (doivent être uniques)
-  * `format`: format
-  `zone`: zone
-  * `stored_data`*: Identifiant de la donnée stockée
-  * `abstract`*: Description
+    * `sub_name`*: nom
+    * `title`: titre
+    * `keywords`: Liste de mots clés (doivent être uniques)
+    * `format`: format
+    `zone`: zone
+    * `stored_data`*: Identifiant de la donnée stockée
+    * `abstract`*: Description
 
 #### ALTIMETRY
 
 * `bbox`: dictionnaire Bounding box
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
-* `title`*: Titre
-* `keywords`:liste des mots clés
-* `abstract`*: Description
-* `used_data`*: liste de dictionnaire :
-  * `title`*: Titre
-  * `bbox`: dictionnaire Bounding box
     * `west`*
     * `south`*
     * `east`*
     * `north`*
-  * `source`*: Informations sur la source des données. Une des solution suivante
-    * valeur fixe :
-      * `value`*: Valeur unique pour la source des données
-    * Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
-      * `mapping`: dictionnaire :
-        * `< * >`: Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
-      * `stored_data`*: Identifiant de la donnée stockée
-  * `accuracy`* Informations sur la source des données. Une des solution suivante
-    * valeur fixe:
-      * `value`*: Valeur unique pour la source des données
-    * Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
-      * `mapping`: dictionnaire :
-        * `< * >`: Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
-      * `stored_data`*: Identifiant de la donnée stockée
-  * `stored_data*: Identifiant de la donnée stockée
+* `title`*: Titre
+* `keywords`:liste des mots clés
+* `abstract`*: Description
+* `used_data`*: liste de dictionnaire :
+    * `title`*: Titre
+    * `bbox`: dictionnaire Bounding box
+        * `west`*
+        * `south`*
+        * `east`*
+        * `north`*
+    * `source`*: Informations sur la source des données. Une des solution suivante
+        * valeur fixe :
+            * `value`*: Valeur unique pour la source des données
+        * Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
+            * `mapping`: dictionnaire :
+                * `< * >`: Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
+            * `stored_data`*: Identifiant de la donnée stockée
+    * `accuracy`* Informations sur la source des données. Une des solution suivante
+        * valeur fixe:
+            * `value`*: Valeur unique pour la source des données
+        * Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
+            * `mapping`: dictionnaire :
+              * `< * >`: Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
+            * `stored_data`*: Identifiant de la donnée stockée
+    * `stored_data*: Identifiant de la donnée stockée
 
 #### SEARCH
 
@@ -235,7 +244,7 @@ type_infos selon le flux :
 * `keywords`:liste des mots clés
 * `abstract`*: Description
 * `used_data`*: liste de dictionnaire :
-  * `stored_data`*: Identifiant de la donnée stockée
+    * `stored_data`*: Identifiant de la donnée stockée
 
 #### ITINERARY-ISOCURVE
 
@@ -248,40 +257,97 @@ type_infos selon le flux :
 * `keywords`:liste des mots clés
 * `abstract`*: Description
 * `limits`: dictionnaire décrivant les limites pour les calculs d'itinéraire (nombre d'étapes et de contraintes) et d'isochrone (durée et distance)
-  * `steps`: Nombre d'étapes maximal pour le service d'itinéraire (maximum: 25, minimum: 0, default: 16)
-  * `constraints`: Nombre de contraintes maximal pour le service d'itinéraire (maximum: 6, minimum: 0, default: 3)
-  * `duration`: Durée maximale pour le calcul d'isochrone (maximum: 86400, minimum: 0, default: 43200)
-  * `distance`: Distance maximale pour le calcul d'isochrone (maximum: 2000000, minimum: 0, default: 1000000)
+    * `steps`: Nombre d'étapes maximal pour le service d'itinéraire (maximum: 25, minimum: 0, default: 16)
+    * `constraints`: Nombre de contraintes maximal pour le service d'itinéraire (maximum: 6, minimum: 0, default: 3)
+    * `duration`: Durée maximale pour le calcul d'isochrone (maximum: 86400, minimum: 0, default: 43200)
+    * `distance`: Distance maximale pour le calcul d'isochrone (maximum: 2000000, minimum: 0, default: 1000000)
 * `constraints`: Dictionnaire de définition des contraintes pour la configuration (pas d'information sur le contenu dans la documentation API GPF)
 * `srss`: liste des projections
 * `used_data`* dictionnaire :
-  * `profile`*: Profil de graphe à utiliser (e.g. voiture ou piéton)
-  * `optimization`*: Optimisation de graphe à utiliser (e.g. plus court ou plus rapide)
-  * `cost_column`: Colonne de coût (pour stored data de type GRAPHE-DB)
-  * `reverse_cost_column`: Colonne de coût inverse (pour stored data de type GRAPHE-DB)
-  * `cost_type`: Type de coût [ time, distance ]
-  * `costing`: Méthode de calcul de coût (pour stored data de type GRAPHE-VALHALLA) [ auto, auto_shorter, pedestrian ]
-  * `attributes`: liste dictionnaire des Attributs retournés par l'API:
-    * `table_name`: Nom de la table
-    * `native_name`*: Nom de l'attribut dans la table
-    * `public_name`*: Nom de l'attribut vu du service (pattern: ^[A-Za-z0-9_-]+$)
-    * `default`: boolean
-  * `stored_data`*: Identifiant de la donnée stockée
+    * `profile`*: Profil de graphe à utiliser (e.g. voiture ou piéton)
+    * `optimization`*: Optimisation de graphe à utiliser (e.g. plus court ou plus rapide)
+    * `cost_column`: Colonne de coût (pour stored data de type GRAPHE-DB)
+    * `reverse_cost_column`: Colonne de coût inverse (pour stored data de type GRAPHE-DB)
+    * `cost_type`: Type de coût [ time, distance ]
+    * `costing`: Méthode de calcul de coût (pour stored data de type GRAPHE-VALHALLA) [ auto, auto_shorter, pedestrian ]
+    * `attributes`: liste dictionnaire des Attributs retournés par l'API:
+        * `table_name`: Nom de la table
+        * `native_name`*: Nom de l'attribut dans la table
+        * `public_name`*: Nom de l'attribut vu du service (pattern: ^[A-Za-z0-9_-]+$)
+        * `default`: boolean
+    * `stored_data`*: Identifiant de la donnée stockée
 
-### Publier un flux
+### Publier un géoservice
 
 * `type`*: `offering`
 * `url_parameters`: dictionnaire :
-  * `configuration`: uuid de la configuration que l'on veux publier
+    * `configuration`: uuid de la configuration que l'on veux publier
 * `body_parameters`*: dictionnaire paramétrant l'offre:
-  * `visibility`: niveau de visibilité [ PRIVATE, REFERENCED, PUBLIC ] (default: PRIVATE)
-  * `endpoint`*: uuid du endpoint à utiliser
-  * `open`: boolean
-  * `permissions`: liste des uuid des permissions
+    * `visibility`: niveau de visibilité [ PRIVATE, REFERENCED, PUBLIC ] (default: PRIVATE)
+    * `endpoint`*: uuid du endpoint à utiliser
+    * `open`: boolean
+    * `permissions`: liste des uuid des permissions
+
+
+### Créer une permission
+
+Si vous avez publiés votre géoservice sur un point d'accès privé, il vous faudra créer une permission autorisant un utilisateur ou une communautés à en gérer les accès. Vous devez créer une permission pour vous même si vous souhaitez gérer les accès.
+
+Exemple d'action rédigée en JSON :
+
+```jsonc
+{
+  "type": "permission",
+  "body_parameters": {
+    // Date de fin
+    "end_date": "2024-12-31T20:00:00Z",
+    // Licence
+    "licence": "licence",
+    // Liste des offres concernées
+    "offerings": ["offering-id"],
+    // Si la permission doit utiliser une clef à authentification oauth
+    "only_oauth": false,
+    // (au choix) Type de permission et utilisateurs concernées
+    "type": "ACCOUNT",
+    "users": ["user-id"],
+    // (au choix) Type de permission et communautés concernées
+    "type": "COMMUNITY",
+    "communities": ["community-id"]
+  }
+}
+```
+
+Pour avoir une description exhaustive du `body_parameters`, voir POST [/datastores/{datastore}/permissions](https://data.geopf.fr/api/swagger-ui/index.html#/Gestion%20des%20permissions/create_2).
+
+
+### Créer un accès
+
+Une fois la permission créée, vous pouvez utiliser cette permission pour donner un accès à une ou plusieurs offre(s) à une clef.
+
+Exemple d'action rédigée en JSON :
+
+```jsonc
+{
+  "type": "access",
+  "url_parameters": {
+    // Clef concernée
+    "key": "key-id"
+  },
+  "body_parameters": {
+    // Permission utilisée
+    "permission": "permission-id",
+    // Offres concernées
+    "offerings": ["offering-id"]
+  }
+}
+```
+
+Pour avoir une description exhaustive du `body_parameters`, voir POST [/users//me/keys/{key}/accesses](https://data.geopf.fr/api/swagger-ui/index.html#/Utilisateurs/postAccesses).
+
 
 ### Supprimer une entité
 
-Possibilité de supprimer des entités de type : upload, stored_data, configuration et offering.
+Possibilité de supprimer des entités de type : `upload`, `stored_data`, `configuration`, `offering`, `key` et `permission`.
 
 * suppression par ID de l'entité :
 
@@ -322,9 +388,9 @@ Possibilité de supprimer des entités de type : upload, stored_data, configurat
 
 ### Modifier une entité
 
-Possibilité de modifier une entité de type : upload, stored_data, configuration et offering.
+Possibilité de modifier une entité de type : `upload`, `stored_data`, `configuration`, `offering`, `key` et `permission`.
 
-Correspond au requête PUT et PATCH de l'[api géoplatforme](https://data.geopf.fr/api/swagger-ui/index.html)
+Correspond aux requêtes de type `PUT` et `PATCH` de l'[API Entrepôt](https://data.geopf.fr/api/swagger-ui/index.html)
 
 ```jsonc
 {
@@ -342,21 +408,42 @@ Correspond au requête PUT et PATCH de l'[api géoplatforme](https://data.geopf.
 }
 ```
 
-Pour le `body_parameters` se référer à la documentation API GPF:
+Il suffit d'indiquer dans le `body_parameters` les valeurs qui sont modifiées, les autres valeurs seront récupérées depuis l'API Entrepôt. Pour connaître les valeurs possibles se référer à la documentation API Entrepôt :
 
-* upload *(partiel)* : PATCH [/datastores/{datastore}/uploads/{upload}](https://data.geopf.fr/api/swagger-ui/index.html#/Livraisons%20et%20v%C3%A9rifications/update_2)
-  * Seul le nom de la livraison, sa description et sa visibilité sont modifiables, et uniquement par le propriétaire. Les autres informations, comme le type de la livraison, sont figées.
-* stored_data *(partiel)* : PATCH [/datastores/{datastore}/stored_data/{stored_data}](https://data.geopf.fr/api/swagger-ui/index.html#/Donn%C3%A9es%20stock%C3%A9es/update_3)
-  * Seul le nom de la donnée et sa visibilité sont modifiables, et uniquement par le propriétaire. Les autres informations, comme le type de la donnée, sont figées pour une donnée.
+* upload *(partielle)* : PATCH [/datastores/{datastore}/uploads/{upload}](https://data.geopf.fr/api/swagger-ui/index.html#/Livraisons%20et%20v%C3%A9rifications/update_2)
+
+!!! note
+    Seuls le nom de la livraison, sa description et sa visibilité sont modifiables et uniquement par le propriétaire. Les autres informations, comme le type de la livraison, sont figées.
+
+* stored_data *(partielle)* : PATCH [/datastores/{datastore}/stored_data/{stored_data}](https://data.geopf.fr/api/swagger-ui/index.html#/Donn%C3%A9es%20stock%C3%A9es/update_3)
+
+!!! note
+    Seuls le nom de la donnée et sa visibilité sont modifiables et uniquement par le propriétaire. Les autres informations, comme le type de la donnée, sont figées pour une donnée.
+
 * configuration *(totale)* : PUT [/datastores/{datastore}/configurations/{configuration}](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/update_1)
-  * Si la configuration est liée à des offres en cours de publication, la modification n'est pas possible. Si la configuration est liée à des offres publiées, les modifications sont répercutées sur les serveurs de diffusion. Le nom technique et le type ne sont pas modifiable.
-  * Cas particulier de la modification des used_data (`[type_infos][used_data]`), la liste doit être de la même longueur que celle de la configuration et chaque dictionnaire sera fusionné avec l'ancien cf [#83](https://github.com/Geoplateforme/sdk-entrepot/issues/83) [#66](https://github.com/Geoplateforme/sdk-entrepot/issues/66). Pour supprimer/ajouter une used_data cf action suivante [Mise à jour des used_data d'une configuration](#mise-à-jour-des-used_data-dune-configuration)
-* offering *(partiel)*: PATCH [/datastores/{datastore}/offerings/{offering}](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/update_4)
-  * Il est possible de modifier la visibilité d'une offre afin qu'elle apparaisse dans les catalogues ou qu'on puisse donner des permissions, ou au contraire qu'elle en disparaisse. On peut également désactiver une offre pour en couper la consommation rapidement, sans déconfigurer les permissions.
 
-### Mise à jour des used_data et bbox d'une Configuration
+!!! note "Notes"
+    * Si la configuration est liée à des offres en cours de publication, la modification n'est pas possible. Si la configuration est liée à des offres publiées, les modifications sont répercutées sur les serveurs de diffusion. Le nom technique et le type ne sont pas modifiables.
+    * Cas particulier de la modification des used_data (`[type_infos][used_data]`) : la liste doit être de la même longueur que celle de la configuration et chaque dictionnaire sera fusionné avec l'ancien (cf. [#83](https://github.com/Geoplateforme/sdk-entrepot/issues/83) et [#66](https://github.com/Geoplateforme/sdk-entrepot/issues/66)). Pour supprimer/ajouter une used_data cf. action suivante [Mise à jour des used_data d'une configuration](#mise-à-jour-des-used_data-dune-configuration).
 
-L'action d'édition d'une configuration ne permet pas de supprimer ni ajouter une used_data. Cette action permet donc de supprimer/ajouter une used_data ainsi que de pouvoir mettre à jour la BBox avec les données utilisées.
+* offering *(partielle)*: PATCH [/datastores/{datastore}/offerings/{offering}](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/update_4)
+
+!!! note
+    Il est possible de modifier la visibilité d'une offre afin qu'elle apparaisse dans les catalogues ou qu'on puisse donner des permissions, ou au contraire qu'elle en disparaisse. On peut également désactiver une offre pour en couper la consommation rapidement, sans déconfigurer les permissions.
+
+* key *(partielle)*: PATCH [/users/me/keys/{key}](https://data.geopf.fr/api/swagger-ui/index.html#/Utilisateurs/patchKey)
+
+!!! note
+    Seuls le nom, les listes d'autorisations et d'interdictions, le *user agent* et le *referer* sont modifiables et uniquement par le propriétaire
+
+* permission *(partielle)*: PATCH [/datastores/{datastore}/permissions/{permission}](https://data.geopf.fr/api/swagger-ui/index.html#/Gestion%20des%20permissions/patch_1)
+
+!!! note
+    Seules la date de fin, la licences et la liste des offres sont modifiables.
+
+### Mettre à jour les used_data et la bbox d'une configuration
+
+L'action d'édition d'une configuration ne permet pas de supprimer ni ajouter une `used_data`. Cette action permet donc de supprimer/ajouter une `used_data` ainsi que de pouvoir mettre à jour la BBox avec les données utilisées.
 
 ```jsonc
 {

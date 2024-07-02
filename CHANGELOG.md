@@ -1,5 +1,30 @@
 # CHANGE LOG
 
+## v0.1.28
+
+### [Added]
+
+* cli : possibilité d'ajouter des clefs-valeurs à la résolution du workflow
+* Config: erreur spécifique pour les char spéciaux (`get()`, `get_str()`). #155
+* Authentifier: ajout erreur spécifique pour "Account is not fully set up", mot de passe expiré. #155
+* ajout classe Access : gère les accès sur les offres #97
+* ajout classe AccessAction : gère les accès sur les offres depuis le workflow #95
+
+### [Changed]
+
+* ci : mise à jour des GitHub Actions
+* ApiRequester: réduction de l'affichage #150
+* EditAction : entités `Key` et `Permission` gérées
+* DeleteAction : entités `Key` et `Permission` gérées
+* Doc : ajout de la création des permission et des accès via workflow
+* Doc : ajout des classes manquantes
+* Dataset: les fichiers dans .md5 sont ordonnés dans ordre alphabétique #162
+
+### [Fixed]
+
+* orthographe : corrections diverses
+* tag de `uniqueness_constraint_tags` non obligatoire #159
+
 ## v0.1.27
 
 ### [Added]
