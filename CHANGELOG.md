@@ -18,6 +18,7 @@
 * DeleteAction : entités `Key` et `Permission` gérées
 * Doc : ajout de la création des permission et des accès via workflow
 * Doc : ajout des classes manquantes
+* Dataset: les fichiers dans .md5 sont ordonnés dans ordre alphabétique #162
 
 ### [Fixed]
 
