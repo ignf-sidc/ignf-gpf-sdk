@@ -13,7 +13,7 @@ class Access(StoreEntity):
 
     # On doit redéfinir la fonction car l'API ne renvoie rien... A retirer quand ça sera bon.
     @classmethod
-    def api_create(cls: Type[T], data: Optional[Dict[str, Any]], route_params: Optional[Dict[str, Any]] = None) -> bool:
+    def api_create(cls: Type[T], data: Optional[Dict[str, Any]], route_params: Optional[Dict[str, Any]] = None) -> bool:  # type:ignore
         """Crée un de nouvel accès dans l'API.
 
         Args:

@@ -14,6 +14,8 @@
 
 * ci : mise à jour des GitHub Actions
 * ApiRequester: réduction de l'affichage #150
+* EditAction : entités `Key` et `Permission` gérées
+* DeleteAction : entités `Key` et `Permission` gérées
 
 ### [Fixed]
 

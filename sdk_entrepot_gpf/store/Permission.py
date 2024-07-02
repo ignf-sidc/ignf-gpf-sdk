@@ -11,9 +11,12 @@ class Permission(PartialEditInterface, StoreEntity):
     _entity_name = "permission"
     _entity_title = "permission"
 
-    # On doit redéfinir la fonction car l'API renvoie une LISTE d'entités
     @classmethod
-    def api_create(cls: Type[T], data: Optional[Dict[str, Any]], route_params: Optional[Dict[str, Any]] = None) -> List[T]:
+    def api_create(cls: Type[T], data: Optional[Dict[str, Any]], route_params: Optional[Dict[str, Any]] = None) -> T:
+        raise NotImplementedError("Pour les Permissions, utiliser api_create_list")
+
+    @classmethod
+    def api_create_list(cls: Type[T], data: Optional[Dict[str, Any]], route_params: Optional[Dict[str, Any]] = None) -> List[T]:
         """Crée une liste de nouvelles entités dans l'API.
 
         Args:
