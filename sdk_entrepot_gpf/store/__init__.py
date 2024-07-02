@@ -14,6 +14,9 @@ from sdk_entrepot_gpf.store.StoredData import StoredData
 from sdk_entrepot_gpf.store.Tms import Tms
 from sdk_entrepot_gpf.store.Upload import Upload
 from sdk_entrepot_gpf.store.User import User
+from sdk_entrepot_gpf.store.Access import Access
+from sdk_entrepot_gpf.store.Key import Key
+from sdk_entrepot_gpf.store.Permission import Permission
 
 # lien entre le nom/type texte et la classe
 TYPE__ENTITY = {
@@ -31,4 +34,7 @@ TYPE__ENTITY = {
     Tms.entity_name(): Tms,
     Upload.entity_name(): Upload,
     User.entity_name(): User,
+    Access.entity_name(): Access,
+    Key.entity_name(): Key,
+    Permission.entity_name(): Permission,
 }
