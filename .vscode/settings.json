@@ -22,7 +22,6 @@
         "mkapi",
         "mkdocs",
         "mkdocstrings",
-        "moker",
         "mypy",
         "parsables",
         "pathes",

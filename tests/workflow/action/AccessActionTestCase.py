@@ -36,7 +36,7 @@ class AccessActionTestCase(GpfTestCase):
         # o_access = MagicMock() TODO à mettre après l'évolution de l'API
         with patch.object(Access, "api_create", return_value=True) as o_mock_create:
             o_action.run("datastore")
-        # Permet de moker l'appel à la création de la permission
+        # Permet de mocker l'appel à la création de la permission
         o_mock_create.assert_called_once_with(
             self.d_action["body_parameters"],
             route_params={"datastore": "datastore", **self.d_action["url_parameters"]},
@@ -56,7 +56,7 @@ class AccessActionTestCase(GpfTestCase):
         with patch.object(Access, "api_create", side_effect=ConflictError("url", "method", {}, {}, "response")) as o_mock_create:
             with self.assertRaises(StepActionError) as o_arc:
                 o_action.run("datastore")
-        # Permet de moker l'appel à la création de la permission
+        # Permet de mocker l'appel à la création de la permission
         o_mock_create.assert_called_once_with(
             self.d_action["body_parameters"],
             route_params={"datastore": "datastore", **self.d_action["url_parameters"]},
@@ -78,7 +78,7 @@ class AccessActionTestCase(GpfTestCase):
         with patch.object(Access, "api_create", return_value=False) as o_mock_create:
             with self.assertRaises(StepActionError) as o_arc:
                 o_action.run("datastore")
-        # Permet de moker l'appel à la création de la permission
+        # Permet de mocker l'appel à la création de la permission
         o_mock_create.assert_called_once_with(
             self.d_action["body_parameters"],
             route_params={"datastore": "datastore", **self.d_action["url_parameters"]},

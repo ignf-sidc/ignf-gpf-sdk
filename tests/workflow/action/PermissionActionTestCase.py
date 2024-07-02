@@ -35,7 +35,7 @@ class PermissionActionTestCase(GpfTestCase):
         o_permission = MagicMock()
         with patch.object(Permission, "api_create", return_value=o_permission) as o_mock_create:
             o_action.run("datastore")
-        # Permet de moker l'appel à la création de la permission
+        # Permet de mocker l'appel à la création de la permission
         o_mock_create.assert_called_once_with(d_action["body_parameters"], route_params={"datastore": "datastore"})
         # Permet de vérifier qu'après l'appel la permission ajoutée correspond à celle qui est demandée
         self.assertEqual(o_permission, o_action.permission)
