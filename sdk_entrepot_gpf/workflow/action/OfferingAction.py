@@ -82,7 +82,10 @@ class OfferingAction(ActionAbstract):
                 )
         # Création en gérant une erreur de type ConflictError (si la Configuration existe déjà selon les critères de l'API)
         try:
-            self.__offering = Offering.api_create(self.definition_dict["body_parameters"], route_params={"datastore": datastore, **self.definition_dict["url_parameters"]})
+            self.__offering = Offering.api_create(
+                self.definition_dict["body_parameters"],
+                route_params={"datastore": datastore, **self.definition_dict["url_parameters"]},
+            )
         except ConflictError as e:
             raise StepActionError(f"Impossible de créer l'offre il y a un conflict : \n{e.message}") from e
 
