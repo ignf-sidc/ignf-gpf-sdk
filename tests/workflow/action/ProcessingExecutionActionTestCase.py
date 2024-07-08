@@ -276,7 +276,12 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                 ## 1 tag + 1 commentaire
                 self.run_args({"tag1": "val1"}, ["comm1"], s_key, s_type_output, s_datastore, message=f"{'no 'if not s_datastore else ''}datastore - {s_type_output} - 1 tag - 1 comment")
                 ## 2 tag + 4 commentaire
-                self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, message=f"{'no 'if not s_datastore else ''}datastore - {s_type_output} - 2 tag - 4 comment")
+                self.run_args(
+                    {"tag1": "val1", "tag2": "val2"},
+                    ["comm1", "comm2", "comm3", "comm4"],
+                    s_key, s_type_output, s_datastore,
+                    message=f"{'no 'if not s_datastore else ''}datastore - {s_type_output} - 2 tag - 4 comment",
+                )
 
         # tests particuliers pour cas ou la sortie existe déjà
         for s_beavior in ["STOP","DELETE","CONTINUE","RESUME","Toto",None] :
