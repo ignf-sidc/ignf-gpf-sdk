@@ -103,6 +103,7 @@ class ProcessingExecutionAction(ActionAbstract):
             # ou le processing execution est terminé (StoredData.STATUS_GENERATED)
             self.__stored_data = o_stored_data
             l_proc_exec = ProcessingExecution.api_list({"output_stored_data": o_stored_data.id}, datastore=datastore)
+            print(l_proc_exec, "--", self.__behavior)
             if not l_proc_exec:
                 raise GpfSdkError(f"Impossible de trouver l'exécution de traitement liée à la donnée stockée {o_stored_data}")
             # arbitrairement, on prend le premier de la liste
@@ -127,7 +128,9 @@ class ProcessingExecutionAction(ActionAbstract):
         if self.__processing_execution is None:
             # création de la ProcessingExecution
             self.__processing_execution = ProcessingExecution.api_create(self.definition_dict["body_parameters"], {"datastore": datastore})
-            d_info = self.__processing_execution.get_store_properties().get("output", {"no_output": ""})
+
+        # récupération de la sortie si elle existe
+        d_info = self.__processing_execution.get_store_properties().get("output", {"no_output": ""})
 
         if d_info is None:
             Config().om.debug(self.__processing_execution.to_json(indent=4))

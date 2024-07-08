@@ -8,6 +8,8 @@
 
 ### [Fixed]
 
+* ProcessingExecutionAction: output non obligatoire dans l'étape et dans la processing exécution #165
+
 ## v0.1.28
 
 ### [Added]

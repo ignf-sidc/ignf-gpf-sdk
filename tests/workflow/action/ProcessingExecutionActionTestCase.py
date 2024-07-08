@@ -73,6 +73,7 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
         datastore: Optional[str],
         output_already_exist: bool = False,
         behavior: Optional[str] = None,
+        message:str = "",
     ) -> None:
         """lancement + test de ProcessingExecutionAction.run selon param
 
@@ -82,7 +83,7 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
             s_type_output (str): type de l'output (stored_data ou upload)
         """
         self.i += 1
-        with self.subTest(i=self.i):
+        with self.subTest(message=message):
             d_action: Dict[str, Any] = {"type": "processing-execution", "body_parameters":{"output":{s_key:"test"}}}
             if tags is not None:
                 d_action["tags"] = tags
@@ -188,6 +189,9 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                         o_mock_exist_output.reset_mock()
                         o_mock_pea_find_stored_data.reset_mock()
                         o_mock_processing_execution.api_launch.reset_mock()
+                        o_mock_processing_execution.get_store_properties.reset_mock()
+                        o_mock_stored_data_api_get.reset_mock()
+                        o_mock_upload_api_get.reset_mock()
 
                         # troisième test sur STATUS_UNSTABLE => suppression puis normal
                         o_mock_exist_output.__getitem__.return_value = StoredData.STATUS_UNSTABLE
@@ -266,21 +270,17 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
         for s_datastore in [None, "datastore"]:
             for s_type_output in [ "upload", "stored_data"]:
                 ## sans tag + sans commentaire
-                self.run_args(None, None, s_key, s_type_output, s_datastore)
+                self.run_args(None, None, s_key, s_type_output, s_datastore, message=f"{'no 'if not s_datastore else ''}datastore - {s_type_output} - no tag - no comment")
                 ## tag vide + commentaire vide
-                self.run_args({}, [], s_key, s_type_output, s_datastore)
+                self.run_args({}, [], s_key, s_type_output, s_datastore, message=f"{'no 'if not s_datastore else ''}datastore - {s_type_output} - vide tag - vide comment")
                 ## 1 tag + 1 commentaire
-                self.run_args({"tag1": "val1"}, ["comm1"], s_key, s_type_output, s_datastore)
+                self.run_args({"tag1": "val1"}, ["comm1"], s_key, s_type_output, s_datastore, message=f"{'no 'if not s_datastore else ''}datastore - {s_type_output} - 1 tag - 1 comment")
                 ## 2 tag + 4 commentaire
-                self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore)
+                self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, message=f"{'no 'if not s_datastore else ''}datastore - {s_type_output} - 2 tag - 4 comment")
 
         # tests particuliers pour cas ou la sortie existe déjà
-        self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "STOP")
-        self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "DELETE")
-        self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "CONTINUE")
-        self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "RESUME")
-        self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, "Toto")
-        self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, None)
+        for s_beavior in ["STOP","DELETE","CONTINUE","RESUME","Toto",None] :
+            self.run_args({"tag1": "val1", "tag2": "val2"}, ["comm1", "comm2", "comm3", "comm4"], s_key, s_type_output, s_datastore, True, s_beavior, message=f"beavior {s_beavior}")
 
         # cas en erreurs non spécifique
         d_action: Dict[str, Any] = {"type": "processing-execution", "body_parameters":{"output":{s_key:"test"}}, "tags": {"key":"val"}, "comments": ["comm"]}
