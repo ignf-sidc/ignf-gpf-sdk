@@ -333,6 +333,10 @@ class ProcessingExecutionAction(ActionAbstract):
         return self.__stored_data
 
     @property
+    def no_output(self) -> bool:
+        return self.__no_output
+
+    @property
     def output_new_entity(self) -> bool:
         """Indique s'il y aura création d'une nouvelle entité par rapport au paramètre de création de l'exécution de traitement
         (la clé "name" et non la clé "_id" est présente dans le paramètre "output" du corps de requête).
