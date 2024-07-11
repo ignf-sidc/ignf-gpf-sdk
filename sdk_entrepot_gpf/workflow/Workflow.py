@@ -278,7 +278,7 @@ class Workflow:
         if definition_dict["type"] == "processing-execution":
             return ProcessingExecutionAction(workflow_context, definition_dict, parent_action, behavior=behavior)
         if definition_dict["type"] == "configuration":
-            return ConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
+            return ConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior, compatibility_cartes)
         if definition_dict["type"] == "copy-configuration":
             return CopyConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
         if definition_dict["type"] == "used_data-configuration":
