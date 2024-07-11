@@ -140,6 +140,123 @@ Permet d'avoir un workflow avec une gestion dynamique de l'édition traitée gr�
 {store_entity.stored_data.infos._id [INFOS(name=MES_DONNÉES_{params.edition})]}
 ```
 
+## suppression d'entité
+
+Il est possible de supprimer des entité de type `upload`, `stored_data`, `configuration`, `offering`, `permission` et `key`. Avant la suppression la liste sera affiché et l'utilisateur devra validé la suppression (sauf si utilisation de `--force`)
+
+```sh
+python -m sdk_entrepot_gpf delete --type {upload,stored_data,configuration,offering,permission,key} --id UUID
+```
+
+Avec comme option supplémentaire :
+
+* `--force` : aucune question sera posé avant la suppression
+* `-- cascade` : supprimer ses éléments lié, fonctionne uniquement pour :
+  * `stored_data` : suppression des configuration et offres lié
+  * `configuration` : suppression des offres lié
+
+## Fichiers annexes
+
+Base : `python -m sdk_entrepot_gpf annexe`
+
+Quatre types de lancement :
+
+* livraison d'annexes : `-f FICHIER`
+* liste des annexes, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
+* détail d'une annexe, avec option publication / dépublication : `--id ID [--publish|--unpublish]`
+* publication / dépublication par label : `--publish-by-label label1,label2` et `--unpublish-by-label label1,label2`
+
+Exemple de fichier pour la livraison :
+
+```json
+{
+  "annexe" : [
+    {
+      "file": "/chemin/du/fichier.pdf",
+      "paths": ["test2.xml"],
+      "labels": ["label1", "label2"],
+      "published": false
+    }
+  ]
+}
+```
+
+## Fichiers statics
+
+Base : `python -m sdk_entrepot_gpf static`
+
+Trois types de lancement :
+
+* livraison de fichiers statics : `-f FICHIER`
+* liste des fichiers statics, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
+* détail d'un ficher static : `--id ID`
+
+Exemple de fichier pour la livraison :
+
+```json
+{
+  "static" : [
+    {
+      "file": "mon_style.sld",
+      "name": "mon_style",
+      "type": "GEOSERVER-STYLE",
+      "description": "description"
+    }
+  ]
+}
+```
+
+## Fichiers de métadonnées
+
+Base : `python -m sdk_entrepot_gpf metadata`
+
+Quatre types de lancement :
+
+* livraison d'une métadonnée : `-f FICHIER`
+* liste des métadonnées, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
+* détail d'une métadonnée : `--id ID`
+* publication / dépublication : `--publish NOM_FICHIER [NOM_FICHIER] --id-endpoint ID_ENDPOINT` et `--unpublish NOM_FICHIER [NOM_FICHIER] --id-endpoint ID_ENDPOINT`
+
+Exemple de fichier pour la livraison :
+
+```json
+{
+  "metadata": [
+    {
+      "file": "metadata.xml",
+      "type": "INSPIRE"
+    }
+  ]
+}
+```
+
+## gestion des clefs de l'utilisateur
+
+Base : `python -m sdk_entrepot_gpf key`
+
+Trois type de lancement:
+
+* liste des clefs : `` (aucun paramètres)
+* détail d'une clef : `--id ID`
+* création de clefs : `--f FICHIER`
+
+Exemple de fichier pour la création :
+
+```json
+{
+  "key": [
+    {
+      "name": "nom",
+      "type": "HASH",
+      "type_infos": {
+        "hash": "hash"
+      }
+    }
+  ]
+}
+
+```
+
 ## Tutoriels
 
 Vous pouvez maintenant livrer et publier vos données en utilisant le module comme un exécutable. Voici quelques exemples :
