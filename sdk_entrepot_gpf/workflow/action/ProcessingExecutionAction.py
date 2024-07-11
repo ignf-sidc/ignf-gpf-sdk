@@ -48,6 +48,9 @@ class ProcessingExecutionAction(ActionAbstract):
         self.__upload: Optional[Upload] = None
         self.__stored_data: Optional[StoredData] = None
         self.__no_output = False
+        # donnée en entrée
+        self.__inputs_upload: Optional[List[Upload]] = None
+        self.__inputs_stored_data: Optional[List[StoredData]] = None
         # comportement (écrit dans la ligne de commande par l'utilisateur), sinon celui par défaut (dans la config) qui vaut STOP
         self.__behavior: str = behavior if behavior is not None else Config().get_str("processing_execution", "behavior_if_exists")
 
@@ -128,8 +131,17 @@ class ProcessingExecutionAction(ActionAbstract):
             # création de la ProcessingExecution
             self.__processing_execution = ProcessingExecution.api_create(self.definition_dict["body_parameters"], {"datastore": datastore})
 
+        d_data = self.__processing_execution.get_store_properties()
+
+        # récupération des entrées :
+
+        if "upload" in d_data.get("inputs", {}):
+            self.__inputs_upload = [Upload.api_get(d_upload["_id"], datastore=datastore) for d_upload in d_data["upload"]]
+        if "stored_data" in d_data.get("inputs", {}):
+            self.__inputs_stored_data = [StoredData.api_get(d_stored_data["_id"], datastore=datastore) for d_stored_data in d_data["stored_data"]]
+
         # récupération de la sortie si elle existe
-        d_info = self.__processing_execution.get_store_properties().get("output", {"no_output": ""})
+        d_info = d_data.get("output", {"no_output": ""})
 
         if d_info is None:
             Config().om.debug(self.__processing_execution.to_json(indent=4))
@@ -335,6 +347,14 @@ class ProcessingExecutionAction(ActionAbstract):
     @property
     def no_output(self) -> bool:
         return self.__no_output
+
+    @property
+    def inputs_stored_data(self) -> Optional[List[StoredData]]:
+        return self.__inputs_stored_data
+
+    @property
+    def inputs_upload(self) -> Optional[List[Upload]]:
+        return self.__inputs_upload
 
     @property
     def output_new_entity(self) -> bool:
