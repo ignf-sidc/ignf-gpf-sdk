@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* Création/consultation des clefs depuis la ligne de commande #96
+
 ### [Changed]
 
 ### [Fixed]

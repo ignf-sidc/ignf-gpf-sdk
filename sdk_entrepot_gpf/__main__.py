@@ -2,6 +2,7 @@
 
 import configparser
 import io
+import json
 import sys
 import argparse
 import traceback
@@ -21,6 +22,7 @@ from sdk_entrepot_gpf.io.DescriptorFileReader import DescriptorFileReader
 from sdk_entrepot_gpf.io.Errors import ConflictError, NotFoundError
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.store.Annexe import Annexe
+from sdk_entrepot_gpf.store.Key import Key
 from sdk_entrepot_gpf.store.Metadata import Metadata
 from sdk_entrepot_gpf.store.Static import Static
 from sdk_entrepot_gpf.workflow.Workflow import Workflow
@@ -82,6 +84,8 @@ class Main:
             self.static()
         elif self.o_args.task == "metadata":
             self.metadata()
+        elif self.o_args.task == "key":
+            self.key()
 
     @staticmethod
     def parse_args(args: Optional[Sequence[str]] = None) -> argparse.Namespace:  # pylint:disable=too-many-statements
@@ -212,6 +216,16 @@ class Main:
         o_sub_parser.add_argument(
             "--unpublish", type=str, action="extend", nargs="+", default=None, metavar=("NOM_FICHIER"), help="Dé-publie les métadonnées listées sur le point d'accès donné par --id-endpoint"
         )
+
+        # parseur pour les key
+        s_epilog_key = """Trois type de lancement:
+        * liste des clefs : `` (aucun paramètres)
+        * détail d'une clef : `--id ID`
+        * création de clefs : `--f FICHIER`\nExemple du contenu du fichier : `{"key": [{"name": "nom","type": "HASH","type_infos": {"hash": "mon_hash"}}]}`
+        """
+        o_sub_parser = o_sub_parsers.add_parser("key", help="Gestion des clefs de l'utilisateur", epilog=s_epilog_key, formatter_class=argparse.RawTextHelpFormatter)
+        o_sub_parser.add_argument("--id", type=str, default=None, help="Affiche la clef demandée")
+        o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier décrivant les clefs à créer")
 
         return o_parser.parse_args(args)
 
@@ -870,6 +884,75 @@ class Main:
         # vérification des livraisons
         Config().om.info("Fin des livraisons.", green_colored=True)
         return {"ok": l_uploads, "upload_fail": d_upload_fail}
+
+    def key(self):
+        if self.o_args.id is not None:
+            Config().om.info(f"détail pour la clef {self.o_args.id}", green_colored=True)
+            o_key = Key.api_get(self.o_args.id)
+            # affichage
+            Config().om.info(o_key.to_json(indent=3))
+        elif self.o_args.file is not None:
+            Config().om.info("Création de clefs ...", green_colored=True)
+            d_res = self.create_key_from_file(self.o_args.file)
+            # affichage
+            self._display_bilan_creation(d_res)
+        else:
+            Config().om.info("Liste des clef de l'utilisateur", green_colored=True)
+            l_key = Key.api_list()
+            if l_key:
+                Config().om.info(f"{len(l_key)} clef de l'utilisateur :\n" + "\n".join([f" * {o_key['name']} [{o_key['type']}] -- {o_key['_id']}" for o_key in l_key]))
+            else:
+                Config().om.info("Aucune clef")
+
+    @staticmethod
+    def create_key_from_file(file: Union[str, Path]) -> Dict[str, Any]:
+        """création des clefs décrite par le fichier
+
+        Args:
+            file (Union[Path, str]): chemin du fichier descripteur des celf
+
+        Returns:
+            Dict[str, Any]: dictionnaire avec le résultat des creations :
+                "ok" : liste des creations sans problèmes,
+                "fail": dictionnaire nom creations : erreur remonté lors de la livraison
+        """
+
+        l_data = JsonHelper.load(Path(file), file_not_found_pattern="Fichier descripteur de création {json_path} non trouvé.")["key"]
+
+        l_keys: List[Metadata] = []
+        d_fail: Dict[str, Exception] = {}
+
+        # on fait toutes les livraisons
+        Config().om.info(f"CREATION DES CLEFS : ({len(l_data)})", green_colored=True)
+        for d_data in l_data:
+            s_nom = d_data["name"]
+            Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
+            try:
+                o_upload = Key.api_create(d_data)
+                l_keys.append(o_upload)
+            except Exception as e:
+                d_fail[s_nom] = e
+                Config().om.debug(traceback.format_exc())
+                Config().om.error(f"livraison {s_nom} : {e}")
+
+        # vérification des livraisons
+        Config().om.info("Fin des livraisons.", green_colored=True)
+        return {"ok": l_keys, "fail": d_fail}
+
+    @staticmethod
+    def _display_bilan_creation(d_res: Dict[str, Any]) -> None:
+        """Affichage du bilan pour la création d'entité (key)
+
+        Args:
+            d_res (Dict[str, Any]): dictionnaire de résultat {'ok': liste des creation ok, 'fail': dictionnaire 'fichier': erreur}
+        """
+        if d_res["fail"]:
+            Config().om.info("RÉCAPITULATIF DES PROBLÈMES :", green_colored=True)
+            Config().om.error(f"{len(d_res['fail'])} création échouées :\n" + "\n".join([f" * {s_nom} : {e_error}" for s_nom, e_error in d_res["fail"].items()]))
+            Config().om.error(f"BILAN : {len(d_res['ok'])} creation effectués sans erreur, {len(d_res['fail'])} creation échouées")
+            sys.exit(1)
+        else:
+            Config().om.info(f"BILAN : les {len(d_res['ok'])} créations se sont bien passées", green_colored=True)
 
 
 if __name__ == "__main__":
