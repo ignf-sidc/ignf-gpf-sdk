@@ -99,6 +99,7 @@ class Main:
         o_parser.add_argument("--version", action="version", version=f"%(prog)s v{sdk_entrepot_gpf.__version__}")
         o_parser.add_argument("--debug", dest="debug", required=False, default=False, action="store_true", help="Passe l'appli en mode debug (plus de messages affichés)")
         o_parser.add_argument("--datastore", "-d", dest="datastore", required=False, default=None, help="Identifiant du datastore à utiliser")
+        o_parser.add_argument("--compatibility-cartes", dest="compatibility_cartes", required=False, default=False, help="active la compatibilité des traitements du SDK avec ceux de cartes.gouv.fr")
         o_sub_parsers = o_parser.add_subparsers(dest="task", metavar="TASK", required=True, help="Tâche à effectuer")
 
         # Parser pour auth
@@ -347,7 +348,7 @@ class Main:
 
     @staticmethod
     def upload_from_descriptor_file(file: Union[Path, str], behavior: Optional[str] = None, datastore: Optional[str] = None, check_before_close: bool = False) -> Dict[str, Any]:
-        """réalisation des livraison décrite par le fichier
+        """réalisation des livraisons décrites par le fichier
 
         Args:
             file (Union[Path, str]): chemin du fichier descripteur de livraison
@@ -374,7 +375,7 @@ class Main:
             s_nom = o_dataset.upload_infos["name"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
             try:
-                o_ua = UploadAction(o_dataset, behavior=s_behavior)
+                o_ua = UploadAction(o_dataset, cartabilite = False, behavior=s_behavior)
                 o_upload = o_ua.run(datastore, check_before_close=check_before_close)
                 l_uploads.append(o_upload)
             except Exception as e:

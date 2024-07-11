@@ -28,13 +28,21 @@ class UploadAction:
     BEHAVIOR_CONTINUE = "CONTINUE"
     BEHAVIORS = [BEHAVIOR_STOP, BEHAVIOR_CONTINUE, BEHAVIOR_DELETE]
 
-    def __init__(self, dataset: Dataset, behavior: Optional[str] = None) -> None:
+    def __init__(self, dataset: Dataset, behavior: Optional[str] = None, cartabilite: Optional[bool] = None) -> None:
+        """initialise le comportement de UploadAction
+
+        Args:
+            dataset (Dataset): _description_
+            cartabiite (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
+            behavior (Optional[str], optional): _description_. Defaults to None.
+        """
         self.__dataset: Dataset = dataset
         self.__upload: Optional[Upload] = None
         # On suit le comportement donnée en paramètre ou à défaut celui de la config
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
+        self.__mode_cartes = cartabilite
 
-    def run(self, datastore: Optional[str], check_before_close: bool = False) -> Upload:
+    def run(self, datastore: Optional[str], compatibilite_cartes : bool,check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
         retourner la livraison créée.
 
@@ -122,11 +130,12 @@ class UploadAction:
 
     def __add_tags(self) -> None:
         """Ajoute les tags."""
+        if not self.__mode_cartes and not self.__dataset.tags['datasheet_name']:
+            raise GpfSdkError('En mode compatibilité avec cartes.gouv tag contenant le nom de la fiche de donnée est obligatoire')
         if self.__upload is not None and self.__dataset.tags:
-            Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
-            self.__upload.api_add_tags(self.__dataset.tags)
-            Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
-
+                Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
+                self.__upload.api_add_tags(self.__dataset.tags)
+                Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
         if self.__upload is not None:
