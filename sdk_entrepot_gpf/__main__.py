@@ -2,7 +2,6 @@
 
 import configparser
 import io
-import json
 import sys
 import argparse
 import traceback
@@ -45,7 +44,7 @@ from sdk_entrepot_gpf.workflow.resolver.UserResolver import UserResolver
 class Main:
     """Classe d'entrée pour utiliser la lib comme binaire."""
 
-    def __init__(self) -> None:
+    def __init__(self) -> None:  # pylint: disable=too-many-branches
         """Constructeur."""
         # Résolution des paramètres utilisateurs
         self.o_args = Main.parse_args()
@@ -885,7 +884,8 @@ class Main:
         Config().om.info("Fin des livraisons.", green_colored=True)
         return {"ok": l_uploads, "upload_fail": d_upload_fail}
 
-    def key(self):
+    def key(self) -> None:
+        """Gestion des clefs"""
         if self.o_args.id is not None:
             Config().om.info(f"détail pour la clef {self.o_args.id}", green_colored=True)
             o_key = Key.api_get(self.o_args.id)
@@ -919,7 +919,7 @@ class Main:
 
         l_data = JsonHelper.load(Path(file), file_not_found_pattern="Fichier descripteur de création {json_path} non trouvé.")["key"]
 
-        l_keys: List[Metadata] = []
+        l_keys: List[Key] = []
         d_fail: Dict[str, Exception] = {}
 
         # on fait toutes les livraisons
