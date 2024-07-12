@@ -217,9 +217,9 @@ class Main:
         )
 
         # parseur pour les key
-        s_epilog_key = """Trois type de lancement:
-        * liste des clefs : `` (aucun paramètres)
-        * détail d'une clef : `--id ID`
+        s_epilog_key = """Trois types de lancement :
+        * liste les clefs : `` (aucun paramètres)
+        * affiche les détails d'une clef : `--id ID`
         * création de clefs : `--f FICHIER`\nExemple du contenu du fichier : `{"key": [{"name": "nom","type": "HASH","type_infos": {"hash": "mon_hash"}}]}`
         """
         o_sub_parser = o_sub_parsers.add_parser("key", help="Gestion des clefs de l'utilisateur", epilog=s_epilog_key, formatter_class=argparse.RawTextHelpFormatter)
@@ -360,7 +360,7 @@ class Main:
 
     @staticmethod
     def upload_from_descriptor_file(file: Union[Path, str], behavior: Optional[str] = None, datastore: Optional[str] = None, check_before_close: bool = False) -> Dict[str, Any]:
-        """réalisation des livraison décrite par le fichier
+        """réalisation des livraisons décrites par le fichier indiqué
 
         Args:
             file (Union[Path, str]): chemin du fichier descripteur de livraison
@@ -370,9 +370,9 @@ class Main:
 
         Returns:
             Dict[str, Any]: dictionnaire avec le résultat des livraisons :
-                "ok" : liste des livraisons sans problèmes,
-                "upload_fail": dictionnaire nom livraison : erreur remonté lors de la livraison
-                "check_fail": liste des livraisons dont les vérification ont échouée
+                "ok" : liste des livraisons sans problèmes
+                "upload_fail": dictionnaire {nom livraison : erreur remontée lors de la livraison}
+                "check_fail": liste des livraisons dont les vérifications ont échoué
         """
         o_dfu = UploadDescriptorFileReader(Path(file))
         s_behavior = str(behavior).upper() if behavior is not None else None
@@ -738,17 +738,16 @@ class Main:
 
     @staticmethod
     def upload_annexe_from_descriptor_file(file: Union[Path, str], datastore: Optional[str] = None) -> Dict[str, Any]:
-        """réalisation des livraison décrite par le fichier
+        """réalisation des livraisons  d'annexe décrites par le fichier indiqué
 
         Args:
-            file (Union[Path, str]): chemin du fichier descripteur de livraison
-            datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
+            file (Union[Path, str]): chemin du fichier descripteur de livraison d'annexes
+            datastore (Optional[str]): datastore à utiliser, datastore par défaut si None
 
         Returns:
-            Dict[str, Any]: dictionnaire avec le résultat des livraisons :
-                "ok" : liste des livraisons sans problèmes,
-                "upload_fail": dictionnaire nom livraison : erreur remonté lors de la livraison
-                "check_fail": liste des livraisons dont les vérification ont échouée
+            Dict[str, Any]: dictionnaire avec le résultat de la livraison des annexes :
+                "ok" : liste des annexes livrées sans problèmes
+                "upload_fail": dictionnaire {nom annexe : erreur remontée lors de la livraison de l'annexe}
         """
         o_dfu = DescriptorFileReader(Path(file), "annexe")
 
@@ -756,7 +755,7 @@ class Main:
         d_upload_fail: Dict[str, Exception] = {}  # dictionnaire "fichier archive" : erreur des uploads qui ont fail
 
         # on fait toutes les livraisons
-        Config().om.info(f"LIVRAISONS DES ARCHIVES : ({len(o_dfu.data)})", green_colored=True)
+        Config().om.info(f"LIVRAISON DES ARCHIVES : ({len(o_dfu.data)})", green_colored=True)
         for d_data in o_dfu.data:
             s_nom = d_data["file"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
@@ -791,16 +790,16 @@ class Main:
 
     @staticmethod
     def upload_static_from_descriptor_file(file: Union[Path, str], datastore: Optional[str] = None) -> Dict[str, Any]:
-        """réalisation des livraison décrite par le fichier
+        """réalisation des livraisons de fichier statique décrites par le fichier indiqué
 
         Args:
-            file (Union[Path, str]): chemin du fichier descripteur de livraison
+            file (Union[Path, str]): chemin du fichier descripteur de livraisons de fichier statique
             datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
 
         Returns:
             Dict[str, Any]: dictionnaire avec le résultat des livraisons :
-                "ok" : liste des livraisons sans problèmes,
-                "upload_fail": dictionnaire nom livraison : erreur remonté lors de la livraison
+                "ok" : liste des livraisons sans problèmes
+                "upload_fail": dictionnaire {nom fichier statique : erreur remontée lors de la livraison du fichier statique}
         """
         o_dfu = DescriptorFileReader(Path(file), "static")
 
@@ -808,7 +807,7 @@ class Main:
         d_upload_fail: Dict[str, Exception] = {}  # dictionnaire "fichier statique" : erreur des uploads qui ont fail
 
         # on fait toutes les livraisons
-        Config().om.info(f"LIVRAISONS DES FICHIERS STATIQUES : ({len(o_dfu.data)})", green_colored=True)
+        Config().om.info(f"LIVRAISON DES FICHIERS STATIQUES : ({len(o_dfu.data)})", green_colored=True)
         for d_data in o_dfu.data:
             s_nom = d_data["file"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
@@ -851,16 +850,16 @@ class Main:
 
     @staticmethod
     def upload_metadata_from_descriptor_file(file: Union[Path, str], datastore: Optional[str] = None) -> Dict[str, Any]:
-        """réalisation des livraison décrite par le fichier
+        """réalisation des livraisons de métadonnée décrites par le fichier indiqué
 
         Args:
-            file (Union[Path, str]): chemin du fichier descripteur de livraison
-            datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
+            file (Union[Path, str]): chemin du fichier descripteur de livraisons de métadonnée
+            datastore (Optional[str]): datastore à utiliser, datastore par défaut si None
 
         Returns:
-            Dict[str, Any]: dictionnaire avec le résultat des livraisons :
-                "ok" : liste des livraisons sans problèmes,
-                "upload_fail": dictionnaire nom livraison : erreur remonté lors de la livraison
+            Dict[str, Any]: dictionnaire avec le résultat des livraisons des fichiers de métadonnée :
+                "ok" : liste des livraisons de métadonnées réussies,
+                "upload_fail": dictionnaire {nom métadonnée : erreur remontée lors de la livraison de la métadonnée}
         """
         o_dfu = DescriptorFileReader(Path(file), "metadata")
 
@@ -868,7 +867,7 @@ class Main:
         d_upload_fail: Dict[str, Exception] = {}  # dictionnaire "fichier statique" : erreur des uploads qui ont fail
 
         # on fait toutes les livraisons
-        Config().om.info(f"LIVRAISONS DES FICHIERS MÉTADONNÉES : ({len(o_dfu.data)})", green_colored=True)
+        Config().om.info(f"LIVRAISON DES FICHIERS DE MÉTADONNÉES : ({len(o_dfu.data)})", green_colored=True)
         for d_data in o_dfu.data:
             s_nom = d_data["file"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
@@ -897,24 +896,24 @@ class Main:
             # affichage
             self._display_bilan_creation(d_res)
         else:
-            Config().om.info("Liste des clef de l'utilisateur", green_colored=True)
+            Config().om.info("Liste des clefs de l'utilisateur courant...", green_colored=True)
             l_key = Key.api_list()
             if l_key:
-                Config().om.info(f"{len(l_key)} clef de l'utilisateur :\n" + "\n".join([f" * {o_key['name']} [{o_key['type']}] -- {o_key['_id']}" for o_key in l_key]))
+                Config().om.info(f"{len(l_key)} clef(s) de l'utilisateur courant :\n" + "\n".join([f" * {o_key['name']} [{o_key['type']}] -- {o_key['_id']}" for o_key in l_key]))
             else:
-                Config().om.info("Aucune clef")
+                Config().om.info("Aucune clef.")
 
     @staticmethod
     def create_key_from_file(file: Union[str, Path]) -> Dict[str, Any]:
-        """création des clefs décrite par le fichier
+        """création des clefs décrites par le fichier indiqué
 
         Args:
-            file (Union[Path, str]): chemin du fichier descripteur des celf
+            file (Union[Path, str]): chemin du fichier descripteur des clefs
 
         Returns:
-            Dict[str, Any]: dictionnaire avec le résultat des creations :
-                "ok" : liste des creations sans problèmes,
-                "fail": dictionnaire nom creations : erreur remonté lors de la livraison
+            Dict[str, Any]: dictionnaire avec le résultat des créations de clefs :
+                "ok" : liste des clefs créées sans problèmes
+                "fail": dictionnaire {nom clef : erreur remontée lors de la création}
         """
 
         l_data = JsonHelper.load(Path(file), file_not_found_pattern="Fichier descripteur de création {json_path} non trouvé.")["key"]
@@ -923,7 +922,7 @@ class Main:
         d_fail: Dict[str, Exception] = {}
 
         # on fait toutes les livraisons
-        Config().om.info(f"CREATION DES CLEFS : ({len(l_data)})", green_colored=True)
+        Config().om.info(f"CRÉATION DES CLEFS : ({len(l_data)})", green_colored=True)
         for d_data in l_data:
             s_nom = d_data["name"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
@@ -933,10 +932,10 @@ class Main:
             except Exception as e:
                 d_fail[s_nom] = e
                 Config().om.debug(traceback.format_exc())
-                Config().om.error(f"livraison {s_nom} : {e}")
+                Config().om.error(f"clef {s_nom} : {e}")
 
         # vérification des livraisons
-        Config().om.info("Fin des livraisons.", green_colored=True)
+        Config().om.info("Fin de la création.", green_colored=True)
         return {"ok": l_keys, "fail": d_fail}
 
     @staticmethod
