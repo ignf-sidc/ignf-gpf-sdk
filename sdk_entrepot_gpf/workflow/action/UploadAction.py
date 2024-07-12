@@ -133,9 +133,9 @@ class UploadAction:
         if not self.__mode_cartes and not self.__dataset.tags['datasheet_name']:
             raise GpfSdkError('En mode compatibilité avec cartes.gouv tag contenant le nom de la fiche de donnée est obligatoire')
         if self.__upload is not None and self.__dataset.tags:
-                Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
-                self.__upload.api_add_tags(self.__dataset.tags)
-                Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
+            Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
+            self.__upload.api_add_tags(self.__dataset.tags)
+            Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
         if self.__upload is not None:
