@@ -1,5 +1,5 @@
 import time
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.io.Config import Config
@@ -40,7 +40,9 @@ class ProcessingExecutionAction(ActionAbstract):
     # STATUS_GENERATING STATUS_MODIFYING
     # STATUS_GENERATED
 
-    def __init__(self, workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional["ActionAbstract"] = None, behavior: Optional[str] = None) -> None:
+    def __init__(
+        self, workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional["ActionAbstract"] = None, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None
+    ) -> None:
         super().__init__(workflow_context, definition_dict, parent_action)
         # l'exécution du traitement
         self.__processing_execution: Optional[ProcessingExecution] = None
@@ -53,11 +55,13 @@ class ProcessingExecutionAction(ActionAbstract):
         self.__inputs_stored_data: Optional[List[StoredData]] = None
         # comportement (écrit dans la ligne de commande par l'utilisateur), sinon celui par défaut (dans la config) qui vaut STOP
         self.__behavior: str = behavior if behavior is not None else Config().get_str("processing_execution", "behavior_if_exists")
+        self.__compatibility_cartes: Optional[bool] = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate")
 
     def run(self, datastore: Optional[str] = None) -> None:
         Config().om.info("Création d'une exécution de traitement et complétion de l'entité en sortie...")
         # Création de l'exécution du traitement (attributs processing_execution et Upload/StoredData défini)
         self.__create_processing_execution(datastore)
+
         # Ajout des tags sur l'Upload ou la StoredData
         self.__add_tags()
         # Ajout des commentaires sur l'Upload ou la StoredData
@@ -164,8 +168,38 @@ class ProcessingExecutionAction(ActionAbstract):
 
     def __add_tags(self) -> None:
         """Ajout des tags sur l'Upload ou la StoredData en sortie du ProcessingExecution."""
-        if "tags" not in self.definition_dict or self.definition_dict["tags"] == {} or self.__no_output:
-            # cas on a pas de tag ou vide: on ne fait rien
+
+        # gestion des tags pour compatibility_cartes
+        if self.__compatibility_cartes and self.processing_execution:
+            # ajout de de la clef tags si non présente
+            if not "tags" in self.definition_dict:
+                self.definition_dict["tags"] = {}
+            d_data = self.__processing_execution.get_store_properties()
+            # mise en base de donnée livrée (vecteur)
+            if self.__processing_execution.id == Config().get("compatibility_cartes", "id_mise_en_base"):
+                if "datasheet_name" not in self.definition_dict["tags"]:
+                    raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
+                if not self.__inputs_upload or not self.__stored_data:
+                    raise GpfSdkError("Intégration de données vecteur livrées en base : input and ouput obligatoire")
+                for o_upload in self.__inputs_upload:
+                    o_upload.api_add_tags(
+                        {
+                            "integration_progress": Config().get("compatibility_cartes", "execution_start_integration_progress"),
+                            "integration_current_step": Config().get("compatibility_cartes", "execution_start_integration_current_step"),
+                            "proc_int_id": self.__processing_execution.id,
+                            "vectordb_id": self.__stored_data.id,
+                        }
+                    )
+                self.__definition_dict["tags"]["uuid_upload"] = self.__inputs_upload[0].id
+            # création de pyramide vecteur
+            elif self.__processing_execution.id == Config().get("compatibility_cartes", "id_pyramide_vecteur"):
+                if "datasheet_name" not in self.definition_dict["tags"]:
+                    raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
+                self.__definition_dict["tags"]["vectordb_id"] = d_data["inputs"]["stores_data"]["_id"]
+                self.__definition_dict["tags"]["proc_pyr_creat_id"] = self.__processing_execution.id
+
+        if not self.definition_dict.get("tags") or self.__no_output:
+            # cas on a pas de tag ou pas de donnée en sortie: on ne fait rien
             return
         # on ajoute les tags
         if self.upload is not None:
@@ -329,6 +363,13 @@ class ProcessingExecutionAction(ActionAbstract):
         # Si on est sorti du while c'est que la processing execution est terminée
         ## dernier affichage
         callback_not_null(self.processing_execution)
+
+        # gestion de __compatibility_cartes
+        if self.__compatibility_cartes and self.__inputs_upload:
+            s_key = "execution_end_ok_integration_progress" if s_status == ProcessingExecution.STATUS_SUCCESS else "execution_end_ko_integration_progress"
+            for o_upload in self.__inputs_upload:
+                o_upload.api_add_tags({"integration_progress": Config().get("compatibility_cartes", s_key)})
+
         ## on return le status de fin
         return str(s_status)
 
