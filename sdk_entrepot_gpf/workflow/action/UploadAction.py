@@ -41,6 +41,10 @@ class UploadAction:
         # On suit le comportement donnée en paramètre ou à défaut celui de la config
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
         self.__mode_cartes = cartabilite
+    def __carte_tag__(self,upload_step):
+        """_summary_
+        """
+        return Config().get_str("compatibility_cartes", upload_step)
 
     def run(self, datastore: Optional[str], compatibilite_cartes : bool,check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
@@ -56,10 +60,13 @@ class UploadAction:
         Returns:
             livraison créée
         """
+        #test: si le mode carte est actif alors le data_sheet doit être présent
+        if self.__mode_cartes and not self.__dataset.tags['datasheet_name']:
+            raise GpfSdkError('En mode compatibilité avec le site cartes.gouv: le nom de la fiche de donnée est obligatoire')
         Config().om.info("Création et complétion d'une livraison...")
         # Création de la livraison
         self.__create_upload(datastore)
-
+        #TODO
         if not self.upload:
             raise GpfSdkError("Erreur à la création de la livraison.")
         # Cas livraison fermé = déjà traité : on sort
@@ -130,8 +137,6 @@ class UploadAction:
 
     def __add_tags(self) -> None:
         """Ajoute les tags."""
-        if not self.__mode_cartes and not self.__dataset.tags['datasheet_name']:
-            raise GpfSdkError('En mode compatibilité avec cartes.gouv tag contenant le nom de la fiche de donnée est obligatoire')
         if self.__upload is not None and self.__dataset.tags:
             Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
             self.__upload.api_add_tags(self.__dataset.tags)
