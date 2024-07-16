@@ -12,6 +12,7 @@ from sdk_entrepot_gpf.store.ProcessingExecution import ProcessingExecution
 
 from sdk_entrepot_gpf.workflow.Errors import WorkflowError
 from sdk_entrepot_gpf.workflow.Workflow import Workflow
+from sdk_entrepot_gpf.workflow.action.AccessAction import AccessAction
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 from sdk_entrepot_gpf.workflow.action.ConfigurationAction import ConfigurationAction
 from sdk_entrepot_gpf.workflow.action.CopyConfigurationAction import CopyConfigurationAction
@@ -98,6 +99,7 @@ class WorkflowTestCase(GpfTestCase):
                     l_actions += json.loads(s_actions.replace(d_etape["iter_key"], f"iter_resolve_{i}"))  # json.loads ok car on est dans des tests
         return l_actions
 
+    # pylint: disable=too-many-locals
     def run_run_step(
         self,
         d_args_run_step: Dict[str, Any],
@@ -106,6 +108,8 @@ class WorkflowTestCase(GpfTestCase):
         monitoring_until_end: Optional[List[str]] = None,
         error_message: Optional[str] = None,
         output_type: str = "configuration",
+        compatibility_cartes: Optional[bool] = None,
+        message: str = "",
     ) -> None:
         """Fonction de lancement des tests pour run_step()
 
@@ -115,81 +119,84 @@ class WorkflowTestCase(GpfTestCase):
             l_run_args (List[Any]): liste des argument passé en appel de action.run(). Un élément = un appel
             monitoring_until_end (Optional[List[str]], optional): si None, action sans monitoring, si défini : définition du side effect du mock de action.monitoring_until_end(). Defaults to None.
             error_message (Optional[str], optional): Message d'erreur compléter avec "action", si None : pas d'erreur attendu. Defaults to None.
-            output_type (str): type de l'entité de sortie : stored_data, configuration, offering ou upload
+            output_type (str, optional): type de l'entité de sortie : stored_data, configuration, offering ou upload
+            compatibility_cartes (Optional[bool], optional): valeur de compatibility_cartes au moment de la génération
+            message (str, optional): message pour l'affichage en cas d'erreur
         """
-        s_etape = str(d_args_run_step["step_name"])
+        with self.subTest(message):
+            s_etape = str(d_args_run_step["step_name"])
 
-        # récupération de la liste d'action
-        l_actions = self.__list_action_run_step(s_etape, d_args_run_step, d_workflow)
+            # récupération de la liste d'action
+            l_actions = self.__list_action_run_step(s_etape, d_args_run_step, d_workflow)
 
-        # création du o_mock_action
-        if output_type == "upload":
-            o_mock_action = MagicMock(spec=ProcessingExecutionAction)
-            o_mock_action.stored_data = None
-            o_mock_action.upload = f"Entity_{output_type}"
-        elif output_type == "stored_data":
-            o_mock_action = MagicMock(spec=ProcessingExecutionAction)
-            o_mock_action.stored_data = f"Entity_{output_type}"
-            o_mock_action.upload = None
-        elif output_type == "offering":
-            o_mock_action = MagicMock(spec=OfferingAction)
-            o_mock_action.offering = f"Entity_{output_type}"
-        else:
-            o_mock_action = MagicMock(spec=ConfigurationAction)
-            o_mock_action.configuration = f"Entity_{output_type}"
+            # création du o_mock_action
+            if output_type == "upload":
+                o_mock_action = MagicMock(spec=ProcessingExecutionAction)
+                o_mock_action.stored_data = None
+                o_mock_action.upload = f"Entity_{output_type}"
+            elif output_type == "stored_data":
+                o_mock_action = MagicMock(spec=ProcessingExecutionAction)
+                o_mock_action.stored_data = f"Entity_{output_type}"
+                o_mock_action.upload = None
+            elif output_type == "offering":
+                o_mock_action = MagicMock(spec=OfferingAction)
+                o_mock_action.offering = f"Entity_{output_type}"
+            else:
+                o_mock_action = MagicMock(spec=ConfigurationAction)
+                o_mock_action.configuration = f"Entity_{output_type}"
 
-        if monitoring_until_end:
-            # cas avec monitoring
-            o_mock_action.monitoring_until_end.side_effect = monitoring_until_end
+            if monitoring_until_end:
+                # cas avec monitoring
+                o_mock_action.monitoring_until_end.side_effect = monitoring_until_end
 
-        ## config mock générale
-        o_mock_action.resolve.return_value = None
-        o_mock_action.run.return_value = None
+            ## config mock générale
+            o_mock_action.resolve.return_value = None
+            o_mock_action.run.return_value = None
 
-        ## mock de la property definition_dict
-        type(o_mock_action).definition_dict = PropertyMock(side_effect=l_actions)
+            ## mock de la property definition_dict
+            type(o_mock_action).definition_dict = PropertyMock(side_effect=l_actions)
 
-        # initialisation de Workflow
-        o_workflow = Workflow("nom", d_workflow)
+            # initialisation de Workflow
+            o_workflow = Workflow("nom", d_workflow)
 
-        # on mock Workflow.generate
-        with patch.object(Workflow, "generate", return_value=o_mock_action) as o_mock_action_generate:
-            with patch.object(GlobalResolver, "resolve", side_effect=lambda x, **kwargs: x) as o_mock_resolve:
-                if error_message is not None:
-                    # si on attend une erreur
-                    with self.assertRaises(WorkflowError) as o_arc:
-                        o_workflow.run_step(**d_args_run_step)
-                    self.assertEqual(o_arc.exception.message, error_message.format(action=o_mock_action))
-                else:
-                    # pas d'erreur attendu
-                    l_entities = o_workflow.run_step(**d_args_run_step)
-                    self.assertListEqual(l_entities, [f"Entity_{output_type}"] * len(l_run_args))
+            # on mock Workflow.generate
+            with patch.object(Workflow, "generate", return_value=o_mock_action) as o_mock_action_generate:
+                with patch.object(GlobalResolver, "resolve", side_effect=lambda x, **kwargs: x) as o_mock_resolve:
+                    if error_message is not None:
+                        # si on attend une erreur
+                        with self.assertRaises(WorkflowError) as o_arc:
+                            o_workflow.run_step(**d_args_run_step)
+                        self.assertEqual(o_arc.exception.message, error_message.format(action=o_mock_action))
+                    else:
+                        # pas d'erreur attendu
+                        l_entities = o_workflow.run_step(**d_args_run_step)
+                        self.assertListEqual(l_entities, [f"Entity_{output_type}"] * len(l_run_args))
 
-                    # tests pour "iter_vals"
-                    d_step = d_workflow["workflow"]["steps"][s_etape]
-                    if "iter_vals" in d_step:
-                        # datastore argument du run_step, ou datastore de l'étape ou datastore du workflow
-                        o_mock_resolve.assert_called_once_with(json.dumps(d_step["iter_vals"]), datastore=d_args_run_step.get("datastore", d_step.get("datastore", d_workflow.get("datastore"))))
+                        # tests pour "iter_vals"
+                        d_step = d_workflow["workflow"]["steps"][s_etape]
+                        if "iter_vals" in d_step:
+                            # datastore argument du run_step, ou datastore de l'étape ou datastore du workflow
+                            o_mock_resolve.assert_called_once_with(json.dumps(d_step["iter_vals"]), datastore=d_args_run_step.get("datastore", d_step.get("datastore", d_workflow.get("datastore"))))
 
-                # vérification des appels à generate
-                self.assertEqual(o_mock_action_generate.call_count, len(l_run_args))
-                o_parent = None
-                for d_action in l_actions:
-                    o_mock_action_generate.assert_any_call(s_etape, d_action, o_parent, d_args_run_step["behavior"])
-                    o_parent = o_mock_action
+                    # vérification des appels à generate
+                    self.assertEqual(o_mock_action_generate.call_count, len(l_run_args))
+                    o_parent = None
+                    for d_action in l_actions:
+                        o_mock_action_generate.assert_any_call(s_etape, d_action, o_parent, d_args_run_step["behavior"], compatibility_cartes)
+                        o_parent = o_mock_action
 
-                # vérification des appels à résolve
-                self.assertEqual(o_mock_action.resolve.call_count, len(l_run_args))
-
-                # vérification des appels à run
-                self.assertEqual(o_mock_action.run.call_count, len(l_run_args))
-                for o_el in l_run_args:
-                    o_mock_action.run.assert_any_call(o_el)
-
-                # si monitoring : vérification des appels à monitoring
-                if monitoring_until_end:
+                    # vérification des appels à résolve
                     self.assertEqual(o_mock_action.resolve.call_count, len(l_run_args))
-                    o_mock_action.monitoring_until_end.assert_any_call(callback=d_args_run_step["callback"], ctrl_c_action=None)
+
+                    # vérification des appels à run
+                    self.assertEqual(o_mock_action.run.call_count, len(l_run_args))
+                    for o_el in l_run_args:
+                        o_mock_action.run.assert_any_call(o_el)
+
+                    # si monitoring : vérification des appels à monitoring
+                    if monitoring_until_end:
+                        self.assertEqual(o_mock_action.resolve.call_count, len(l_run_args))
+                        o_mock_action.monitoring_until_end.assert_any_call(callback=d_args_run_step["callback"], ctrl_c_action=None)
 
     def test_run_step(self) -> None:
         """test de run_step"""
@@ -247,38 +254,70 @@ class WorkflowTestCase(GpfTestCase):
             "datastore": None,
             "comments": [],
             "tags": {},
+            "compatibility_cartes": None,
         }
         # test simple sans s_datastore
-        self.run_run_step({**d_args, "step_name": "mise-en-base"}, d_workflow, [None])
-        self.run_run_step({**d_args, "step_name": "mise-en-base2"}, d_workflow, [None, None])
+        self.run_run_step({**d_args, "step_name": "mise-en-base"}, d_workflow, [None], message="test simple sans s_datastore -- mise-en-base")
+        self.run_run_step({**d_args, "step_name": "mise-en-base2"}, d_workflow, [None, None], message="test simple sans s_datastore -- mise-en-base2")
 
         # datastore au niveau des étapes
-        self.run_run_step({**d_args, "step_name": "mise-en-base3"}, d_workflow, ["datastore_3"])
-        self.run_run_step({**d_args, "step_name": "mise-en-base4"}, d_workflow, ["datastore_4-1", None])
+        self.run_run_step({**d_args, "step_name": "mise-en-base3"}, d_workflow, ["datastore_3"], message="datastore au niveau des étapes --  mise-en-base3")
+        self.run_run_step({**d_args, "step_name": "mise-en-base4"}, d_workflow, ["datastore_4-1", None], message="datastore au niveau des étapes --  mise-en-base4")
 
         # datastore au niveau du workflow + étapes
-        self.run_run_step({**d_args, "step_name": "mise-en-base"}, d_workflow_2, ["datastore_workflow"])
-        self.run_run_step({**d_args, "step_name": "mise-en-base3"}, d_workflow_2, ["datastore_3"])
-        self.run_run_step({**d_args, "step_name": "mise-en-base4"}, d_workflow_2, ["datastore_4-1", "datastore_workflow"])
+        self.run_run_step({**d_args, "step_name": "mise-en-base"}, d_workflow_2, ["datastore_workflow"], message="datastore au niveau du workflow + étapes -- mise-en-base")
+        self.run_run_step({**d_args, "step_name": "mise-en-base3"}, d_workflow_2, ["datastore_3"], message="datastore au niveau du workflow + étapes -- mise-en-base3")
+        self.run_run_step({**d_args, "step_name": "mise-en-base4"}, d_workflow_2, ["datastore_4-1", "datastore_workflow"], message="datastore au niveau du workflow + étapes -- mise-en-base4")
 
         # datastore au niveau du workflow + étape + forcé dans l'appel
-        self.run_run_step({**d_args, "step_name": "mise-en-base", "datastore": s_datastore}, d_workflow, [s_datastore])
-        self.run_run_step({**d_args, "step_name": "mise-en-base", "datastore": s_datastore}, d_workflow_2, [s_datastore])
-        self.run_run_step({**d_args, "step_name": "mise-en-base3", "datastore": s_datastore}, d_workflow_2, [s_datastore])
-        self.run_run_step({**d_args, "step_name": "mise-en-base4", "datastore": s_datastore}, d_workflow_2, [s_datastore, s_datastore])
-        self.run_run_step({**d_args, "step_name": "mise-en-base4", "datastore": s_datastore}, d_workflow_2, [s_datastore, s_datastore], output_type="offering")
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base", "datastore": s_datastore}, d_workflow, [s_datastore], message="datastore au niveau du workflow + étape + forcé dans l'appel -- mise-en-base"
+        )
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base", "datastore": s_datastore}, d_workflow_2, [s_datastore], message="datastore au niveau du workflow + étape + forcé dans l'appel -- mise-en-base"
+        )
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base3", "datastore": s_datastore}, d_workflow_2, [s_datastore], message="datastore au niveau du workflow + étape + forcé dans l'appel -- mise-en-base3"
+        )
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base4", "datastore": s_datastore},
+            d_workflow_2,
+            [s_datastore, s_datastore],
+            message="datastore au niveau du workflow + étape + forcé dans l'appel -- mise-en-base4",
+        )
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base4", "datastore": s_datastore},
+            d_workflow_2,
+            [s_datastore, s_datastore],
+            output_type="offering",
+            message="datastore au niveau du workflow + étape + forcé dans l'appel -- mise-en-base4",
+        )
 
         # test pour les commentaires + tags
-        self.run_run_step({**d_args, "step_name": "mise-en-base", "datastore": s_datastore}, d_workflow_3, [s_datastore])
-        self.run_run_step({**d_args, "step_name": "mise-en-base", "datastore": s_datastore, "comments": ["commentaire 1", "commentaire 2"], "tags": {"workflow": "val"}}, d_workflow_3, [s_datastore])
+        self.run_run_step({**d_args, "step_name": "mise-en-base", "datastore": s_datastore}, d_workflow_3, [s_datastore], message="test pour les commentaires + tags -- workflow")
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base", "datastore": s_datastore, "comments": ["commentaire 1", "commentaire 2"], "tags": {"workflow": "val"}},
+            d_workflow_3,
+            [s_datastore],
+            message="test pour les commentaires + tags -- workflow + param",
+        )
 
         # étape qui n'existe pas
-        self.run_run_step({**d_args, "step_name": "existe_pas"}, d_workflow, [], error_message="L'étape existe_pas n'est pas définie dans le workflow nom")
+        self.run_run_step({**d_args, "step_name": "existe_pas"}, d_workflow, [], error_message="L'étape existe_pas n'est pas définie dans le workflow nom", message="étape qui n'existe pas")
 
         # test avec monitoring
-        self.run_run_step({**d_args, "step_name": "mise-en-base"}, d_workflow, [None], monitoring_until_end=["SUCCESS"], output_type="upload")
-        self.run_run_step({**d_args, "step_name": "mise-en-base"}, d_workflow, [None], monitoring_until_end=["SUCCESS"], output_type="stored_data")
-        self.run_run_step({**d_args, "step_name": "mise-en-base4"}, d_workflow_2, ["datastore_4-1", "datastore_workflow"], monitoring_until_end=["SUCCESS", "SUCCESS"], output_type="stored_data")
+        self.run_run_step({**d_args, "step_name": "mise-en-base"}, d_workflow, [None], monitoring_until_end=["SUCCESS"], output_type="upload", message="test avec monitoring -- upload SUCCESS")
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base"}, d_workflow, [None], monitoring_until_end=["SUCCESS"], output_type="stored_data", message="test avec monitoring -- stored_data SUCCESS"
+        )
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base4"},
+            d_workflow_2,
+            ["datastore_4-1", "datastore_workflow"],
+            monitoring_until_end=["SUCCESS", "SUCCESS"],
+            output_type="stored_data",
+            message="test avec monitoring -- stored_data SUCCESS -- stored_data SUCCESS",
+        )
         self.run_run_step(
             {**d_args, "step_name": "mise-en-base"},
             d_workflow,
@@ -286,6 +325,7 @@ class WorkflowTestCase(GpfTestCase):
             monitoring_until_end=["FAILURE"],
             error_message="L'exécution de traitement {action} ne s'est pas bien passée. Sortie FAILURE.",
             output_type="stored_data",
+            message="test avec monitoring -- stored_data FAILURE",
         )
         self.run_run_step(
             {**d_args, "step_name": "mise-en-base"},
@@ -294,6 +334,7 @@ class WorkflowTestCase(GpfTestCase):
             monitoring_until_end=["ABORTED"],
             error_message="L'exécution de traitement {action} ne s'est pas bien passée. Sortie ABORTED.",
             output_type="stored_data",
+            message="test avec monitoring -- stored_data ABORTED",
         )
         self.run_run_step(
             {**d_args, "step_name": "mise-en-base4"},
@@ -302,13 +343,19 @@ class WorkflowTestCase(GpfTestCase):
             monitoring_until_end=["SUCCESS", "ABORTED"],
             error_message="L'exécution de traitement {action} ne s'est pas bien passée. Sortie ABORTED.",
             output_type="stored_data",
+            message="test avec monitoring -- stored_data SUCCESS -- stored_data ABORTED",
         )
-        # callbable
-        self.run_run_step({**d_args, "step_name": "mise-en-base", "callback": callback}, d_workflow, [None], monitoring_until_end=["SUCCESS", "SUCCESS"], output_type="stored_data")
+        # callback
+        self.run_run_step({**d_args, "step_name": "mise-en-base", "callback": callback}, d_workflow, [None], monitoring_until_end=["SUCCESS", "SUCCESS"], output_type="stored_data", message="callback")
         # behavior
-        self.run_run_step({**d_args, "step_name": "mise-en-base", "behavior": "DELETE"}, d_workflow, [None])
+        self.run_run_step({**d_args, "step_name": "mise-en-base", "behavior": "DELETE"}, d_workflow, [None], message="behavior DELETE")
         self.run_run_step(
-            {**d_args, "step_name": "mise-en-base", "callback": callback, "behavior": "DELETE"}, d_workflow, [None], monitoring_until_end=["SUCCESS", "SUCCESS"], output_type="stored_data"
+            {**d_args, "step_name": "mise-en-base", "callback": callback, "behavior": "DELETE"},
+            d_workflow,
+            [None],
+            monitoring_until_end=["SUCCESS", "SUCCESS"],
+            output_type="stored_data",
+            message="behavior DELETE + callback",
         )
 
         # itérations
@@ -336,12 +383,23 @@ class WorkflowTestCase(GpfTestCase):
                 }
             }
         }
-        self.run_run_step({**d_args, "step_name": "mise-en-base", "datastore": s_datastore}, d_workflow_4, [s_datastore] * 6)
-        self.run_run_step({**d_args, "step_name": "mise-en-base-2", "datastore": s_datastore}, d_workflow_4, [s_datastore] * 6)
+        self.run_run_step({**d_args, "step_name": "mise-en-base", "datastore": s_datastore}, d_workflow_4, [s_datastore] * 6, message="iteration - valeur")
+        self.run_run_step({**d_args, "step_name": "mise-en-base-2", "datastore": s_datastore}, d_workflow_4, [s_datastore] * 6, message="iteration - dict")
         s_message = "Une seule des clefs iter_vals ou iter_key est trouvée: il faut mettre les deux valeurs ou aucune. Étape mise-en-base-3 workflow nom"
-        self.run_run_step({**d_args, "step_name": "mise-en-base-3", "datastore": s_datastore}, d_workflow_4, [], error_message=s_message)
+        self.run_run_step({**d_args, "step_name": "mise-en-base-3", "datastore": s_datastore}, d_workflow_4, [], error_message=s_message, message="iteration - manque iter_vals")
         s_message = "Une seule des clefs iter_vals ou iter_key est trouvée: il faut mettre les deux valeurs ou aucune. Étape mise-en-base-4 workflow nom"
-        self.run_run_step({**d_args, "step_name": "mise-en-base-4", "datastore": s_datastore}, d_workflow_4, [], error_message=s_message)
+        self.run_run_step({**d_args, "step_name": "mise-en-base-4", "datastore": s_datastore}, d_workflow_4, [], error_message=s_message, message="iteration - manque iter_key")
+
+        # compatibility_cartes
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base", "compatibility_cartes": True}, d_workflow, [None], compatibility_cartes=True, message="compatibility_cartes -- ligne de commande True"
+        )
+        self.run_run_step(
+            {**d_args, "step_name": "mise-en-base", "compatibility_cartes": False}, d_workflow, [None], compatibility_cartes=False, message="compatibility_cartes -- ligne de commande False"
+        )
+        self.run_run_step({**d_args, "step_name": "mise-en-base"}, {**d_workflow, "compatibility_cartes": None}, [None], compatibility_cartes=None, message="compatibility_cartes -- workflow None")
+        self.run_run_step({**d_args, "step_name": "mise-en-base"}, {**d_workflow, "compatibility_cartes": True}, [None], compatibility_cartes=True, message="compatibility_cartes -- workflow True")
+        self.run_run_step({**d_args, "step_name": "mise-en-base"}, {**d_workflow, "compatibility_cartes": False}, [None], compatibility_cartes=False, message="compatibility_cartes -- workflow False")
 
     def run_generation(
         self,
@@ -350,7 +408,10 @@ class WorkflowTestCase(GpfTestCase):
         dico_def: Dict[str, Any],
         parent: Optional[ActionAbstract] = None,
         behavior: Optional[str] = None,
-        with_beavior: bool = True,
+        with_behavior: bool = True,
+        compatibility_cartes: Optional[bool] = None,
+        with_compatibility_cartes: bool = False,
+        message: str = "",
     ) -> None:
         """lancement de la commande de génération
 
@@ -360,34 +421,47 @@ class WorkflowTestCase(GpfTestCase):
             dico_def (Dict[str, Any]): dictionnaire de l'action
             parent (Optional[ActionAbstract], optional): parent de l'action.
             behavior (Optional[str], optional): comportement à adopter.
+            with_beavior (bool): si l'action ce lance avec behavior.
+            compatibility_cartes (bool): valeur de compatibility_cartes.
+            with_compatibility_cartes (bool): si l'action ce lance avec compatibility_cartes.
+            message (str): message pour l'affichage en cas d'erreur
         """
 
         # mock des fonction __init__ des classes action généré
-        def new_init(workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional[ActionAbstract] = None, behavior: Optional[str] = None) -> None:
-            print("new - ", workflow_context, definition_dict, parent_action, behavior)
+        def new_init(
+            workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional[ActionAbstract] = None, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None
+        ) -> None:
+            print("new - ", workflow_context, definition_dict, parent_action, behavior, compatibility_cartes)
 
-        d_mock = {}
-        # fmt: off
-        with patch.object(DeleteAction, "__init__", wraps=new_init) as d_mock["DeleteAction"], \
-        patch.object(ProcessingExecutionAction, "__init__", wraps=new_init) as d_mock["ProcessingExecutionAction"], \
-        patch.object(ConfigurationAction, "__init__", wraps=new_init) as d_mock["ConfigurationAction"], \
-        patch.object(OfferingAction, "__init__", wraps=new_init) as d_mock["OfferingAction"], \
-        patch.object(SynchronizeOfferingAction, "__init__", wraps=new_init) as d_mock["SynchronizeOfferingAction"], \
-        patch.object(CopyConfigurationAction, "__init__", wraps=new_init) as d_mock["CopyConfigurationAction"], \
-        patch.object(EditUsedDataConfigurationAction, "__init__", wraps=new_init) as d_mock["EditUsedDataConfigurationAction"], \
-        patch.object(EditAction, "__init__", wraps=new_init) as d_mock["EditAction"]:
-            # fmt: on
-            # exécution
-            o_action_generated = Workflow.generate(name, dico_def, parent, behavior=behavior)
-            # tests
-            self.assertIsInstance(o_action_generated, expected_type)
-            for s_class_name, o_mock in d_mock.items():
-                if expected_type.__name__ == s_class_name and with_beavior:
-                    o_mock.assert_called_once_with(name, dico_def, parent, behavior=behavior)
-                elif expected_type.__name__ == s_class_name and not with_beavior:
-                    o_mock.assert_called_once_with(name, dico_def, parent)
-                else:
-                    o_mock.assert_not_called()
+        with self.subTest(message):
+            d_mock = {}
+            # fmt: off
+            with patch.object(DeleteAction, "__init__", wraps=new_init) as d_mock["DeleteAction"], \
+            patch.object(ProcessingExecutionAction, "__init__", wraps=new_init) as d_mock["ProcessingExecutionAction"], \
+            patch.object(ConfigurationAction, "__init__", wraps=new_init) as d_mock["ConfigurationAction"], \
+            patch.object(OfferingAction, "__init__", wraps=new_init) as d_mock["OfferingAction"], \
+            patch.object(SynchronizeOfferingAction, "__init__", wraps=new_init) as d_mock["SynchronizeOfferingAction"], \
+            patch.object(CopyConfigurationAction, "__init__", wraps=new_init) as d_mock["CopyConfigurationAction"], \
+            patch.object(EditUsedDataConfigurationAction, "__init__", wraps=new_init) as d_mock["EditUsedDataConfigurationAction"], \
+            patch.object(AccessAction, "__init__", wraps=new_init) as d_mock["AccessAction"], \
+            patch.object(EditAction, "__init__", wraps=new_init) as d_mock["EditAction"]:
+                # fmt: on
+                # exécution
+                o_action_generated = Workflow.generate(name, dico_def, parent, behavior=behavior, compatibility_cartes=compatibility_cartes)
+                # tests
+                self.assertIsInstance(o_action_generated, expected_type)
+                for s_class_name, o_mock in d_mock.items():
+                    if expected_type.__name__ == s_class_name:
+                        d_args: Dict[str, Any] = {}
+                        if  with_behavior:
+                            d_args["behavior"]=behavior
+                        if with_compatibility_cartes:
+                            d_args["compatibility_cartes"]=compatibility_cartes
+                        o_mock.assert_called_once_with(name, dico_def, parent, **d_args)
+                    elif expected_type.__name__ == s_class_name and not with_behavior:
+                        o_mock.assert_called_once_with(name, dico_def, parent)
+                    else:
+                        o_mock.assert_not_called()
 
     def test_generate(self) -> None:
         """test de generate"""
@@ -395,29 +469,49 @@ class WorkflowTestCase(GpfTestCase):
         o_mock_parent = MagicMock()
 
         # test type processing-execution
-        self.run_generation(ProcessingExecutionAction, "name", {"type": "processing-execution"}, None, behavior="DELETE")
-        self.run_generation(ProcessingExecutionAction, "name", {"type": "processing-execution"}, o_mock_parent)
+        self.run_generation(ProcessingExecutionAction, "name", {"type": "processing-execution"}, None, behavior="DELETE", with_compatibility_cartes=True, message="processing-execution - behavior")
+        self.run_generation(ProcessingExecutionAction, "name", {"type": "processing-execution"}, o_mock_parent, with_compatibility_cartes=True, message="processing-execution - no behavior")
+        self.run_generation(
+            ProcessingExecutionAction,
+            "name",
+            {"type": "processing-execution"},
+            o_mock_parent,
+            with_compatibility_cartes=True,
+            compatibility_cartes=True,
+            message="processing-execution - no behavior - compatibility_cartes",
+        )
 
         # test type configuration
-        self.run_generation(ConfigurationAction, "name", {"type": "configuration"}, None, behavior="DELETE")
-        self.run_generation(ConfigurationAction, "name", {"type": "configuration"}, o_mock_parent)
+        self.run_generation(ConfigurationAction, "name", {"type": "configuration"}, None, behavior="DELETE", with_compatibility_cartes=True, message="configuration - behavior")
+        self.run_generation(ConfigurationAction, "name", {"type": "configuration"}, o_mock_parent, with_compatibility_cartes=True, message="configuration - no behavior")
+        self.run_generation(
+            ConfigurationAction,
+            "name",
+            {"type": "configuration"},
+            o_mock_parent,
+            with_compatibility_cartes=True,
+            compatibility_cartes=True,
+            message="configuration - no behavior - compatibility_cartes",
+        )
 
         # test type offering
-        self.run_generation(OfferingAction, "name", {"type": "offering"}, None, behavior="DELETE")
-        self.run_generation(OfferingAction, "name", {"type": "offering"}, o_mock_parent)
+        self.run_generation(OfferingAction, "name", {"type": "offering"}, None, behavior="DELETE", message="offering - behavior")
+        self.run_generation(OfferingAction, "name", {"type": "offering"}, o_mock_parent, message="offering - no behavior")
 
         # test type delete-entity
-        self.run_generation(DeleteAction, "name", {"type": "delete-entity"}, o_mock_parent, with_beavior=False)
+        self.run_generation(DeleteAction, "name", {"type": "delete-entity"}, o_mock_parent, with_behavior=False, message="delete")
         # test type synchronize-offering
-        self.run_generation(SynchronizeOfferingAction, "name", {"type": "synchronize-offering"}, o_mock_parent, with_beavior=False)
+        self.run_generation(SynchronizeOfferingAction, "name", {"type": "synchronize-offering"}, o_mock_parent, with_behavior=False, message="synchronize")
         # test type copie-configuration
-        self.run_generation(CopyConfigurationAction, "name", {"type": "copy-configuration"}, o_mock_parent, with_beavior=True)
+        self.run_generation(CopyConfigurationAction, "name", {"type": "copy-configuration"}, o_mock_parent, with_behavior=True, message="copy-configuration")
         # test type edit-entity
-        self.run_generation(EditAction, "name", {"type": "edit-entity"}, o_mock_parent, with_beavior=False)
+        self.run_generation(EditAction, "name", {"type": "edit-entity"}, o_mock_parent, with_behavior=False, message="edit-entity")
         # test type permission
-        self.run_generation(PermissionAction, "name", {"type": "permission"}, o_mock_parent, with_beavior=False)
+        self.run_generation(PermissionAction, "name", {"type": "permission"}, o_mock_parent, with_behavior=False, message="permission")
         # test type used_data-configuration
-        self.run_generation(EditUsedDataConfigurationAction, "name", {"type": "used_data-configuration"}, o_mock_parent, with_beavior=False)
+        self.run_generation(EditUsedDataConfigurationAction, "name", {"type": "used_data-configuration"}, o_mock_parent, with_behavior=False, message="used_data-configuration")
+        # test type access
+        self.run_generation(AccessAction, "name", {"type": "access"}, o_mock_parent, with_behavior=False, message="access")
 
     def test_open_workflow(self) -> None:
         """Test de la fonction open_workflow."""
