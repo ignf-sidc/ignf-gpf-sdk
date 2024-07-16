@@ -41,10 +41,6 @@ class UploadAction:
         # On suit le comportement donnée en paramètre ou à défaut celui de la config
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
         self.__mode_cartes = cartabilite
-    def __carte_tag__(self,upload_step):
-        """_summary_
-        """
-        return Config().get_str("compatibility_cartes", upload_step)
 
     def run(self, datastore: Optional[str], compatibilite_cartes : bool,check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
@@ -141,6 +137,10 @@ class UploadAction:
             Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
             self.__upload.api_add_tags(self.__dataset.tags)
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
+    def __add_carte_tags(self,upload_step)->None:
+        """En mode cartes.gouv, ajoute les tags nécessaires.
+        """
+        return Config().get_str("compatibility_cartes", upload_step)
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
         if self.__upload is not None:
