@@ -42,7 +42,7 @@ class UploadAction:
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
         self.__mode_cartes = cartabilite
 
-    def run(self, datastore: Optional[str], compatibilite_cartes : bool,check_before_close: bool = False) -> Upload:
+    def run(self, datastore: Optional[str], compatibilite_cartes: bool, check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
         retourner la livraison créée.
 
@@ -56,23 +56,25 @@ class UploadAction:
         Returns:
             livraison créée
         """
-        #test: si le mode carte est actif alors le data_sheet doit être présent
-        if self.__mode_cartes and not self.__dataset.tags['datasheet_name']:
-            raise GpfSdkError('En mode compatibilité avec le site cartes.gouv: le nom de la fiche de donnée est obligatoire')
+        # test: si le mode carte est actif alors le data_sheet doit être présent
+        if self.__mode_cartes and not self.__dataset.tags["datasheet_name"]:
+            raise GpfSdkError("En mode compatibilité avec le site cartes.gouv: le nom de la fiche de donnée est obligatoire")
         Config().om.info("Création et complétion d'une livraison...")
         # Création de la livraison
         self.__create_upload(datastore)
-        #TODO
         if not self.upload:
             raise GpfSdkError("Erreur à la création de la livraison.")
         # Cas livraison fermé = déjà traité : on sort
         if not self.upload.is_open():
             return self.upload
+        self.__add_carte_tags("upload_creation")
 
         # Ajout des tags
         self.__add_tags()
         # Ajout des commentaires
         self.__add_comments()
+
+        self.__add_carte_tags("upload_upload_start")
         # Envoie des fichiers de données (pas de vérification sur les problèmes de livraison si check_before_close)
         self.__push_data_files(not check_before_close)
         # Envoie des fichiers md5 (pas de vérification sur les problèmes de livraison si check_before_close)
@@ -137,10 +139,13 @@ class UploadAction:
             Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
             self.__upload.api_add_tags(self.__dataset.tags)
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
-    def __add_carte_tags(self,upload_step)->None:
-        """En mode cartes.gouv, ajoute les tags nécessaires.
-        """
+
+    def __add_carte_tags(self, upload_step) -> None:
+        """En mode cartes.gouv, ajoute les tags nécessaires."""
+        # TODO lister chaque clé qui commence par upload_step,
+        # mettre la fin de la clé dans un tag et mettre la value (en string) comme value du tag (self.__upload.api_add_tags(...))
         return Config().get_str("compatibility_cartes", upload_step)
+
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
         if self.__upload is not None:
