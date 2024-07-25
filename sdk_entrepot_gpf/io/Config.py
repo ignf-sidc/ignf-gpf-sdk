@@ -1,13 +1,13 @@
 import os
 import configparser
 import pathlib
+import toml
 from pathlib import Path
-from typing import Any, Iterable, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
 from sdk_entrepot_gpf.pattern.Singleton import Singleton
 from sdk_entrepot_gpf.io.OutputManager import OutputManager
 from sdk_entrepot_gpf.io.Errors import ConfigReaderError
-import toml
 
 
 class Config(metaclass=Singleton):
@@ -34,7 +34,7 @@ class Config(metaclass=Singleton):
         if not Config.ini_file_path.exists():
             raise ConfigReaderError("Fichier de configuration par défaut {ConfigReader.ini_file_path} non trouvé.")
 
-        self.__config: dict[str, Any] = {}
+        self.__config: Dict[str, Any] = {}
         self.read(Config.ini_file_path)
 
         # Définition du niveau de log pour l'OutputManager par défaut
@@ -63,36 +63,36 @@ class Config(metaclass=Singleton):
         if isinstance(filenames, (str, bytes, os.PathLike)):
             filenames = [filenames]
         # Ouverture des fichiers existants
-        configs = []
-        read_files = []
-        for file_path in filenames:
-            if os.path.exists(file_path):
-                ext = pathlib.Path(file_path).suffix
-                if ext == ".ini":
+        l_configs = []
+        l_read_files = []
+        for p_file in filenames:
+            if os.path.exists(p_file):
+                s_ext = pathlib.Path(p_file).suffix
+                if s_ext == ".ini":
                     # Fichier ini
-                    config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-                    config.read(file_path, encoding="utf-8")
+                    o_config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+                    o_config.read(p_file, encoding="utf-8")
                     try:
-                        config_1 = {s: dict(config.items(s)) for s in config.sections()}
+                        d_config_1 = {s: dict(o_config.items(s)) for s in o_config.sections()}
                     except configparser.InterpolationSyntaxError as e_err:
                         raise ConfigReaderError(f"Veuillez vérifier la config, les caractères spéciaux doivent être doublés. ({e_err.message}) ") from e_err
-                    configs.append(config_1)
-                    read_files.append(file_path)
-                elif ext == ".toml":
+                    l_configs.append(d_config_1)
+                    l_read_files.append(p_file)
+                elif s_ext == ".toml":
                     # Fichier toml
-                    config_2 = toml.load(file_path)
-                    configs.append(config_2)
-                    read_files.append(file_path)
+                    d_config_2 = toml.load(p_file)
+                    l_configs.append(d_config_2)
+                    l_read_files.append(p_file)
                 else:
                     # Fichier non géré
-                    raise ValueError(f"L'extension {ext} n'est pas gérée par la classe Config.")
+                    raise ValueError(f"L'extension {s_ext} n'est pas gérée par la classe Config.")
         # Fusion des configurations
-        full_config: dict[str, Any] = {}
-        for config_3 in configs:
-            full_config = Config.merge(full_config, config_3)
-        self.__config = full_config
+        d_full_config: dict[str, Any] = {}
+        for d_config_3 in l_configs:
+            d_full_config = Config.merge(d_full_config, d_config_3)
+        self.__config = d_full_config
 
-        return read_files
+        return l_read_files
 
     @staticmethod
     def merge(old: Any, new: Any) -> Any:
@@ -110,18 +110,18 @@ class Config(metaclass=Singleton):
         if isinstance(new, type(old)):
             if isinstance(old, dict):
                 # ce sont des dictionnaires
-                merged: dict[str, Any] = old.copy()
-                for key, value in new.items():
-                    if key in old:
-                        merged[key] = Config.merge(old[key], value)
+                d_merged: dict[str, Any] = old.copy()
+                for s_key, o_value in new.items():
+                    if s_key in old:
+                        d_merged[s_key] = Config.merge(old[s_key], o_value)
                     else:
-                        merged[key] = value
-                return merged
+                        d_merged[s_key] = o_value
+                return d_merged
             if isinstance(old, list):
                 # ce sont des listes
-                l_merged: list[set[Any]] = list(set(old + new))
+                l_merged: List[Set[Any]] = list(set(old + new))
                 return l_merged
-        # C'est autre chose : on conserve new
+        # C'est d'un autre type : on conserve new
         return new
 
     # TODO à terme supprimer cette fonction
@@ -131,9 +131,10 @@ class Config(metaclass=Singleton):
         Returns:
             le config parser
         """
-        return self.__config_parser
+        # return self.__config_parser
+        return {}
 
-    def get_config(self) -> dict[str, Any]:
+    def get_config(self) -> Dict[str, Any]:
         """Retourne la config entière.
 
         Returns:
@@ -165,11 +166,10 @@ class Config(metaclass=Singleton):
         Returns:
             Optional[str]: la valeur du paramètre
         """
-        ret = self.get(section, option, fallback=fallback)  # type: ignore
-        if ret == None:
+        o_ret = self.get(section, option, fallback=fallback)  # type: ignore
+        if o_ret is None:
             return None
-        else:
-            return str(ret)
+        return str(o_ret)
 
     def get_int(self, section: str, option: str, fallback: Optional[int] = None) -> int:
         """Récupère la valeur associée au paramètre demandé, convertie en `int`.
@@ -183,13 +183,12 @@ class Config(metaclass=Singleton):
             la valeur du paramètre
         """
         try:
-            ret = self.get(section, option, fallback=fallback)  # type: ignore
-            if ret == None:
+            o_ret = self.get(section, option, fallback=fallback)  # type: ignore
+            if o_ret is None:
                 return None
-            else:
-                return int(ret)
+            return int(o_ret)
         except ValueError as e_err:
-            raise ConfigReaderError(f"Veuillez vérifier la config ([{section}-[{option}]]), entier non reconnu. ({e_err.message}) ") from e_err
+            raise ConfigReaderError(f"Veuillez vérifier la config ([{section}-[{option}]]), entier non reconnu. ({e_err}) ") from e_err
 
     def get_float(self, section: str, option: str, fallback: Optional[float] = None) -> float:
         """Récupère la valeur associée au paramètre demandé, convertie en `float`.
@@ -203,13 +202,12 @@ class Config(metaclass=Singleton):
             la valeur du paramètre
         """
         try:
-            ret = self.get(section, option, fallback=fallback)  # type: ignore
-            if ret == None:
+            o_ret = self.get(section, option, fallback=fallback)  # type: ignore
+            if o_ret is None:
                 return None
-            else:
-                return float(ret)
+            return float(o_ret)
         except ValueError as e_err:
-            raise ConfigReaderError(f"Veuillez vérifier la config ([{section}-[{option}]]), nombre flottant non reconnu. ({e_err.message}) ") from e_err
+            raise ConfigReaderError(f"Veuillez vérifier la config ([{section}-[{option}]]), nombre flottant non reconnu. ({e_err}) ") from e_err
 
     def get_bool(self, section: str, option: str, fallback: Optional[bool] = None) -> bool:
         """Récupère la valeur associée au paramètre demandé, convertie en `bool`.
@@ -223,13 +221,12 @@ class Config(metaclass=Singleton):
             la valeur du paramètre
         """
         try:
-            ret = self.get(section, option, fallback=fallback)  # type: ignore
-            if ret == None:
+            o_ret = self.get(section, option, fallback=fallback)  # type: ignore
+            if o_ret is None:
                 return None
-            else:
-                return bool(ret)
+            return bool(o_ret)
         except TypeError as e_err:
-            raise ConfigReaderError(f"Veuillez vérifier la config ([{section}-[{option}]]), booléen non reconnu. ({e_err.message}) ") from e_err
+            raise ConfigReaderError(f"Veuillez vérifier la config ([{section}-[{option}]]), booléen non reconnu. ({e_err}) ") from e_err
 
     def get_temp(self) -> Path:
         """Récupère le chemin racine du dossier temporaire à utiliser.
