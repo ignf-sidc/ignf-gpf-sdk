@@ -295,7 +295,7 @@ class Main:
             * si un fichier est précisé on y enregistre toute la config
             * sinon on affiche toute la config
         """
-        o_parser = Config().get_parser()
+        o_parser = Config().get_config()
 
         # Juste une section ou toute la config ?
         if self.o_args.section is not None:

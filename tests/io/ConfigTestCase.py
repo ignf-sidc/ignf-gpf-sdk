@@ -1,6 +1,4 @@
-import configparser
 from pathlib import Path
-
 from sdk_entrepot_gpf.io.Config import Config
 from tests.GpfTestCase import GpfTestCase
 
@@ -17,24 +15,23 @@ class ConfigTestCase(GpfTestCase):
         # On détruit le singleton Config
         Config._instance = None
 
-    def test_get_parser(self) -> None:
-        """Vérifie le bon fonctionnement de get_parser."""
-        # On vérifie le type de get_parser
-        self.assertIsInstance(Config().get_parser(), configparser.ConfigParser)
+    def test_get_config(self) -> None:
+        """Vérifie le bon fonctionnement de get_config."""
+        # On vérifie le type de get_config
+        self.assertEqual(type(Config().get_config()), dict)
 
     def test_read(self) -> None:
         """Vérifie le bon fonctionnement de read."""
-        o_parser = Config().get_parser()
         # On vérifie que l'on a les valeurs par défaut
-        self.assertEqual(o_parser.get("store_authentification", "login"), "LOGIN_TO_MODIFY")
-        self.assertEqual(o_parser.get("store_authentification", "password"), "PASSWORD_TO_MODIFY")
-        self.assertEqual(o_parser.get("store_api", "datastore"), "DATASTORE_ID_TO_MODIFY")
+        self.assertEqual(Config().get("store_authentification", "login"), "LOGIN_TO_MODIFY")
+        self.assertEqual(Config().get("store_authentification", "password"), "PASSWORD_TO_MODIFY")
+        self.assertEqual(Config().get("store_api", "datastore"), "DATASTORE_ID_TO_MODIFY")
         # On ouvre le nouveau fichier
         Config().read(GpfTestCase.conf_dir_path / "test_overload.ini")
         # On vérifie que l'on a les nouvelles valeurs
-        self.assertEqual(o_parser.get("store_authentification", "login"), "TEST_LOGIN")
-        self.assertEqual(o_parser.get("store_authentification", "password"), "TEST_PASSWORD")
-        self.assertEqual(o_parser.get("store_api", "datastore"), "TEST_DATASTORE")
+        self.assertEqual(Config().get("store_authentification", "login"), "TEST_LOGIN")
+        self.assertEqual(Config().get("store_authentification", "password"), "TEST_PASSWORD")
+        self.assertEqual(Config().get("store_api", "datastore"), "TEST_DATASTORE")
 
     def test_get(self) -> None:
         """Vérifie le bon fonctionnement de get, get_int, get_float et get_bool."""
