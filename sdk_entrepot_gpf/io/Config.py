@@ -1,9 +1,9 @@
 import os
 import configparser
 import pathlib
-import toml
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set, Union
+import toml
 
 from sdk_entrepot_gpf.pattern.Singleton import Singleton
 from sdk_entrepot_gpf.io.OutputManager import OutputManager
@@ -87,7 +87,7 @@ class Config(metaclass=Singleton):
                     # Fichier non géré
                     raise ValueError(f"L'extension {s_ext} n'est pas gérée par la classe Config.")
         # Fusion des configurations
-        d_full_config: dict[str, Any] = {}
+        d_full_config: Dict[str, Any] = {}
         for d_config_3 in l_configs:
             d_full_config = Config.merge(d_full_config, d_config_3)
         self.__config = d_full_config
@@ -110,7 +110,7 @@ class Config(metaclass=Singleton):
         if isinstance(new, type(old)):
             if isinstance(old, dict):
                 # ce sont des dictionnaires
-                d_merged: dict[str, Any] = old.copy()
+                d_merged: Dict[str, Any] = old.copy()
                 for s_key, o_value in new.items():
                     if s_key in old:
                         d_merged[s_key] = Config.merge(old[s_key], o_value)
