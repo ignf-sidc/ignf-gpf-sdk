@@ -65,6 +65,188 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                 o_mock_api_list.assert_called_once_with(infos_filter={"info":"val"}, tags_filter={"tag":"val"}, datastore=s_datastore)
                 self.assertEqual(o_stored_data, None)
 
+    # pylint: disable=protected-access
+    def test_gestion_update_entity(self)-> None:
+        """test de __gestion_update_entity"""
+        s_datastore="update"
+        s_behavior = ProcessingExecutionAction.BEHAVIOR_STOP
+
+        # cas non pris en compte
+        l_action : List[Dict[str, Any]]=[
+            {"body_parameters":{}},
+            {"body_parameters":{"output":{}}},
+            {"body_parameters":{"output":{"upload": {}}}},
+            {"body_parameters":{"output":{"stored_data": {"name": ""}}}},
+        ]
+        for d_action in l_action:
+            o_pea = ProcessingExecutionAction("contexte", d_action, behavior=s_behavior)
+            with patch.object(StoredData, "api_get") as  o_mock_api_get:
+                o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                o_mock_api_get.assert_not_called()
+
+        # pas de stored_data
+        s_id = "uuid"
+        d_action = {"body_parameters":{
+            "output":{"stored_data": {"_id": s_id}},
+            "processing": "id_processing",
+            "inputs":{"stored_data": ["id_1", "id_2"]},
+            "parameters" : {"param1": "val1"}
+
+        }}
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=s_behavior)
+        with patch.object(StoredData, "api_get", return_value = None) as  o_mock_api_get:
+            with self.assertRaises(GpfSdkError) as e_err:
+                o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore)# type: ignore
+            o_mock_api_get.assert_called_once_with(s_id, datastore=s_datastore)
+            self.assertEqual(e_err.exception.message, "La donnée en sortie est introuvable, impossible de faire la mise à jour.")
+
+        # pas de traitement correspondant trouvé
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            with patch.object(ProcessingExecution, "api_list", return_value=[]) as  o_mock_api_list:
+                o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                o_mock_api_get.assert_called_once_with(s_id, datastore=s_datastore)
+                d_filter = {
+                    "output_stored_data": o_mock_api_get.return_value.id,
+                    "processing": d_action["body_parameters"]["processing"],
+                    'input_stored_data': 'id_1'
+                }
+                o_mock_api_list.assert_called_once_with(d_filter, datastore=s_datastore)
+        # les traitements ne correspondent pas
+        o_pe_1=MagicMock() # input upload
+        o_pe_1.get_store_properties.return_value = {"inputs":{"upload":[{"_id" : "uuid"}]}}
+        o_pe_2=MagicMock() # input stored_data not match
+        o_pe_2.get_store_properties.return_value = {"inputs":{"stored_data":[{"_id" : "uuid"}]}}
+        o_pe_3=MagicMock()# input stored_data match + param not match
+        o_pe_3.get_store_properties.return_value = {"inputs":{"stored_data":[{"_id" : "id_1"},{"_id" : "id_2"}]}, "parameters": {"autre": "val"}}
+
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3]) as  o_mock_api_list:
+                o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                o_mock_api_get.assert_called_once_with(s_id, datastore=s_datastore)
+                d_filter = {
+                    "output_stored_data": o_mock_api_get.return_value.id,
+                    "processing": d_action["body_parameters"]["processing"],
+                    'input_stored_data': 'id_1'
+                }
+                o_mock_api_list.assert_called_once_with(d_filter, datastore=s_datastore)
+        o_pe_4=MagicMock()# input stored_data match + param not match
+        o_pe_4.get_store_properties.return_value = {"inputs":{"stored_data":[{"_id" : "id_1"},{"_id" : "id_2"}]}, "parameters": d_action["body_parameters"]["parameters"]}
+
+        # BEHAVIOR_STOP
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
+                with self.assertRaises(GpfSdkError) as e_err:
+                    o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                    o_mock_api_get.assert_called_once_with(s_id, datastore=s_datastore)
+                    d_filter = {
+                        "output_stored_data": o_mock_api_get.return_value.id,
+                        "processing": d_action["body_parameters"]["processing"],
+                        'input_stored_data': 'id_1'
+                    }
+                    o_mock_api_list.assert_called_once_with(d_filter, datastore=s_datastore)
+                    self.assertEqual(e_err.exception.message, f"Le traitement a déjà été lancée pour mettre à jour cette donnée {o_pe_4}.")
+
+        # BEHAVIOR_DELETE
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=ProcessingExecutionAction.BEHAVIOR_DELETE)
+        o_pe_4.get_store_properties.return_value = {
+            "inputs":{"stored_data":[{"_id" : "id_1"},{"_id" : "id_2"}]},
+            "parameters": d_action["body_parameters"]["parameters"],
+            "status": ProcessingExecution.STATUS_FAILURE,
+        }
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
+                o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                o_mock_api_get.assert_called_once_with(s_id, datastore=s_datastore)
+                d_filter = {
+                    "output_stored_data": o_mock_api_get.return_value.id,
+                    "processing": d_action["body_parameters"]["processing"],
+                    'input_stored_data': 'id_1'
+                }
+                o_mock_api_list.assert_called_once_with(d_filter, datastore=s_datastore)
+                self.assertIsNone(o_pea.processing_execution)
+                self.assertIsNone(o_pea.stored_data)
+
+        # BEHAVIOR_RESUME + STATUS_FAILURE
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=ProcessingExecutionAction.BEHAVIOR_RESUME)
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
+                o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                o_mock_api_get.assert_called_once_with(s_id, datastore=s_datastore)
+                d_filter = {
+                    "output_stored_data": o_mock_api_get.return_value.id,
+                    "processing": d_action["body_parameters"]["processing"],
+                    'input_stored_data': 'id_1'
+                }
+                o_mock_api_list.assert_called_once_with(d_filter, datastore=s_datastore)
+                self.assertIsNone(o_pea.processing_execution)
+                self.assertIsNone(o_pea.stored_data)
+
+        # BEHAVIOR_RESUME + not STATUS_FAILURE
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=ProcessingExecutionAction.BEHAVIOR_RESUME)
+        o_pe_4.get_store_properties.return_value = {
+            "inputs":{"stored_data":[{"_id" : "id_1"},{"_id" : "id_2"}]},
+            "parameters": d_action["body_parameters"]["parameters"],
+            "status": ProcessingExecution.STATUS_CREATED,
+        }
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
+                o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                o_mock_api_get.assert_called_once_with(s_id, datastore=s_datastore)
+                d_filter = {
+                    "output_stored_data": o_mock_api_get.return_value.id,
+                    "processing": d_action["body_parameters"]["processing"],
+                    'input_stored_data': 'id_1'
+                }
+                o_mock_api_list.assert_called_once_with(d_filter, datastore=s_datastore)
+                self.assertEqual(o_pea.processing_execution, o_pe_4)
+                self.assertEqual(o_pea.stored_data, o_mock_api_get.return_value)
+
+        # BEHAVIOR_RESUME + not STATUS_FAILURE, stored_data unstable
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=ProcessingExecutionAction.BEHAVIOR_RESUME)
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            o_mock_api_get.return_value.__getitem__.return_value=StoredData.STATUS_UNSTABLE
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
+                with self.assertRaises(GpfSdkError) as e_err:
+                    o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                self.assertEqual(e_err.exception.message,f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_api_get.return_value}. Impossible de lancer le traitement demandé.")
+
+
+        # BEHAVIOR_CONTINUE + not STATUS_FAILURE
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=ProcessingExecutionAction.BEHAVIOR_CONTINUE)
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
+                o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                o_mock_api_get.assert_called_once_with(s_id, datastore=s_datastore)
+                d_filter = {
+                    "output_stored_data": o_mock_api_get.return_value.id,
+                    "processing": d_action["body_parameters"]["processing"],
+                    'input_stored_data': 'id_1'
+                }
+                o_mock_api_list.assert_called_once_with(d_filter, datastore=s_datastore)
+                self.assertEqual(o_pea.processing_execution, o_pe_4)
+                self.assertEqual(o_pea.stored_data, o_mock_api_get.return_value)
+        # BEHAVIOR_CONTINUE + not STATUS_FAILURE, stored_data unstable
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=ProcessingExecutionAction.BEHAVIOR_CONTINUE)
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            o_mock_api_get.return_value.__getitem__.return_value=StoredData.STATUS_UNSTABLE
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
+                with self.assertRaises(GpfSdkError) as e_err:
+                    o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                self.assertEqual(e_err.exception.message,f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_api_get.return_value}. Impossible de lancer le traitement demandé.")
+
+        # beavior non valide
+        s_behavior="toto"
+        o_pea = ProcessingExecutionAction("contexte", d_action, behavior=s_behavior)
+        with patch.object(StoredData, "api_get") as  o_mock_api_get:
+            o_mock_api_get.return_value.__getitem__.return_value=StoredData.STATUS_UNSTABLE
+            with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
+                with self.assertRaises(GpfSdkError) as e_err:
+                    o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
+                self.assertEqual(
+                    e_err.exception.message,
+                    f"Le comportement {s_behavior} n'est pas reconnu ({'|'.join(ProcessingExecutionAction.BEHAVIORS)}), l'exécution de traitement n'est pas possible."
+                )
+
     def run_args(self,
         tags: Optional[Dict[str,Any]],
         comments: Optional[List[str]],
@@ -581,7 +763,29 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                 # initialisation de ProcessingExecutionAction
                 o_pea = ProcessingExecutionAction("contexte", d_definition_dict)
                 self.assertEqual(o_pea.output_new_entity, b_new)
+        # pas de sortie
+        o_pea = ProcessingExecutionAction("contexte", {"body_parameters":{}})
+        self.assertFalse(o_pea.output_new_entity)
+        # sortie non stored_data ou upload
+        o_pea = ProcessingExecutionAction("contexte", {"body_parameters":{"output":{}}})
+        self.assertFalse(o_pea.output_new_entity)
 
+
+    def test_output_update_entity(self)-> None:
+        """test de output_update_entity"""
+        for s_output in ["upload", "stored_data"]:
+            for b_update in [True, False]:
+                d_output = {"_id": "ancien"} if b_update else {"name": "new"}
+                d_definition_dict: Dict[str, Any] = {"body_parameters":{"output":{s_output:d_output}}}
+                # initialisation de ProcessingExecutionAction
+                o_pea = ProcessingExecutionAction("contexte", d_definition_dict)
+                self.assertEqual(o_pea.output_update_entity, b_update)
+        # pas de sortie
+        o_pea = ProcessingExecutionAction("contexte", {"body_parameters":{}})
+        self.assertFalse(o_pea.output_update_entity)
+        # sortie non stored_data ou upload
+        o_pea = ProcessingExecutionAction("contexte", {"body_parameters":{"output":{}}})
+        self.assertFalse(o_pea.output_update_entity)
 
     def test_str(self) -> None:
         """test de __str__"""
