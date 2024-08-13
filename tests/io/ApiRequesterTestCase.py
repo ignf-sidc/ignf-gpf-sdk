@@ -11,7 +11,7 @@ from sdk_entrepot_gpf.io.Config import Config
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.auth.Authentifier import Authentifier
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
-from sdk_entrepot_gpf.io.Errors import NotFoundError, RouteNotFoundError, ConflictError, StatusCodeError
+from sdk_entrepot_gpf.io.Errors import NotFoundError, RouteNotFoundError, ConflictError
 from tests.GpfTestCase import GpfTestCase
 
 # pylint:disable=protected-access
