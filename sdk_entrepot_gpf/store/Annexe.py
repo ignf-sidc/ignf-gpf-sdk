@@ -68,3 +68,17 @@ class Annexe(CreatedByUploadFileInterface, DownloadInterface, PartialEditInterfa
         )
 
         return int(o_response.text)
+
+    def __str__(self) -> str:
+        # Affichage à destination d'un utilisateur.
+        # On affiche l'id et le nom si possible.
+
+        # Liste pour stocker les infos à afficher
+        l_infos = []
+        # Ajout de l'id
+        l_infos.append(f"id={self.id}")
+        s_paths = "','".join(self["paths"])
+        l_infos.append(f"paths='{s_paths}'")
+        l_infos.append(f"published={self['published']}")
+        # Retour
+        return f"{self.__class__.__name__}({', '.join(l_infos)})"
