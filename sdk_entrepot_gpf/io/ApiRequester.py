@@ -160,6 +160,21 @@ class ApiRequester(metaclass=Singleton):
             except (ConflictError, NotFoundError, requests.Timeout) as e_error:
                 # S'il y a un conflit, un 404 ou un timeout, on ne retente pas, on ne fait rien. On propage l'erreur.
                 raise e_error
+            except requests.exceptions.ConnectionError as e_connexion:
+                s_message = (
+                    f"Le serveur de l'API Entrepôt ({url}) n'est pas joignable. Cela peut être dû à un problème de configuration si elle a changée récemment."
+                    + " Sinon, c'est un problème sur l'API Entrepôt : consultez l'état du service pour en savoir plus "
+                    + f": {Config().get_str('store_api', 'check_status_url')}."
+                )
+                Config().om.warning(s_message)
+                # Affiche la pile d'exécution
+                Config().om.debug(traceback.format_exc())
+                # Une erreur s'est produite : attend un peu et relance une nouvelle fois la fonction
+                if i_nb_attempts < self.__nb_attempts:
+                    time.sleep(self.__sec_between_attempt)
+                # Le nombre de tentatives est atteint : comme dirait Jim, this is the end...
+                else:
+                    raise GpfSdkError(s_message) from e_connexion
 
             except (ApiError, requests.RequestException) as e_error:
                 # Pour les autres erreurs, on retente selon les paramètres indiqués.

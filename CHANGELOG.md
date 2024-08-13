@@ -6,6 +6,7 @@
 
 * Création/consultation des clefs depuis la ligne de commande #96
 * doc/docs/comme-executable.md : Ajout de la documentation pour la suppression, les annexe, les fichiers statics, les fichiers de métadonnées et les clefs
+* ApiRequester, Authentifier: gestion de l'erreur ConnectionError # 168
 
 ### [Changed]
 
