@@ -113,6 +113,83 @@ class ProcessingExecutionAction(ActionAbstract):
         else:
             raise GpfSdkError(f"Le comportement {self.__behavior} n'est pas reconnu ({'|'.join(self.BEHAVIORS)}), l'exécution de traitement n'est pas possible.")
 
+    def __gestion_update_entity(self, datastore: Optional[str]) -> None:
+        """gestion des behaviors quand il y a mise à jour d'une entité.
+
+        Args:
+            datastore (Optional[str]): Identifiant du datastore.
+        """
+        if not "_id" in self.definition_dict["body_parameters"].get("output", {}).get("stored_data", {}):
+            # on ne gère que les mises à jour des stored_data
+            return
+        # On recherche le traitement entre les données en entrée et celle en sortie
+        o_stored_data = StoredData.api_get(self.definition_dict["body_parameters"]["output"]["stored_data"]["_id"], datastore=datastore)
+        # Si on a trouvé une Donnée Stockée sur la gpf :
+        if o_stored_data is None:
+            raise GpfSdkError("La donnée en sortie est introuvable, impossible de faire la mise à jour.")
+
+        d_filter = {
+            "output_stored_data": o_stored_data.id,
+            "processing": self.definition_dict["body_parameters"]["processing"],
+        }
+        if self.definition_dict["body_parameters"].get("inputs", {}).get("upload"):
+            d_filter["input_upload"] = self.definition_dict["body_parameters"]["inputs"]["upload"][0]
+        elif self.definition_dict["body_parameters"].get("inputs", {}).get("stored_data"):
+            d_filter["input_stored_data"] = self.definition_dict["body_parameters"]["inputs"]["stored_data"][0]
+
+        # On recherche le traitement
+        l_proc_exec = ProcessingExecution.api_list(d_filter, datastore=datastore)
+        # affinage de la recherche
+        for o_proc_exec in l_proc_exec:
+            o_proc_exec.api_update()
+            # vérification des entrées (si on a plus d'une entrée):
+            l_in_ids_upload = sorted(self.definition_dict["body_parameters"].get("inputs", {}).get("upload", []))
+            l_in_ids_stored_data = sorted(self.definition_dict["body_parameters"].get("inputs", {}).get("stored_data", []))
+            d_data_pe = o_proc_exec.get_store_properties()
+            l_pe_ids_upload = sorted([o_upload["_id"] for o_upload in d_data_pe.get("inputs", {}).get("upload", [])])
+            l_pe_ids_stored_data = sorted([o_upload["_id"] for o_upload in d_data_pe.get("inputs", {}).get("stored_data", [])])
+            if l_in_ids_upload == l_pe_ids_upload and l_in_ids_stored_data == l_pe_ids_stored_data and d_data_pe["parameters"] == self.definition_dict["body_parameters"].get("parameters", {}):
+                # les entrées, les sorties et paramètres correspondent, on a trouvé le traitement (o_proc_exec)
+                break
+        else:
+            # aucun traitement trouvé
+            return
+
+        # Comportement d'arrêt du programme
+        if self.__behavior == self.BEHAVIOR_STOP:
+            raise GpfSdkError(f"Le traitement a déjà été lancé pour mettre à jour cette donnée {o_proc_exec}.")
+
+        # on met à jour o_stored_data pour avoir son status
+        o_stored_data.api_update()
+        # Comportement de suppression des entités détectées (il n'est pas possible de supprimer la mise à jour précédente mais on relance la mise à jour)
+        if self.__behavior == self.BEHAVIOR_DELETE or (d_data_pe["status"] in [ProcessingExecution.STATUS_FAILURE, ProcessingExecution.STATUS_ABORTED] and self.__behavior == self.BEHAVIOR_RESUME):
+            Config().om.warning(f"Le traitement a déjà été lancé sans succès pour cette donnée ({o_proc_exec} statut {d_data_pe['status']}). On relance le traitement.")
+            # on force à None pour que la création soit faite
+            self.__processing_execution = None
+        # Comportement "on continue l'exécution"
+        elif self.__behavior in [self.BEHAVIOR_CONTINUE, self.BEHAVIOR_RESUME]:
+            # on regarde si le résultat du traitement précédent est en échec (peut-être causé un autre traitement)
+            if o_stored_data["status"] == StoredData.STATUS_UNSTABLE:
+                raise GpfSdkError(
+                    (
+                        f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_stored_data}. "
+                        "Impossible de lancer le traitement demandé : contactez le support de l'Entrepôt Géoplateforme "
+                        "pour faire réinitialiser son statut."
+                    )
+                )
+
+            # on est donc dans un des cas suivants :
+            # la processing_execution a été créé mais pas exécutée (StoredData.STATUS_CREATED)
+            # ou la processing_execution est en cours d'exécution (StoredData.STATUS_GENERATING ou StoredData.STATUS_MODIFYING)
+            # ou la processing_execution est terminée (StoredData.STATUS_GENERATED)
+            self.__stored_data = o_stored_data
+            self.__processing_execution = o_proc_exec
+            Config().om.info(f"La donnée stockée en sortie {o_stored_data} est en cours de mise à jour, on reprend le traitement associé : {self.__processing_execution}.")
+            return
+        # Comportement non reconnu
+        else:
+            raise GpfSdkError(f"Le comportement {self.__behavior} n'est pas reconnu ({'|'.join(self.BEHAVIORS)}), l'exécution de traitement n'est pas possible.")
+
     def __create_processing_execution(self, datastore: Optional[str] = None) -> None:
         """Création du ProcessingExecution sur l'API à partir des paramètres de définition de l'action.
         Récupération des attributs processing_execution et Upload/StoredData.
@@ -122,6 +199,9 @@ class ProcessingExecutionAction(ActionAbstract):
         # On regarde si cette Exécution de Traitement implique la création d'une nouvelle entité (Livraison ou Donnée Stockée)
         if self.output_new_entity:
             self.__gestion_new_output(datastore)
+
+        if self.output_update_entity:
+            self.__gestion_update_entity(datastore)
 
         # A ce niveau là, si on a encore self.__processing_execution qui est None, c'est qu'on peut créer l'Exécution de Traitement sans problème
         if self.__processing_execution is None:
@@ -349,6 +429,20 @@ class ProcessingExecutionAction(ActionAbstract):
         else:
             return False
         return "name" in d_el
+
+    @property
+    def output_update_entity(self) -> bool:
+        """Indique s'il y aura mise à jour d'une entité par rapport au paramètre de création de l'exécution de traitement
+        (la clé "_id" et non la clé "name" est présente dans le paramètre "output" du corps de requête).
+        """
+        d_output = self.definition_dict["body_parameters"].get("output", {})
+        if "upload" in d_output:
+            d_el = d_output["upload"]
+        elif "stored_data" in d_output:
+            d_el = d_output["stored_data"]
+        else:
+            return False
+        return "_id" in d_el
 
     ##############################################################
     # Fonctions de représentation
