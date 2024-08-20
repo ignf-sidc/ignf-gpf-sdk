@@ -105,23 +105,26 @@ class Authentifier(metaclass=Singleton):
                 # On tente de récupérer le message
                 try:
                     s_message = o_response.json()["error_description"]
-                    if "Account is not fully set up" in s_message:
-                        raise AuthentificationError(
-                            "Problème lors de l'authentification, veuillez vous connecter via l'interface en ligne KeyCloak pour vérifier son compte."
-                            + f" Votre mot de passe est sûrement expiré. ({s_message})"
-                        )
                 except Exception:
                     s_message = "pas de raison indiquée"
+                if "Account is not fully set up" in s_message:
+                    raise AuthentificationError(
+                        "Problème lors de l'authentification, veuillez vous connecter via l'interface en ligne KeyCloak pour vérifier son compte."
+                        + f" Votre mot de passe est sûrement expiré. ({s_message})"
+                    )
                 raise requests.exceptions.HTTPError(f"Code retour authentification KeyCloak = {o_response.status_code} ({s_message})", response=o_response, request=o_response.request)
         except AuthentificationError as e_auth:
-            Config().om.error(e_auth.message)
-            # Affiche la pile d'exécution
-            Config().om.debug(traceback.format_exc())
             # On propage l'erreur
             raise e_auth
         except Exception as e_error:
             if isinstance(e_error, requests.exceptions.HTTPError):
                 Config().om.warning(e_error.args[0])
+            elif isinstance(e_error, requests.exceptions.ConnectionError):
+                Config().om.warning(
+                    f"Le serveur d'authentification ({self.__token_url}) n'est pas joignable. Cela peut être dû à un problème de configuration si elle a changée récemment."
+                    + " Sinon, c'est un problème sur le service d’authentification : consultez l'état du service pour en savoir plus "
+                    + f": {Config().get_str('store_authentification', 'check_status_url')}."
+                )
             else:
                 Config().om.warning("La récupération du jeton d'authentification a échoué...")
             # Une erreur s'est produite : attend un peu et relance une nouvelle fois la fonction
@@ -150,6 +153,12 @@ class Authentifier(metaclass=Singleton):
             while (self.__last_token is None) or (self.__last_token.is_valid() is False):
                 self.__request_new_token(self.__nb_attempts)
             return self.__last_token.get_access_string()
+        except AuthentificationError as e_auth:
+            # erreur déjà traité
+            Config().om.error(e_auth.message)
+            # Affiche la pile d'exécution
+            Config().om.debug(traceback.format_exc())
+            raise e_auth
         except Exception as e_error:
             s_error_message = f"La récupération du jeton d'authentification a échoué après {self.__nb_attempts} tentatives"
             Config().om.error(s_error_message)

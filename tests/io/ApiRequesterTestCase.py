@@ -59,6 +59,8 @@ class ApiRequesterTestCase(GpfTestCase):
         super().tearDownClass()
         # On ne mock plus la classe d'authentification
         cls.o_mock_authentifier.stop()
+        # On détruit le Singleton Config
+        Config._instance = None
 
     def test_route_request_ok_datastore_config(self) -> None:
         """Test de route_request quand la route existe en utilisant le datastore de base."""
@@ -247,14 +249,7 @@ class ApiRequesterTestCase(GpfTestCase):
         # On mock...
         with requests_mock.Mocker() as o_mock:
             # Une requête non réussie
-            o_mock.post(
-                self.url,
-                [
-                    {"status_code": HTTPStatus.INTERNAL_SERVER_ERROR},
-                    {"status_code": HTTPStatus.INTERNAL_SERVER_ERROR},
-                    {"status_code": HTTPStatus.INTERNAL_SERVER_ERROR},
-                ],
-            )
+            o_mock.post(self.url, status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
             # On s'attend à une exception
             with self.assertRaises(GpfSdkError) as o_arc:
                 # On effectue une requête
@@ -300,14 +295,7 @@ class ApiRequesterTestCase(GpfTestCase):
         # On mock...
         with requests_mock.Mocker() as o_mock:
             # Une requête non réussie
-            o_mock.post(
-                self.url,
-                [
-                    {"status_code": HTTPStatus.NOT_FOUND},
-                    {"status_code": HTTPStatus.NOT_FOUND},
-                    {"status_code": HTTPStatus.NOT_FOUND},
-                ],
-            )
+            o_mock.post(self.url, status_code=HTTPStatus.NOT_FOUND)
             # On s'attend à une exception
             with self.assertRaises(NotFoundError):
                 # On effectue une requête
@@ -336,6 +324,25 @@ class ApiRequesterTestCase(GpfTestCase):
                 # On a dû faire 2 appels à revoke_token
                 self.assertEqual(o_mock_revoke_token.call_count, 2, "o_mock_revoke_token.call_count == 2")
 
+    def test_url_request_connection_error(self) -> None:
+        """Test de url_request dans le cadre d'une erreur ConnectionError."""
+        # On mock...
+        with requests_mock.Mocker() as o_mock:
+            o_mock.get(self.url, exc=requests.exceptions.ConnectionError)
+            # On s'attend à une exception
+            with self.assertRaises(GpfSdkError) as o_arc:
+                # Lancement de la requête
+                ApiRequester().url_request(self.url, ApiRequester.GET, params=self.param, data=self.data)
+            # On doit avoir un message d'erreur
+            self.assertEqual(
+                o_arc.exception.message,
+                f"Le serveur de l'API Entrepôt ({self.url}) n'est pas joignable. Cela peut être dû à un problème de configuration si elle a changée récemment."
+                + " Sinon, c'est un problème sur l'API Entrepôt : consultez l'état du service pour en savoir plus "
+                + f": {Config().get_str('store_api', 'check_status_url')}.",
+            )
+            # On a dû faire le max de requête
+            self.assertEqual(o_mock.call_count, Config().get_int("store_api", "nb_attempts"), "o_mock.call_count == max")
+
     def test_url_request_http_error(self) -> None:
         """Test de url_request dans le cadre où on a une HTTPError."""
         # On mock...
@@ -349,6 +356,20 @@ class ApiRequesterTestCase(GpfTestCase):
             self.assertEqual(o_arc.exception.message, "L'URL indiquée en configuration est invalide ou inexistante. Contactez le support.")
             # On a dû faire 1 seule requête
             self.assertEqual(o_mock.call_count, 1, "o_mock.call_count == 1")
+
+    def test_url_request_code_autre(self) -> None:
+        """Test de url_request dans le cadre où on code retour non pris en charge."""
+        # On mock...
+        with requests_mock.Mocker() as o_mock:
+            o_mock.post(self.url, status_code=1)
+            # On s'attend à une exception
+            with self.assertRaises(GpfSdkError) as o_arc:
+                # Lancement de la requête
+                ApiRequester().url_request(self.url, ApiRequester.POST, params=self.param, data=self.data)
+            # On doit avoir un message d'erreur
+            self.assertEqual(o_arc.exception.message, "L'exécution d'une requête a échoué après 3 tentatives.")
+            # On a dû faire 1 seule requête
+            self.assertEqual(o_mock.call_count, 3, "o_mock.call_count == 3")
 
     def test_url_request_url_required(self) -> None:
         """Test de url_request dans le cadre où on a une URLRequired."""

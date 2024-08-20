@@ -67,7 +67,7 @@ class UploadAction:
         # Envoie des fichiers md5 (pas de vérification sur les problèmes de livraison si check_before_close)
         self.__push_md5_files(not check_before_close)
         if check_before_close:
-            Config().om.info(f"Livraison {self.upload}: vérification de l'arborescent avant livraison ...")
+            Config().om.info(f"Livraison {self.upload}: vérification de l'arborescence avant livraison ...")
             # vérification de la livraison des fichiers de données + ficher md5
             l_error = self.__check_file_uploaded(list(self.__dataset.data_files.items()) + [(p_file, "") for p_file in self.__dataset.md5_files])
             if l_error:
