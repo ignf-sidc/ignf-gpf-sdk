@@ -1,7 +1,5 @@
 """SDK Python pour simplifier l'utilisation de l'API Entrepôt Géoplateforme."""
 
-import configparser
-import io
 import sys
 import argparse
 import traceback
@@ -9,7 +7,7 @@ from pathlib import Path
 import shutil
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 import requests
-
+import toml
 
 import sdk_entrepot_gpf
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -295,48 +293,34 @@ class Main:
             * si un fichier est précisé on y enregistre toute la config
             * sinon on affiche toute la config
         """
-        o_parser = Config().get_config()
+        d_config = Config().get_config()
 
         # Juste une section ou toute la config ?
         if self.o_args.section is not None:
             # Juste une section
+            d_section = d_config.get(self.o_args.section)
+            if d_section is None:
+                raise GpfSdkError(f"La section '{self.o_args.section}' n'existe pas dans la configuration.")
             if self.o_args.option is not None:
                 # On nous demande une section.option
-                try:
-                    print(o_parser.get(self.o_args.section, self.o_args.option))
-                except configparser.NoSectionError as e_no_section_error:
-                    raise GpfSdkError(f"La section '{self.o_args.section}' n'existe pas dans la configuration.") from e_no_section_error
-                except configparser.NoOptionError as e_no_option_error:
-                    raise GpfSdkError(f"L'option '{self.o_args.option}' n'existe pas dans la section '{self.o_args.section}'.") from e_no_option_error
+                if not str(self.o_args.option) in d_section:
+                    raise GpfSdkError(f"L'option '{self.o_args.option}' n'existe pas dans la section '{self.o_args.section}'.")
+                print(Config().get(self.o_args.section, self.o_args.option))
             else:
                 # On nous demande toute une section
-                try:
-                    # On crée un nouveau parser
-                    o_parser2 = configparser.ConfigParser()
-                    # On y met la section demandée
-                    o_parser2[self.o_args.section] = o_parser[self.o_args.section]
-                    # On affiche tout ça
-                    with io.StringIO() as o_string_io:
-                        o_parser2.write(o_string_io)
-                        o_string_io.seek(0)
-                        print(o_string_io.read()[:-1])
-                except KeyError as e_key_error:
-                    raise GpfSdkError(f"La section '{self.o_args.section}' n'existe pas dans la configuration.") from e_key_error
+                print(toml.dumps({self.o_args.section: d_section}))
         else:
             # On nous demande toute la config
             if self.o_args.file is not None:
                 # On sauvegarde la donnée
                 try:
-                    with open(self.o_args.file, mode="w", encoding="UTF-8") as f_ini:
-                        o_parser.write(f_ini)
+                    with open(self.o_args.file, mode="w", encoding="UTF-8") as f_config:
+                        toml.dump(d_config, f_config)
                 except PermissionError as e_permission_error:
                     raise GpfSdkError(f"Impossible d'écrire le fichier {self.o_args.file} : non autorisé") from e_permission_error
             else:
                 # Sinon on l'affiche
-                with io.StringIO() as o_string_io:
-                    o_parser.write(o_string_io)
-                    o_string_io.seek(0)
-                    print(o_string_io.read()[:-1])
+                print(toml.dumps(d_config))
 
     @staticmethod
     def __monitoring_upload(upload: Upload, message_ok: str, message_ko: str, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None) -> bool:
