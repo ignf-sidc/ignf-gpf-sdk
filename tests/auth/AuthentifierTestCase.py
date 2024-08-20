@@ -30,8 +30,7 @@ class AuthentifierTestCase(GpfTestCase):
         # On détruit le Singleton Config
         Config._instance = None
         # On charge une config spéciale pour les tests d'authentification
-        o_config = Config()
-        o_config.read(GpfTestCase.conf_dir_path / "test_authentifier.ini")
+        Config().read(GpfTestCase.conf_dir_path / "test_authentifier.ini")
 
     def setUp(self) -> None:
         """fonction lancée avant chaque test de la classe"""
@@ -48,6 +47,7 @@ class AuthentifierTestCase(GpfTestCase):
     def test_get_access_token_string_ok(self) -> None:
         """Vérifie le bon fonctionnement de get_access_token_string dans un cas normal."""
         # On mock...
+        self.assertEqual(Config().get("store_authentification", "grant_type"), "password")
         with requests_mock.Mocker() as o_mock:
             # Une authentification réussie
             o_mock.post(AuthentifierTestCase.url, json=AuthentifierTestCase.valid_token)

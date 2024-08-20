@@ -61,7 +61,7 @@ class Authentifier(metaclass=Singleton):
             d_params["username"] = Config().get_str("store_authentification", "login")
             d_params["password"] = Config().get_str("store_authentification", "password")
             d_params["client_id"] = Config().get_str("store_authentification", "client_id")
-            s_client_secret = Config().get_str("store_authentification", "client_secret")
+            s_client_secret = Config().get("store_authentification", "client_secret")
             if s_client_secret is not None:
                 d_params["client_secret"] = s_client_secret
         elif s_grant_type == "client_credentials":
