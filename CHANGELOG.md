@@ -10,6 +10,11 @@
 
 ### [Changed]
 
+* Config :
+  * gestion des fichiers `toml` ;
+  * suppression de la fonction `get_parser` remplacée par `get_config` ;
+  * les fonctions de récupération typées (`get_str`, `get_int`, `get_float`, `get_bool`) renvoient une valeur valide ou lèvent une exception.
+
 ### [Fixed]
 
 * ProcessingExecutionAction: output non obligatoire dans l'étape et dans la processing exécution #165

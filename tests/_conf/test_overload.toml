@@ -1,0 +1,9 @@
+[store_authentification]
+login="TEST_LOGIN_TOML"
+password="TEST_PASSWORD_TOML"
+
+[store_api]
+datastore="TEST_DATASTORE_TOML"
+
+[miscellaneous]
+tmp_workdir="/tmp/TOML"
