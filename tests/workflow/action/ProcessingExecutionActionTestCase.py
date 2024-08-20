@@ -208,7 +208,13 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
             with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
                 with self.assertRaises(GpfSdkError) as e_err:
                     o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
-                self.assertEqual(e_err.exception.message,f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_api_get.return_value}. Impossible de lancer le traitement demandé.")
+                self.assertEqual(e_err.exception.message,
+                    (
+                        f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_api_get.return_value}. "
+                        "Impossible de lancer le traitement demandé : contactez le support de l'Entrepôt Géoplateforme "
+                        "pour faire réinitialiser son statut."
+                    )
+                )
 
 
         # BEHAVIOR_CONTINUE + not STATUS_FAILURE
@@ -232,9 +238,15 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
             with patch.object(ProcessingExecution, "api_list", return_value=[o_pe_1, o_pe_2, o_pe_3, o_pe_4]) as  o_mock_api_list:
                 with self.assertRaises(GpfSdkError) as e_err:
                     o_pea._ProcessingExecutionAction__gestion_update_entity(s_datastore) # type: ignore
-                self.assertEqual(e_err.exception.message,f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_api_get.return_value}. Impossible de lancer le traitement demandé.")
+                self.assertEqual(e_err.exception.message,
+                    (
+                        f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_mock_api_get.return_value}. "
+                        "Impossible de lancer le traitement demandé : contactez le support de l'Entrepôt Géoplateforme "
+                        "pour faire réinitialiser son statut."
+                    )
+                )
 
-        # beavior non valide
+        # behavior non valide
         s_behavior="toto"
         o_pea = ProcessingExecutionAction("contexte", d_action, behavior=s_behavior)
         with patch.object(StoredData, "api_get") as  o_mock_api_get:
@@ -281,7 +293,7 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
             o_mock_processing_execution.get_store_properties.return_value = d_store_properties
             o_mock_processing_execution.api_launch.return_value = None
             # o_mock_processing_execution.__getitem__.return_value = ProcessingExecution.STATUS_CREATED
-            # ça veut dire que : o_mock_processing_execution["quelchechose"] = "CREATED"
+            # ça veut dire que : o_mock_processing_execution["quelque_chose"] = "CREATED"
             def get_items_processing(key:str) -> Any:
                 if key == "status":
                     return "CREATED"

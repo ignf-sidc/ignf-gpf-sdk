@@ -120,9 +120,9 @@ class ProcessingExecutionAction(ActionAbstract):
             datastore (Optional[str]): Identifiant du datastore.
         """
         if not "_id" in self.definition_dict["body_parameters"].get("output", {}).get("stored_data", {}):
-            # on ne gère que les mise à jour des stored_data
+            # on ne gère que les mises à jour des stored_data
             return
-        # On recherche le traitement entre les données en entré et celle en sortie
+        # On recherche le traitement entre les données en entrée et celle en sortie
         o_stored_data = StoredData.api_get(self.definition_dict["body_parameters"]["output"]["stored_data"]["_id"], datastore=datastore)
         # Si on a trouvé une Donnée Stockée sur la gpf :
         if o_stored_data is None:
@@ -142,7 +142,7 @@ class ProcessingExecutionAction(ActionAbstract):
         # affinage de la recherche
         for o_proc_exec in l_proc_exec:
             o_proc_exec.api_update()
-            # vérification des entrées ( si on a plus d'une entrée):
+            # vérification des entrées (si on a plus d'une entrée):
             l_in_ids_upload = sorted(self.definition_dict["body_parameters"].get("inputs", {}).get("upload", []))
             l_in_ids_stored_data = sorted(self.definition_dict["body_parameters"].get("inputs", {}).get("stored_data", []))
             d_data_pe = o_proc_exec.get_store_properties()
@@ -157,28 +157,34 @@ class ProcessingExecutionAction(ActionAbstract):
 
         # Comportement d'arrêt du programme
         if self.__behavior == self.BEHAVIOR_STOP:
-            raise GpfSdkError(f"Le traitement a déjà été lancée pour mettre à jour cette donnée {o_proc_exec}.")
+            raise GpfSdkError(f"Le traitement a déjà été lancé pour mettre à jour cette donnée {o_proc_exec}.")
 
         # on met à jour o_stored_data pour avoir son status
         o_stored_data.api_update()
         # Comportement de suppression des entités détectées (il n'est pas possible de supprimer la mise à jour précédente mais on relance la mise à jour)
         if self.__behavior == self.BEHAVIOR_DELETE or (d_data_pe["status"] in [ProcessingExecution.STATUS_FAILURE, ProcessingExecution.STATUS_ABORTED] and self.__behavior == self.BEHAVIOR_RESUME):
-            Config().om.warning(f"Le traitement à déjà été lancé pour cette donnée ({o_proc_exec} statut {d_data_pe['status']}). On relance le traitement.")
+            Config().om.warning(f"Le traitement a déjà été lancé sans succès pour cette donnée ({o_proc_exec} statut {d_data_pe['status']}). On relance le traitement.")
             # on force à None pour que la création soit faite
             self.__processing_execution = None
         # Comportement "on continue l'exécution"
         elif self.__behavior in [self.BEHAVIOR_CONTINUE, self.BEHAVIOR_RESUME]:
             # on regarde si le résultat du traitement précédent est en échec (peut-être causé un autre traitement)
             if o_stored_data["status"] == StoredData.STATUS_UNSTABLE:
-                raise GpfSdkError(f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_stored_data}. Impossible de lancer le traitement demandé.")
+                raise GpfSdkError(
+                    (
+                        f"Le traitement précédent a échoué sur la donnée stockée en sortie {o_stored_data}. "
+                        "Impossible de lancer le traitement demandé : contactez le support de l'Entrepôt Géoplateforme "
+                        "pour faire réinitialiser son statut."
+                    )
+                )
 
             # on est donc dans un des cas suivants :
-            # le processing_execution a été créé mais pas exécuté (StoredData.STATUS_CREATED)
-            # ou le processing execution est en cours d'exécution (StoredData.STATUS_GENERATING ou StoredData.STATUS_MODIFYING)
-            # ou le processing execution est terminé (StoredData.STATUS_GENERATED)
+            # la processing_execution a été créé mais pas exécutée (StoredData.STATUS_CREATED)
+            # ou la processing_execution est en cours d'exécution (StoredData.STATUS_GENERATING ou StoredData.STATUS_MODIFYING)
+            # ou la processing_execution est terminée (StoredData.STATUS_GENERATED)
             self.__stored_data = o_stored_data
             self.__processing_execution = o_proc_exec
-            Config().om.info(f"La donnée stocké en sortie {o_stored_data} à déjà été mis à jour, on reprend le traitement associé : {self.__processing_execution}.")
+            Config().om.info(f"La donnée stockée en sortie {o_stored_data} est en cours de mise à jour, on reprend le traitement associé : {self.__processing_execution}.")
             return
         # Comportement non reconnu
         else:
