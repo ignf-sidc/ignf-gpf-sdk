@@ -67,14 +67,16 @@ class UploadAction:
         # Cas livraison fermé = déjà traité : on sort
         if not self.upload.is_open():
             return self.upload
-        self.__add_carte_tags("upload_creation")
+        if compatibilite_cartes:
+            self.__add_carte_tags("upload_creation")
 
         # Ajout des tags
         self.__add_tags()
         # Ajout des commentaires
         self.__add_comments()
 
-        self.__add_carte_tags("upload_upload_start")
+        if compatibilite_cartes:
+            self.__add_carte_tags("upload_upload_start")
         # Envoie des fichiers de données (pas de vérification sur les problèmes de livraison si check_before_close)
         self.__push_data_files(not check_before_close)
         # Envoie des fichiers md5 (pas de vérification sur les problèmes de livraison si check_before_close)
@@ -92,6 +94,8 @@ class UploadAction:
             # Affichage
             Config().om.info(f"Livraison créée et complétée : {self.upload}")
             Config().om.info("Création et complétion d'une livraison : terminé")
+            if compatibilite_cartes:
+                self.__add_carte_tags("upload_upload_end")
             # Retour
             return self.upload
         # On ne devrait pas arriver ici...
@@ -142,9 +146,15 @@ class UploadAction:
 
     def __add_carte_tags(self, upload_step) -> None:
         """En mode cartes.gouv, ajoute les tags nécessaires."""
-        # TODO lister chaque clé qui commence par upload_step,
+        # lister toutes les clés dans la section compatibility_cartes, filtrer chaque clé qui commence par upload_step,
         # mettre la fin de la clé dans un tag et mettre la value (en string) comme value du tag (self.__upload.api_add_tags(...))
-        return Config().get_str("compatibility_cartes", upload_step)
+        d_section = Config().get_config()["compatibility_cartes"]
+        if self.__upload is not None and d_section is not None:
+            for s_key, s_val in d_section.items():
+                if s_key.startswith(upload_step):
+                    d_tag = {}
+                    d_tag[s_key[len(upload_step) + 1 :]] = str(s_val)
+                    self.__upload.api_add_tags(d_tag)
 
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
@@ -190,7 +200,7 @@ class UploadAction:
             Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.md5_files)} fichiers md5 ont été ajoutés avec succès. ({i_file_upload} livré(s) lors de ce traitement)")
 
     def __normalise_api_push_md5_file(self, path: Path, nom: str) -> None:
-        """fonction cachant api_push_md5_file pour avoir une fonction ayant les même entrées que api_push_data_file, utilisé comme paramétre de __push_files
+        """fonction cachant api_push_md5_file pour avoir une fonction ayant les même entrées que api_push_data_file, utilisé comme paramètre de __push_files
 
         Args:
             path (Path): chemin le la chef MD5
