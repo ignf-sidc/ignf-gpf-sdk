@@ -1,7 +1,5 @@
 """SDK Python pour simplifier l'utilisation de l'API Entrepôt Géoplateforme."""
 
-import configparser
-import io
 import sys
 import argparse
 import traceback
@@ -9,7 +7,7 @@ from pathlib import Path
 import shutil
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 import requests
-
+import toml
 
 import sdk_entrepot_gpf
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -21,6 +19,7 @@ from sdk_entrepot_gpf.io.DescriptorFileReader import DescriptorFileReader
 from sdk_entrepot_gpf.io.Errors import ConflictError, NotFoundError
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.store.Annexe import Annexe
+from sdk_entrepot_gpf.store.Key import Key
 from sdk_entrepot_gpf.store.Metadata import Metadata
 from sdk_entrepot_gpf.store.Static import Static
 from sdk_entrepot_gpf.workflow.Workflow import Workflow
@@ -43,7 +42,7 @@ from sdk_entrepot_gpf.workflow.resolver.UserResolver import UserResolver
 class Main:
     """Classe d'entrée pour utiliser la lib comme binaire."""
 
-    def __init__(self) -> None:
+    def __init__(self) -> None:  # pylint: disable=too-many-branches
         """Constructeur."""
         # Résolution des paramètres utilisateurs
         self.o_args = Main.parse_args()
@@ -82,6 +81,8 @@ class Main:
             self.static()
         elif self.o_args.task == "metadata":
             self.metadata()
+        elif self.o_args.task == "key":
+            self.key()
 
     @staticmethod
     def parse_args(args: Optional[Sequence[str]] = None) -> argparse.Namespace:  # pylint:disable=too-many-statements
@@ -214,6 +215,16 @@ class Main:
             "--unpublish", type=str, action="extend", nargs="+", default=None, metavar=("NOM_FICHIER"), help="Dé-publie les métadonnées listées sur le point d'accès donné par --id-endpoint"
         )
 
+        # parseur pour les key
+        s_epilog_key = """Trois types de lancement :
+        * liste les clefs : `` (aucun paramètres)
+        * affiche les détails d'une clef : `--id ID`
+        * création de clefs : `--f FICHIER`\nExemple du contenu du fichier : `{"key": [{"name": "nom","type": "HASH","type_infos": {"hash": "mon_hash"}}]}`
+        """
+        o_sub_parser = o_sub_parsers.add_parser("key", help="Gestion des clefs de l'utilisateur", epilog=s_epilog_key, formatter_class=argparse.RawTextHelpFormatter)
+        o_sub_parser.add_argument("--id", type=str, default=None, help="Affiche la clef demandée")
+        o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier décrivant les clefs à créer")
+
         return o_parser.parse_args(args)
 
     def __datastore(self) -> Optional[str]:
@@ -283,48 +294,34 @@ class Main:
             * si un fichier est précisé on y enregistre toute la config
             * sinon on affiche toute la config
         """
-        o_parser = Config().get_parser()
+        d_config = Config().get_config()
 
         # Juste une section ou toute la config ?
         if self.o_args.section is not None:
             # Juste une section
+            d_section = d_config.get(self.o_args.section)
+            if d_section is None:
+                raise GpfSdkError(f"La section '{self.o_args.section}' n'existe pas dans la configuration.")
             if self.o_args.option is not None:
                 # On nous demande une section.option
-                try:
-                    print(o_parser.get(self.o_args.section, self.o_args.option))
-                except configparser.NoSectionError as e_no_section_error:
-                    raise GpfSdkError(f"La section '{self.o_args.section}' n'existe pas dans la configuration.") from e_no_section_error
-                except configparser.NoOptionError as e_no_option_error:
-                    raise GpfSdkError(f"L'option '{self.o_args.option}' n'existe pas dans la section '{self.o_args.section}'.") from e_no_option_error
+                if not str(self.o_args.option) in d_section:
+                    raise GpfSdkError(f"L'option '{self.o_args.option}' n'existe pas dans la section '{self.o_args.section}'.")
+                print(Config().get(self.o_args.section, self.o_args.option))
             else:
                 # On nous demande toute une section
-                try:
-                    # On crée un nouveau parser
-                    o_parser2 = configparser.ConfigParser()
-                    # On y met la section demandée
-                    o_parser2[self.o_args.section] = o_parser[self.o_args.section]
-                    # On affiche tout ça
-                    with io.StringIO() as o_string_io:
-                        o_parser2.write(o_string_io)
-                        o_string_io.seek(0)
-                        print(o_string_io.read()[:-1])
-                except KeyError as e_key_error:
-                    raise GpfSdkError(f"La section '{self.o_args.section}' n'existe pas dans la configuration.") from e_key_error
+                print(toml.dumps({self.o_args.section: d_section}))
         else:
             # On nous demande toute la config
             if self.o_args.file is not None:
                 # On sauvegarde la donnée
                 try:
-                    with open(self.o_args.file, mode="w", encoding="UTF-8") as f_ini:
-                        o_parser.write(f_ini)
+                    with open(self.o_args.file, mode="w", encoding="UTF-8") as f_config:
+                        toml.dump(d_config, f_config)
                 except PermissionError as e_permission_error:
                     raise GpfSdkError(f"Impossible d'écrire le fichier {self.o_args.file} : non autorisé") from e_permission_error
             else:
                 # Sinon on l'affiche
-                with io.StringIO() as o_string_io:
-                    o_parser.write(o_string_io)
-                    o_string_io.seek(0)
-                    print(o_string_io.read()[:-1])
+                print(toml.dumps(d_config))
 
     @staticmethod
     def __monitoring_upload(upload: Upload, message_ok: str, message_ko: str, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None) -> bool:
@@ -348,7 +345,7 @@ class Main:
 
     @staticmethod
     def upload_from_descriptor_file(file: Union[Path, str], behavior: Optional[str] = None, datastore: Optional[str] = None, check_before_close: bool = False) -> Dict[str, Any]:
-        """réalisation des livraisons décrites par le fichier
+        """réalisation des livraisons décrites par le fichier indiqué
 
         Args:
             file (Union[Path, str]): chemin du fichier descripteur de livraison
@@ -358,9 +355,9 @@ class Main:
 
         Returns:
             Dict[str, Any]: dictionnaire avec le résultat des livraisons :
-                "ok" : liste des livraisons sans problèmes,
-                "upload_fail": dictionnaire nom livraison : erreur remonté lors de la livraison
-                "check_fail": liste des livraisons dont les vérification ont échouée
+                "ok" : liste des livraisons sans problèmes
+                "upload_fail": dictionnaire {nom livraison : erreur remontée lors de la livraison}
+                "check_fail": liste des livraisons dont les vérifications ont échoué
         """
         o_dfu = UploadDescriptorFileReader(Path(file))
         s_behavior = str(behavior).upper() if behavior is not None else None
@@ -375,7 +372,7 @@ class Main:
             s_nom = o_dataset.upload_infos["name"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
             try:
-                o_ua = UploadAction(o_dataset, cartabilite = False, behavior=s_behavior)
+                o_ua = UploadAction(o_dataset, cartabilite=False, behavior=s_behavior)
                 o_upload = o_ua.run(datastore, check_before_close=check_before_close)
                 l_uploads.append(o_upload)
             except Exception as e:
@@ -726,17 +723,16 @@ class Main:
 
     @staticmethod
     def upload_annexe_from_descriptor_file(file: Union[Path, str], datastore: Optional[str] = None) -> Dict[str, Any]:
-        """réalisation des livraison décrite par le fichier
+        """réalisation des livraisons  d'annexe décrites par le fichier indiqué
 
         Args:
-            file (Union[Path, str]): chemin du fichier descripteur de livraison
-            datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
+            file (Union[Path, str]): chemin du fichier descripteur de livraison d'annexes
+            datastore (Optional[str]): datastore à utiliser, datastore par défaut si None
 
         Returns:
-            Dict[str, Any]: dictionnaire avec le résultat des livraisons :
-                "ok" : liste des livraisons sans problèmes,
-                "upload_fail": dictionnaire nom livraison : erreur remonté lors de la livraison
-                "check_fail": liste des livraisons dont les vérification ont échouée
+            Dict[str, Any]: dictionnaire avec le résultat de la livraison des annexes :
+                "ok" : liste des annexes livrées sans problèmes
+                "upload_fail": dictionnaire {nom annexe : erreur remontée lors de la livraison de l'annexe}
         """
         o_dfu = DescriptorFileReader(Path(file), "annexe")
 
@@ -744,7 +740,7 @@ class Main:
         d_upload_fail: Dict[str, Exception] = {}  # dictionnaire "fichier archive" : erreur des uploads qui ont fail
 
         # on fait toutes les livraisons
-        Config().om.info(f"LIVRAISONS DES ARCHIVES : ({len(o_dfu.data)})", green_colored=True)
+        Config().om.info(f"LIVRAISON DES ARCHIVES : ({len(o_dfu.data)})", green_colored=True)
         for d_data in o_dfu.data:
             s_nom = d_data["file"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
@@ -779,16 +775,16 @@ class Main:
 
     @staticmethod
     def upload_static_from_descriptor_file(file: Union[Path, str], datastore: Optional[str] = None) -> Dict[str, Any]:
-        """réalisation des livraison décrite par le fichier
+        """réalisation des livraisons de fichier statique décrites par le fichier indiqué
 
         Args:
-            file (Union[Path, str]): chemin du fichier descripteur de livraison
+            file (Union[Path, str]): chemin du fichier descripteur de livraisons de fichier statique
             datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
 
         Returns:
             Dict[str, Any]: dictionnaire avec le résultat des livraisons :
-                "ok" : liste des livraisons sans problèmes,
-                "upload_fail": dictionnaire nom livraison : erreur remonté lors de la livraison
+                "ok" : liste des livraisons sans problèmes
+                "upload_fail": dictionnaire {nom fichier statique : erreur remontée lors de la livraison du fichier statique}
         """
         o_dfu = DescriptorFileReader(Path(file), "static")
 
@@ -796,7 +792,7 @@ class Main:
         d_upload_fail: Dict[str, Exception] = {}  # dictionnaire "fichier statique" : erreur des uploads qui ont fail
 
         # on fait toutes les livraisons
-        Config().om.info(f"LIVRAISONS DES FICHIERS STATIQUES : ({len(o_dfu.data)})", green_colored=True)
+        Config().om.info(f"LIVRAISON DES FICHIERS STATIQUES : ({len(o_dfu.data)})", green_colored=True)
         for d_data in o_dfu.data:
             s_nom = d_data["file"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
@@ -839,16 +835,16 @@ class Main:
 
     @staticmethod
     def upload_metadata_from_descriptor_file(file: Union[Path, str], datastore: Optional[str] = None) -> Dict[str, Any]:
-        """réalisation des livraison décrite par le fichier
+        """réalisation des livraisons de métadonnée décrites par le fichier indiqué
 
         Args:
-            file (Union[Path, str]): chemin du fichier descripteur de livraison
-            datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
+            file (Union[Path, str]): chemin du fichier descripteur de livraisons de métadonnée
+            datastore (Optional[str]): datastore à utiliser, datastore par défaut si None
 
         Returns:
-            Dict[str, Any]: dictionnaire avec le résultat des livraisons :
-                "ok" : liste des livraisons sans problèmes,
-                "upload_fail": dictionnaire nom livraison : erreur remonté lors de la livraison
+            Dict[str, Any]: dictionnaire avec le résultat des livraisons des fichiers de métadonnée :
+                "ok" : liste des livraisons de métadonnées réussies,
+                "upload_fail": dictionnaire {nom métadonnée : erreur remontée lors de la livraison de la métadonnée}
         """
         o_dfu = DescriptorFileReader(Path(file), "metadata")
 
@@ -856,7 +852,7 @@ class Main:
         d_upload_fail: Dict[str, Exception] = {}  # dictionnaire "fichier statique" : erreur des uploads qui ont fail
 
         # on fait toutes les livraisons
-        Config().om.info(f"LIVRAISONS DES FICHIERS MÉTADONNÉES : ({len(o_dfu.data)})", green_colored=True)
+        Config().om.info(f"LIVRAISON DES FICHIERS DE MÉTADONNÉES : ({len(o_dfu.data)})", green_colored=True)
         for d_data in o_dfu.data:
             s_nom = d_data["file"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
@@ -871,6 +867,76 @@ class Main:
         # vérification des livraisons
         Config().om.info("Fin des livraisons.", green_colored=True)
         return {"ok": l_uploads, "upload_fail": d_upload_fail}
+
+    def key(self) -> None:
+        """Gestion des clefs"""
+        if self.o_args.id is not None:
+            Config().om.info(f"détail pour la clef {self.o_args.id}", green_colored=True)
+            o_key = Key.api_get(self.o_args.id)
+            # affichage
+            Config().om.info(o_key.to_json(indent=3))
+        elif self.o_args.file is not None:
+            Config().om.info("Création de clefs ...", green_colored=True)
+            d_res = self.create_key_from_file(self.o_args.file)
+            # affichage
+            self._display_bilan_creation(d_res)
+        else:
+            Config().om.info("Liste des clefs de l'utilisateur courant...", green_colored=True)
+            l_key = Key.api_list()
+            if l_key:
+                Config().om.info(f"{len(l_key)} clef(s) de l'utilisateur courant :\n" + "\n".join([f" * {o_key['name']} [{o_key['type']}] -- {o_key['_id']}" for o_key in l_key]))
+            else:
+                Config().om.info("Aucune clef.")
+
+    @staticmethod
+    def create_key_from_file(file: Union[str, Path]) -> Dict[str, Any]:
+        """création des clefs décrites par le fichier indiqué
+
+        Args:
+            file (Union[Path, str]): chemin du fichier descripteur des clefs
+
+        Returns:
+            Dict[str, Any]: dictionnaire avec le résultat des créations de clefs :
+                "ok" : liste des clefs créées sans problèmes
+                "fail": dictionnaire {nom clef : erreur remontée lors de la création}
+        """
+
+        l_data = JsonHelper.load(Path(file), file_not_found_pattern="Fichier descripteur de création {json_path} non trouvé.")["key"]
+
+        l_keys: List[Key] = []
+        d_fail: Dict[str, Exception] = {}
+
+        # on fait toutes les livraisons
+        Config().om.info(f"CRÉATION DES CLEFS : ({len(l_data)})", green_colored=True)
+        for d_data in l_data:
+            s_nom = d_data["name"]
+            Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
+            try:
+                o_upload = Key.api_create(d_data)
+                l_keys.append(o_upload)
+            except Exception as e:
+                d_fail[s_nom] = e
+                Config().om.debug(traceback.format_exc())
+                Config().om.error(f"clef {s_nom} : {e}")
+
+        # vérification des livraisons
+        Config().om.info("Fin de la création.", green_colored=True)
+        return {"ok": l_keys, "fail": d_fail}
+
+    @staticmethod
+    def _display_bilan_creation(d_res: Dict[str, Any]) -> None:
+        """Affichage du bilan pour la création d'entité (key)
+
+        Args:
+            d_res (Dict[str, Any]): dictionnaire de résultat {'ok': liste des creation ok, 'fail': dictionnaire 'fichier': erreur}
+        """
+        if d_res["fail"]:
+            Config().om.info("RÉCAPITULATIF DES PROBLÈMES :", green_colored=True)
+            Config().om.error(f"{len(d_res['fail'])} création échouées :\n" + "\n".join([f" * {s_nom} : {e_error}" for s_nom, e_error in d_res["fail"].items()]))
+            Config().om.error(f"BILAN : {len(d_res['ok'])} creation effectués sans erreur, {len(d_res['fail'])} creation échouées")
+            sys.exit(1)
+        else:
+            Config().om.info(f"BILAN : les {len(d_res['ok'])} créations se sont bien passées", green_colored=True)
 
 
 if __name__ == "__main__":

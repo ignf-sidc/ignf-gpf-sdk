@@ -4,11 +4,22 @@
 
 ### [Added]
 
+* Création/consultation des clefs depuis la ligne de commande #96
+* doc/docs/comme-executable.md : Ajout de la documentation pour la suppression, les annexe, les fichiers statics, les fichiers de métadonnées et les clefs
+* ApiRequester, Authentifier: gestion de l'erreur ConnectionError #168
+* ProcessingExecutionAction: Prise en compte des behaviors pour les exécutions mettant à jour une donnée #166
+
 ### [Changed]
+
+* Config :
+  * gestion des fichiers `toml` ;
+  * suppression de la fonction `get_parser` remplacée par `get_config` ;
+  * les fonctions de récupération typées (`get_str`, `get_int`, `get_float`, `get_bool`) renvoient une valeur valide ou lèvent une exception.
 
 ### [Fixed]
 
 * ProcessingExecutionAction: output non obligatoire dans l'étape et dans la processing exécution #165
+* Annexe, Metadata: amélioration de l'affichage des entités
 
 ## v0.1.28
 
