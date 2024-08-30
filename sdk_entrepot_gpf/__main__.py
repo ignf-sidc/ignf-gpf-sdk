@@ -100,7 +100,7 @@ class Main:
         o_parser.add_argument("--version", action="version", version=f"%(prog)s v{sdk_entrepot_gpf.__version__}")
         o_parser.add_argument("--debug", dest="debug", required=False, default=False, action="store_true", help="Passe l'appli en mode debug (plus de messages affichés)")
         o_parser.add_argument("--datastore", "-d", dest="datastore", required=False, default=None, help="Identifiant du datastore à utiliser")
-        o_parser.add_argument("--compatibility-cartes", dest="compatibility_cartes", required=False, default=False, help="active la compatibilité des traitements du SDK avec ceux de cartes.gouv.fr")
+        o_parser.add_argument("--mode-cartes", dest="mode_cartes", required=False, default=None, help="active la compatibilité des traitements du SDK avec ceux de cartes.gouv.fr")
         o_sub_parsers = o_parser.add_subparsers(dest="task", metavar="TASK", required=True, help="Tâche à effectuer")
 
         # Parser pour auth
@@ -344,7 +344,9 @@ class Main:
         return b_res
 
     @staticmethod
-    def upload_from_descriptor_file(file: Union[Path, str], behavior: Optional[str] = None, datastore: Optional[str] = None, check_before_close: bool = False) -> Dict[str, Any]:
+    def upload_from_descriptor_file(
+        file: Union[Path, str], behavior: Optional[str] = None, datastore: Optional[str] = None, check_before_close: bool = False, mode_cartes: Optional[bool] = None
+    ) -> Dict[str, Any]:
         """réalisation des livraisons décrites par le fichier indiqué
 
         Args:
@@ -372,7 +374,7 @@ class Main:
             s_nom = o_dataset.upload_infos["name"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
             try:
-                o_ua = UploadAction(o_dataset, cartabilite=False, behavior=s_behavior)
+                o_ua = UploadAction(o_dataset, mode_cartes=mode_cartes, behavior=s_behavior)
                 o_upload = o_ua.run(datastore, check_before_close=check_before_close)
                 l_uploads.append(o_upload)
             except Exception as e:
@@ -456,8 +458,8 @@ class Main:
         Sinon on liste les Livraisons avec éventuellement des filtres.
         """
         if self.o_args.file is not None:
-            # on livre les données selon le fichier descripteur donné
-            d_res = self.upload_from_descriptor_file(self.o_args.file, self.o_args.behavior, self.o_args.datastore, self.o_args.check_before_close)
+            # on livre les données selon le fichier descripteur donné TODO : ajouter le compatibility dans les args :
+            d_res = self.upload_from_descriptor_file(self.o_args.file, self.o_args.behavior, self.o_args.datastore, self.o_args.check_before_close, self.o_args.mode_cartes)
             # Affichage du bilan
             Config().om.info("-" * 100)
             if d_res["upload_fail"] or d_res["check_fail"]:

@@ -28,21 +28,21 @@ class UploadAction:
     BEHAVIOR_CONTINUE = "CONTINUE"
     BEHAVIORS = [BEHAVIOR_STOP, BEHAVIOR_CONTINUE, BEHAVIOR_DELETE]
 
-    def __init__(self, dataset: Dataset, behavior: Optional[str] = None, cartabilite: Optional[bool] = None) -> None:
+    def __init__(self, dataset: Dataset, behavior: Optional[str] = None, mode_cartes: Optional[bool] = None) -> None:
         """initialise le comportement de UploadAction
 
         Args:
             dataset (Dataset): _description_
-            cartabiite (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
+            mode_cartes (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
             behavior (Optional[str], optional): _description_. Defaults to None.
         """
         self.__dataset: Dataset = dataset
         self.__upload: Optional[Upload] = None
         # On suit le comportement donnée en paramètre ou à défaut celui de la config
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
-        self.__mode_cartes = cartabilite
+        self.__mode_cartes = mode_cartes if mode_cartes is not None else Config().get_bool("compatibility_cartes", "activate", False)
 
-    def run(self, datastore: Optional[str], compatibilite_cartes: bool, check_before_close: bool = False) -> Upload:
+    def run(self, datastore: Optional[str], check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
         retourner la livraison créée.
 
@@ -67,16 +67,14 @@ class UploadAction:
         # Cas livraison fermé = déjà traité : on sort
         if not self.upload.is_open():
             return self.upload
-        if compatibilite_cartes:
-            self.__add_carte_tags("upload_creation")
+        self.__add_carte_tags("upload_creation")
 
         # Ajout des tags
         self.__add_tags()
         # Ajout des commentaires
         self.__add_comments()
 
-        if compatibilite_cartes:
-            self.__add_carte_tags("upload_upload_start")
+        self.__add_carte_tags("upload_upload_start")
         # Envoie des fichiers de données (pas de vérification sur les problèmes de livraison si check_before_close)
         self.__push_data_files(not check_before_close)
         # Envoie des fichiers md5 (pas de vérification sur les problèmes de livraison si check_before_close)
@@ -94,8 +92,7 @@ class UploadAction:
             # Affichage
             Config().om.info(f"Livraison créée et complétée : {self.upload}")
             Config().om.info("Création et complétion d'une livraison : terminé")
-            if compatibilite_cartes:
-                self.__add_carte_tags("upload_upload_end")
+            self.__add_carte_tags("upload_upload_end")
             # Retour
             return self.upload
         # On ne devrait pas arriver ici...
@@ -148,13 +145,17 @@ class UploadAction:
         """En mode cartes.gouv, ajoute les tags nécessaires."""
         # lister toutes les clés dans la section compatibility_cartes, filtrer chaque clé qui commence par upload_step,
         # mettre la fin de la clé dans un tag et mettre la value (en string) comme value du tag (self.__upload.api_add_tags(...))
+        if not self.__mode_cartes:
+            return
         d_section = Config().get_config()["compatibility_cartes"]
         if self.__upload is not None and d_section is not None:
+            d_tag = {}
             for s_key, s_val in d_section.items():
                 if s_key.startswith(upload_step):
-                    d_tag = {}
+                    # on va chercher la fin du mot clé (apres le upload_step et le underscore)
                     d_tag[s_key[len(upload_step) + 1 :]] = str(s_val)
-                    self.__upload.api_add_tags(d_tag)
+            if d_tag:
+                self.__upload.api_add_tags(d_tag)
 
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
