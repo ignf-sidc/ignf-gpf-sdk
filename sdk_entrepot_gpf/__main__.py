@@ -324,7 +324,14 @@ class Main:
                 print(toml.dumps(d_config))
 
     @staticmethod
-    def __monitoring_upload(upload: Upload, message_ok: str, message_ko: str, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None) -> bool:
+    def __monitoring_upload(
+        upload: Upload,
+        message_ok: str,
+        message_ko: str,
+        callback: Optional[Callable[[str], None]] = None,
+        ctrl_c_action: Optional[Callable[[], bool]] = None,
+        mode_cartes: Optional[bool] = None,
+    ) -> bool:
         """Monitoring de l'upload et affichage état de sortie
 
         Args:
@@ -336,7 +343,7 @@ class Main:
         Returns:
             bool: True si toutes les vérifications sont ok, sinon False
         """
-        b_res = UploadAction.monitor_until_end(upload, callback, ctrl_c_action)
+        b_res = UploadAction.monitor_until_end(upload, callback, ctrl_c_action, mode_cartes)
         if b_res:
             Config().om.info(message_ok.format(upload=upload), green_colored=True)
         else:
@@ -345,7 +352,11 @@ class Main:
 
     @staticmethod
     def upload_from_descriptor_file(
-        file: Union[Path, str], behavior: Optional[str] = None, datastore: Optional[str] = None, check_before_close: bool = False, mode_cartes: Optional[bool] = None
+        file: Union[Path, str],
+        behavior: Optional[str] = None,
+        datastore: Optional[str] = None,
+        check_before_close: bool = False,
+        mode_cartes: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """réalisation des livraisons décrites par le fichier indiqué
 
@@ -389,7 +400,14 @@ class Main:
         l_check_ok = []
         for o_upload in l_uploads:
             Config().om.info(f"{Color.BLUE} * {o_upload}{Color.END}")
-            b_res = Main.__monitoring_upload(o_upload, "Livraison {upload} créée avec succès.", "Livraison {upload} créée en erreur !", print, Main.ctrl_c_upload)
+            b_res = Main.__monitoring_upload(
+                o_upload,
+                "Livraison {upload} créée avec succès.",
+                "Livraison {upload} créée en erreur !",
+                print,
+                Main.ctrl_c_upload,
+                mode_cartes,
+            )
             if b_res:
                 l_check_ok.append(o_upload)
             else:
@@ -422,7 +440,7 @@ class Main:
         raise GpfSdkError(f"La livraison {upload} n'est pas dans un état permettant de d'ouvrir la livraison ({upload['status']}).")
 
     @staticmethod
-    def close_upload(upload: Upload) -> None:
+    def close_upload(upload: Upload, mode_cartes: bool) -> None:
         """fermeture d'une livraison
 
         Args:
@@ -437,12 +455,12 @@ class Main:
             upload.api_close()
             Config().om.info(f"La livraison {upload} viens d'être Fermée.", green_colored=True)
             # monitoring des tests :
-            Main.__monitoring_upload(upload, "Livraison {upload} fermée avec succès.", "Livraison {upload} fermée en erreur !", print, Main.ctrl_c_upload)
+            Main.__monitoring_upload(upload, "Livraison {upload} fermée avec succès.", "Livraison {upload} fermée en erreur !", print, Main.ctrl_c_upload, mode_cartes)
             return
         # si STATUS_CHECKING : monitoring
         if upload["status"] == Upload.STATUS_CHECKING:
             Config().om.info(f"La livraison {upload} est fermé, les tests sont en cours.")
-            Main.__monitoring_upload(upload, "Livraison {upload} fermée avec succès.", "Livraison {upload} fermée en erreur !", print, Main.ctrl_c_upload)
+            Main.__monitoring_upload(upload, "Livraison {upload} fermée avec succès.", "Livraison {upload} fermée en erreur !", print, Main.ctrl_c_upload, mode_cartes)
             return
         # si ferme OK ou KO : warning
         if upload["status"] in [Upload.STATUS_CLOSED, Upload.STATUS_UNSTABLE]:
@@ -480,7 +498,7 @@ class Main:
             if self.o_args.open:
                 self.open_upload(o_upload)
             elif self.o_args.close:
-                self.close_upload(o_upload)
+                self.close_upload(o_upload, self.o_args.mode_cartes)
             else:
                 # affichage
                 Config().om.info(o_upload.to_json(indent=3))

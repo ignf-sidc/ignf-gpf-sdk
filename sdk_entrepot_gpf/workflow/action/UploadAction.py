@@ -141,21 +141,26 @@ class UploadAction:
             self.__upload.api_add_tags(self.__dataset.tags)
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
 
-    def __add_carte_tags(self, upload_step) -> None:
+    @staticmethod
+    def add_carte_tags(mode_cartes: bool, upload: Optional[Upload], upload_step: str) -> None:
         """En mode cartes.gouv, ajoute les tags nécessaires."""
         # lister toutes les clés dans la section compatibility_cartes, filtrer chaque clé qui commence par upload_step,
         # mettre la fin de la clé dans un tag et mettre la value (en string) comme value du tag (self.__upload.api_add_tags(...))
-        if not self.__mode_cartes:
+        if not mode_cartes:
             return
         d_section = Config().get_config()["compatibility_cartes"]
-        if self.__upload is not None and d_section is not None:
+        if upload is not None and d_section is not None:
             d_tag = {}
             for s_key, s_val in d_section.items():
                 if s_key.startswith(upload_step):
                     # on va chercher la fin du mot clé (apres le upload_step et le underscore)
                     d_tag[s_key[len(upload_step) + 1 :]] = str(s_val)
             if d_tag:
-                self.__upload.api_add_tags(d_tag)
+                upload.api_add_tags(d_tag)
+
+    def __add_carte_tags(self, upload_step: str) -> None:
+        """En mode cartes.gouv, ajoute les tags nécessaires via la méthode statique."""
+        UploadAction.add_carte_tags(self.__mode_cartes, self.__upload, upload_step)
 
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
@@ -334,7 +339,7 @@ class UploadAction:
         return self.__upload
 
     @staticmethod
-    def monitor_until_end(upload: Upload, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None) -> bool:
+    def monitor_until_end(upload: Upload, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None, mode_cartes: Optional[bool] = None) -> bool:
         """Attend que toute les vérifications liées à la Livraison indiquée
         soient terminées (en erreur ou en succès) avant de rendre la main.
 
@@ -407,10 +412,13 @@ class UploadAction:
 
         # Si on est sorti du while c'est que les vérifications sont terminées
         # On log le dernier rapport selon l'état et on sort
+        mode_cartes = mode_cartes if mode_cartes is not None else Config().get_bool("compatibility_cartes", "activate", False)
         if b_success:
             Config().om.info(s_message)
+            UploadAction.add_carte_tags(mode_cartes, upload, "upload_check_ok")
             return True
         Config().om.warning(s_message)
+        UploadAction.add_carte_tags(mode_cartes, upload, "upload_check_ko")
         return False
 
     @staticmethod
