@@ -27,6 +27,7 @@ from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
 from tests.GpfTestCase import GpfTestCase
 
 # pylint:disable=too-many-statements
+# fmt:off
 
 
 class WorkflowTestCase(GpfTestCase):

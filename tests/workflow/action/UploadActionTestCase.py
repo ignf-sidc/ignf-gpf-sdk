@@ -708,7 +708,7 @@ class UploadActionTestCase(GpfTestCase):
         # elle renvoie une liste avec des traitements en attente 2 fois puis une liste avec que des succès
         l_returns = [d_list_checks_wait_1, d_list_checks_wait_2, d_list_checks_ok]
         with patch.object(Upload, "api_list_checks", side_effect=l_returns) as o_mock_list_checks:
-            with patch.object(UploadAction, "add_carte_tags") as o_mock_add_carte_tags:
+            with patch.object(UploadAction, "add_carte_tags") as o_mock__add_carte_tags:
                 # On instancie un Upload
                 o_upload = Upload({"_id": "id_upload_monitor"})
                 # On instancie un faux callback
@@ -727,7 +727,7 @@ class UploadActionTestCase(GpfTestCase):
                 # Vérifications sur b_result : doit être finalement ok
                 self.assertTrue(b_result)
                 # Vérification sur add_carte_tags() : on devrait avoir "upload_check_ok"
-                o_mock_add_carte_tags.assert_called_once_with(True, o_upload, "upload_check_ok")
+                o_mock__add_carte_tags.assert_called_once_with(True, o_upload, "upload_check_ok")
 
     def test_monitor_until_end_ko(self) -> None:
         """Vérifie le bon fonctionnement de monitor_until_end si à la fin c'est ko."""
@@ -739,7 +739,7 @@ class UploadActionTestCase(GpfTestCase):
         # elle renvoie une liste avec des traitements en attente 2 fois puis une liste avec des erreurs
         l_returns = [d_list_checks_wait_1, d_list_checks_wait_2, d_list_checks_ko]
         with patch.object(Upload, "api_list_checks", side_effect=l_returns) as o_mock_list_checks:
-            with patch.object(UploadAction, "add_carte_tags") as o_mock_add_carte_tags:
+            with patch.object(UploadAction, "add_carte_tags") as o_mock__add_carte_tags:
                 # On instancie un Upload
                 o_upload = Upload({"_id": "id_upload_monitor"})
                 # On instancie un faux callback
@@ -758,7 +758,7 @@ class UploadActionTestCase(GpfTestCase):
                 # Vérifications sur b_result : doit être finalement ko
                 self.assertFalse(b_result)
                 # Vérification sur add_carte_tags() : on devrait avoir "upload_check_ko"
-                o_mock_add_carte_tags.assert_called_once_with(True, o_upload, "upload_check_ko")
+                o_mock__add_carte_tags.assert_called_once_with(True, o_upload, "upload_check_ko")
 
     def test_interrupt_monitor_until_end(self) -> None:
         """Vérifie le bon fonctionnement de monitor_until_end si il y a interruption en cours de route."""

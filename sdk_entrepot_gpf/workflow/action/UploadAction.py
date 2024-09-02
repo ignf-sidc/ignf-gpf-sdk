@@ -33,8 +33,8 @@ class UploadAction:
 
         Args:
             dataset (Dataset): _description_
-            mode_cartes (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
             behavior (Optional[str], optional): _description_. Defaults to None.
+            mode_cartes (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
         """
         self.__dataset: Dataset = dataset
         self.__upload: Optional[Upload] = None
