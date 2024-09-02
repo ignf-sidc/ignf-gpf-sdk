@@ -476,7 +476,7 @@ class Main:
         Sinon on liste les Livraisons avec éventuellement des filtres.
         """
         if self.o_args.file is not None:
-            # on livre les données selon le fichier descripteur donné TODO : ajouter le compatibility dans les args :
+            # on livre les données selon le fichier descripteur donné
             d_res = self.upload_from_descriptor_file(self.o_args.file, self.o_args.behavior, self.o_args.datastore, self.o_args.check_before_close, self.o_args.mode_cartes)
             # Affichage du bilan
             Config().om.info("-" * 100)
