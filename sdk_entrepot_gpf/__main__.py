@@ -385,7 +385,7 @@ class Main:
             s_nom = o_dataset.upload_infos["name"]
             Config().om.info(f"{Color.BLUE} * {s_nom}{Color.END}")
             try:
-                o_ua = UploadAction(o_dataset, mode_cartes=mode_cartes, behavior=s_behavior)
+                o_ua = UploadAction(o_dataset, compatibility_cartes=mode_cartes, behavior=s_behavior)
                 o_upload = o_ua.run(datastore, check_before_close=check_before_close)
                 l_uploads.append(o_upload)
             except Exception as e:
