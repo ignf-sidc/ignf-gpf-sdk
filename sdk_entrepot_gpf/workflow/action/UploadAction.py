@@ -143,7 +143,7 @@ class UploadAction:
 
     @staticmethod
     def add_carte_tags(mode_cartes: bool, upload: Optional[Upload], upload_step: str) -> None:
-        """En mode cartes.gouv, ajoute les tags nécessaires."""
+        """En mode cartes, ajoute les tags nécessaires."""
         # lister toutes les clés dans la section compatibility_cartes, filtrer chaque clé qui commence par upload_step,
         # mettre la fin de la clé dans un tag et mettre la value (en string) comme value du tag (self.__upload.api_add_tags(...))
         if not mode_cartes:
@@ -159,7 +159,7 @@ class UploadAction:
                 upload.api_add_tags(d_tag)
 
     def __add_carte_tags(self, upload_step: str) -> None:
-        """En mode cartes.gouv, ajoute les tags nécessaires via la méthode statique."""
+        """En mode cartes, ajoute les tags nécessaires via la méthode statique."""
         UploadAction.add_carte_tags(self.__mode_cartes, self.__upload, upload_step)
 
     def __add_comments(self) -> None:
