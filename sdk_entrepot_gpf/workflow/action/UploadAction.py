@@ -28,19 +28,19 @@ class UploadAction:
     BEHAVIOR_CONTINUE = "CONTINUE"
     BEHAVIORS = [BEHAVIOR_STOP, BEHAVIOR_CONTINUE, BEHAVIOR_DELETE]
 
-    def __init__(self, dataset: Dataset, behavior: Optional[str] = None, mode_cartes: Optional[bool] = None) -> None:
+    def __init__(self, dataset: Dataset, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None) -> None:
         """initialise le comportement de UploadAction
 
         Args:
             dataset (Dataset): _description_
             behavior (Optional[str], optional): _description_. Defaults to None.
-            mode_cartes (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
+            compatibility_cartes (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
         """
         self.__dataset: Dataset = dataset
         self.__upload: Optional[Upload] = None
         # On suit le comportement donnée en paramètre ou à défaut celui de la config
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
-        self.__mode_cartes = mode_cartes if mode_cartes is not None else Config().get_bool("compatibility_cartes", "activate", False)
+        self.__mode_cartes = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate", False)
 
     def run(self, datastore: Optional[str], check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
@@ -58,7 +58,7 @@ class UploadAction:
         """
         # test: si le mode carte est actif alors le data_sheet doit être présent
         if self.__mode_cartes and not self.__dataset.tags["datasheet_name"]:
-            raise GpfSdkError("En mode compatibilité avec le site cartes.gouv: le nom de la fiche de donnée est obligatoire")
+            raise GpfSdkError("En mode compatibilité avec cartes.gouv, le tag datasheet_name contenant le nom de la fiche de donnée est obligatoire")
         Config().om.info("Création et complétion d'une livraison...")
         # Création de la livraison
         self.__create_upload(datastore)
