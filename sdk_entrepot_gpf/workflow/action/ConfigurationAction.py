@@ -25,7 +25,7 @@ class ConfigurationAction(ActionAbstract):
         self.__configuration: Optional[Configuration] = None
         # comportement (écrit dans la ligne de commande par l'utilisateur), sinon celui par défaut (dans la config) qui vaut CONTINUE
         self.__behavior: str = behavior if behavior is not None else Config().get_str("configuration", "behavior_if_exists")
-        self.__compatibility_cartes: Optional[bool] = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate")
+        self.__mode_cartes: Optional[bool] = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate")
 
     def run(self, datastore: Optional[str] = None) -> None:
         Config().om.info("Création et complétion d'une configuration...")
@@ -78,8 +78,8 @@ class ConfigurationAction(ActionAbstract):
         if not self.configuration or not self.definition_dict:
             # uniquement pour le type, dans les fait le programme sort en erreur avant d'arivé ici
             return
-        if self.__compatibility_cartes and "datasheet_name" not in self.definition_dict.get("tags", {}):
-            # tag datasheet_name obligatoire en mode __compatibility_cartes
+        if self.__mode_cartes and "datasheet_name" not in self.definition_dict.get("tags", {}):
+            # tag datasheet_name obligatoire en mode cartes
             raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
         # on vérifie que la configuration et definition_dict ne sont pas null et on vérifie qu'il y'a bien une clé tags
         if self.definition_dict.get("tags"):

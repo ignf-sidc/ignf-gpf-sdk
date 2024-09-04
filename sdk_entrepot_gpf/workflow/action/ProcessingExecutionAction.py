@@ -55,7 +55,7 @@ class ProcessingExecutionAction(ActionAbstract):
         self.__inputs_stored_data: Optional[List[StoredData]] = None
         # comportement (écrit dans la ligne de commande par l'utilisateur), sinon celui par défaut (dans la config) qui vaut STOP
         self.__behavior: str = behavior if behavior is not None else Config().get_str("processing_execution", "behavior_if_exists")
-        self.__compatibility_cartes: Optional[bool] = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate")
+        self.__mode_cartes: Optional[bool] = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate")
 
     def run(self, datastore: Optional[str] = None) -> None:
         Config().om.info("Création d'une exécution de traitement et complétion de l'entité en sortie...")
@@ -169,7 +169,7 @@ class ProcessingExecutionAction(ActionAbstract):
         """Ajout des tags sur l'Upload ou la StoredData en sortie du ProcessingExecution."""
         d_tags = self.definition_dict.get("tags", {})
         # gestion des tags pour compatibility_cartes
-        if self.__compatibility_cartes and self.__processing_execution:
+        if self.__mode_cartes and self.__processing_execution:
             # mise en base de donnée livrée (vecteur)
             if self.__processing_execution.id == Config().get_str("compatibility_cartes", "id_mise_en_base"):
                 if "datasheet_name" not in d_tags:
@@ -361,8 +361,8 @@ class ProcessingExecutionAction(ActionAbstract):
         ## dernier affichage
         callback_not_null(self.processing_execution)
 
-        # gestion de __compatibility_cartes
-        if self.__compatibility_cartes and self.processing_execution.id == Config().get_str("compatibility_cartes", "id_mise_en_base"):
+        # gestion du mode cartes
+        if self.__mode_cartes and self.processing_execution.id == Config().get_str("compatibility_cartes", "id_mise_en_base"):
             if not self.__inputs_upload:
                 raise GpfSdkError("Intégration de données vecteur livrées en base : input and output obligatoire")
             s_key = "execution_end_ok_integration_progress" if s_status == ProcessingExecution.STATUS_SUCCESS else "execution_end_ko_integration_progress"
