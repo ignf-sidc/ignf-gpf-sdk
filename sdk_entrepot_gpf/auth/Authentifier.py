@@ -1,3 +1,5 @@
+import json
+import os
 import datetime
 import time
 import traceback
@@ -24,6 +26,8 @@ class Authentifier(metaclass=Singleton):
         __sec_between_attempt (int): nombre de secondes entre deux tentatives en cas de problème rencontré pendant la récupération du jeton
         __last_token (Token): sauvegarde du dernier jeton récupéré (pour éviter de multiples requêtes au serveur KeyCloak)
     """
+
+    TOKEN_KEY = "SDK_ENTREPOT_TOKEN"
 
     def __init__(self) -> None:
         # Sauvegarde de la conf comme attributs d'instance
@@ -82,7 +86,16 @@ class Authentifier(metaclass=Singleton):
         Raises:
             Exception: liée à la requête http, levée si la récupération de jeton au bout de `nb_attempts` tentatives
         """
-        o_response = None
+        # Si le token est défini en var d'env, on le récupère !
+        if Authentifier.TOKEN_KEY in os.environ:
+            self.__last_token = Token(
+                {
+                    "access_token": os.environ[Authentifier.TOKEN_KEY],
+                    "expires_in": 3600,
+                }
+            )
+            return
+        # Sinon, on utilise le KeyCloak
         try:
             # Préparation données d'authentification
             d_data = self.__request_params.copy()

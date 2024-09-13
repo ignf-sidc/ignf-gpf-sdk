@@ -8,6 +8,7 @@
 * doc/docs/comme-executable.md : Ajout de la documentation pour la suppression, les annexe, les fichiers statics, les fichiers de métadonnées et les clefs
 * ApiRequester, Authentifier: gestion de l'erreur ConnectionError #168
 * ProcessingExecutionAction: Prise en compte des behaviors pour les exécutions mettant à jour une donnée #166
+* `Authentifier` : possibilité de récupérer le token en variable d'environnement (`$SDK_ENTREPOT_TOKEN`)
 
 ### [Changed]
 
