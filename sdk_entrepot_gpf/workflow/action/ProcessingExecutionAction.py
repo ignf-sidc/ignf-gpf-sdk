@@ -8,6 +8,9 @@ from sdk_entrepot_gpf.store.StoredData import StoredData
 from sdk_entrepot_gpf.workflow.Errors import StepActionError
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 from sdk_entrepot_gpf.store.Upload import Upload
+from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
+
+# cSpell:ignore datasheet vectordb creat
 
 
 class ProcessingExecutionAction(ActionAbstract):
@@ -255,23 +258,19 @@ class ProcessingExecutionAction(ActionAbstract):
                 if "datasheet_name" not in d_tags:
                     raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
                 if not self.__inputs_upload or not self.stored_data:
-                    raise GpfSdkError("Intégration de données vecteur livrées en base : input and output obligatoire")
+                    raise GpfSdkError("Intégration de données vecteur livrées en base : input and output obligatoires")
                 for o_upload in self.__inputs_upload:
-                    o_upload.api_add_tags(
-                        {
-                            "integration_progress": Config().get_str("compatibility_cartes", "execution_start_integration_progress"),
-                            "integration_current_step": Config().get_str("compatibility_cartes", "execution_start_integration_current_step"),
-                            "proc_int_id": self.__processing_execution.id,
-                            "vectordb_id": self.stored_data.id,
-                        }
-                    )
+                    # ajout des tags génériques
+                    o_upload.api_add_tags({"proc_int_id": self.__processing_execution.id, "vectordb_id": self.stored_data.id})
+                    # ajout des tags spécifiques au mode cartes
+                    UploadAction.add_carte_tags(self.__mode_cartes, o_upload, "execution_start")
                 d_tags["uuid_upload"] = self.__inputs_upload[0].id
             # création de pyramide vecteur
             elif self.__processing_execution.id == Config().get_str("compatibility_cartes", "id_pyramide_vecteur"):
                 if "datasheet_name" not in d_tags:
                     raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
                 if not self.__inputs_stored_data or not self.stored_data:
-                    raise GpfSdkError("Création de pyramide vecteur : input and output obligatoire")
+                    raise GpfSdkError("Création de pyramide vecteur : input and output obligatoires")
                 d_tags["vectordb_id"] = self.__inputs_stored_data[0].id
                 d_tags["proc_pyr_creat_id"] = self.__processing_execution.id
 
@@ -444,7 +443,7 @@ class ProcessingExecutionAction(ActionAbstract):
         # gestion du mode cartes
         if self.__mode_cartes and self.processing_execution.id == Config().get_str("compatibility_cartes", "id_mise_en_base"):
             if not self.__inputs_upload:
-                raise GpfSdkError("Intégration de données vecteur livrées en base : input and output obligatoire")
+                raise GpfSdkError("Intégration de données vecteur livrées en base : input and output obligatoires")
             s_key = "execution_end_ok_integration_progress" if s_status == ProcessingExecution.STATUS_SUCCESS else "execution_end_ko_integration_progress"
             for o_upload in self.__inputs_upload:
                 o_upload.api_add_tags({"integration_progress": Config().get_str("compatibility_cartes", s_key)})
