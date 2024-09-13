@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+## v0.1.29
+
+### [Fixed]
+
+* `ReUploadFileInterface` : ajout de `route_params` pour modifier l'entité. (fix #178)
+
 ## v0.1.28
 
 ### [Added]
