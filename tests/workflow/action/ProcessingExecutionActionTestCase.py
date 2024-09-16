@@ -12,7 +12,6 @@ from sdk_entrepot_gpf.workflow.Errors import StepActionError
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.Errors import GpfSdkError
-from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
 from tests.GpfTestCase import GpfTestCase
 
 # cSpell:ignore datasheet vectordb creat specifique
