@@ -12,9 +12,10 @@ from sdk_entrepot_gpf.workflow.Errors import StepActionError
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.Errors import GpfSdkError
+from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
 from tests.GpfTestCase import GpfTestCase
 
-# cSpell:ignore datasheet vectordb creat
+# cSpell:ignore datasheet vectordb creat specifique
 
 
 # pylint:disable=too-many-arguments
@@ -351,14 +352,15 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
         d_def["tags"] = {**d_tags, "datasheet_name": "name"}
         with patch.object(ProcessingExecutionAction, "stored_data", new_callable=PropertyMock) as o_mock_stored_data:
             with patch.object(Config(), "get_str", side_effect=lambda x, y: y):
-                o_pe._ProcessingExecutionAction__add_tags()  # appelle la méthode privée __add_tags
-                # o_mock_config.assert_any_call("compatibility_cartes", "execution_start_integration_progress")
-                # o_mock_config.assert_any_call("compatibility_cartes", "execution_start_integration_current_step")
+                # on appelle la méthode privée __add_tags :
+                o_pe._ProcessingExecutionAction__add_tags()
                 for o_upload in l_inputs_upload:
+                    # test sur le nombre d'appels :
                     self.assertEqual(o_upload.api_add_tags.call_count, 2)
-                    # TODO Alain ? tester l'appel avec successivement :
-                    # {"proc_int_id": o_processing_execution.id, "vectordb_id": o_mock_stored_data.return_value.id}
-                    # {'integration_progress': '{"send_files_api": "successful", "wait_checks": "successful","integration_processing": "in_progress"}', 'integration_current_step': '2'}
+                    # test sur les paramètres passés :
+                    d_general = {"proc_int_id": o_processing_execution.id, "vectordb_id": o_mock_stored_data.return_value.id}
+                    d_specifique = {"integration_progress": '{"send_files_api": "successful", "wait_checks": "successful","integration_processing": "in_progress"}', "integration_current_step": "2"}
+                    o_upload.api_add_tags.assert_has_calls([call(d_general), call(d_specifique)])
                 o_mock_stored_data.return_value.api_add_tags.assert_called_once_with({**d_tags, "datasheet_name": "name", "uuid_upload": l_inputs_upload[0].id})
 
         ## pyramide_vecteur : manque datasheet_name
