@@ -115,7 +115,8 @@ class UploadActionTestCase(GpfTestCase):
         super().setUpClass()
         # On détruit le Singleton Config
         Config._instance = None
-        # On charge une config spéciale pour les tests d'upload
+        # On surcharge la config de base pour les tests d'upload : nb_sec_between_check_updates=0 au lieu de =10
+        # pour ne pas attendre entre 2 m-à-j du statut de vérification)
         o_config = Config()
         o_config.read(GpfTestCase.conf_dir_path / "test_upload.ini")
         o_config.set_output_manager(MagicMock())
