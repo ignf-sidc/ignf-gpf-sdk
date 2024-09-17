@@ -14,7 +14,7 @@ from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import Processin
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from tests.GpfTestCase import GpfTestCase
 
-# cSpell:ignore datasheet vectordb creat specifique
+# cSpell:ignore datasheet vectordb creat
 
 
 # pylint:disable=too-many-arguments
@@ -357,9 +357,9 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
                     # test sur le nombre d'appels :
                     self.assertEqual(o_upload.api_add_tags.call_count, 2)
                     # test sur les paramètres passés :
-                    d_general = {"proc_int_id": o_processing_execution.id, "vectordb_id": o_mock_stored_data.return_value.id}
-                    d_specifique = {"integration_progress": '{"send_files_api": "successful", "wait_checks": "successful","integration_processing": "in_progress"}', "integration_current_step": "2"}
-                    o_upload.api_add_tags.assert_has_calls([call(d_general), call(d_specifique)])
+                    d_traitement = {"proc_int_id": o_processing_execution.id, "vectordb_id": o_mock_stored_data.return_value.id}
+                    d_etape = {"integration_progress": '{"send_files_api": "successful", "wait_checks": "successful","integration_processing": "in_progress"}', "integration_current_step": "2"}
+                    o_upload.api_add_tags.assert_has_calls([call(d_traitement), call(d_etape)])
                 o_mock_stored_data.return_value.api_add_tags.assert_called_once_with({**d_tags, "datasheet_name": "name", "uuid_upload": l_inputs_upload[0].id})
 
         ## pyramide_vecteur : manque datasheet_name

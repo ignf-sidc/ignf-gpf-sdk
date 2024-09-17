@@ -260,9 +260,9 @@ class ProcessingExecutionAction(ActionAbstract):
                 if not self.__inputs_upload or not self.stored_data:
                     raise GpfSdkError("Intégration de données vecteur livrées en base : input and output obligatoires")
                 for o_upload in self.__inputs_upload:
-                    # ajout des tags génériques
+                    # ajout des tags "mode cartes" permettant d'identifier le traitement et la donnée stockée liés à la livraison
                     o_upload.api_add_tags({"proc_int_id": self.__processing_execution.id, "vectordb_id": self.stored_data.id})
-                    # ajout des tags spécifiques au mode cartes
+                    # ajout des tags "mode cartes" permettant de suivre l'étape du traitement
                     UploadAction.add_carte_tags(self.__mode_cartes, o_upload, "execution_start")
                 d_tags["uuid_upload"] = self.__inputs_upload[0].id
             # création de pyramide vecteur
