@@ -52,7 +52,7 @@ class ProcessingExecutionAction(ActionAbstract):
         self.__behavior: str = behavior if behavior is not None else Config().get_str("processing_execution", "behavior_if_exists")
 
     def run(self, datastore: Optional[str] = None) -> None:
-        Config().om.info("Création d'une exécution de traitement et complétion de l'entité en sortie...")
+        Config().om.info("Création d'une exécution de traitement et complétion de l'entité en sortie...", force_flush=True)
         # Création de l'exécution du traitement (attributs processing_execution et Upload/StoredData défini)
         self.__create_processing_execution(datastore)
         # Ajout des tags sur l'Upload ou la StoredData
@@ -279,11 +279,11 @@ class ProcessingExecutionAction(ActionAbstract):
             raise StepActionError("Aucune exécution de traitement trouvée. Impossible de lancer le traitement")
 
         if self.processing_execution["status"] == ProcessingExecution.STATUS_CREATED:
-            Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : lancement...")
+            Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : lancement...", force_flush=True)
             self.processing_execution.api_launch()
-            Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : lancée avec succès.")
+            Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : lancée avec succès.", force_flush=True)
         elif self.__behavior in [self.BEHAVIOR_CONTINUE, self.BEHAVIOR_RESUME]:
-            Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : déjà lancée.")
+            Config().om.info(f"Exécution de traitement {self.processing_execution['processing']['name']} : déjà lancée.", force_flush=True)
         else:
             # processing_execution est déjà lancé ET le __behavior n'est pas en "continue", on ne devrait pas être ici :
             raise StepActionError("L'exécution de traitement est déjà lancée.")
@@ -332,7 +332,7 @@ class ProcessingExecutionAction(ActionAbstract):
 
         # NOTE :  Ne pas utiliser self.__processing_execution mais self.processing_execution pour faciliter les tests
         i_nb_sec_between_check = Config().get_int("processing_execution", "nb_sec_between_check_updates")
-        Config().om.info(f"Monitoring du traitement toutes les {i_nb_sec_between_check} secondes...")
+        Config().om.info(f"Monitoring du traitement toutes les {i_nb_sec_between_check} secondes...", force_flush=True)
         if self.processing_execution is None:
             raise StepActionError("Aucune processing-execution trouvée. Impossible de suivre le déroulement du traitement")
 
@@ -368,7 +368,7 @@ class ProcessingExecutionAction(ActionAbstract):
                         raise
 
                     # arrêt du traitement
-                    Config().om.warning("Ctrl+C : traitement en cours d’interruption, veuillez attendre...")
+                    Config().om.warning("Ctrl+C : traitement en cours d’interruption, veuillez attendre...", force_flush=True)
                     self.processing_execution.api_abort()
                     # attente que le traitement passe dans un statut terminé
                     self.processing_execution.api_update()

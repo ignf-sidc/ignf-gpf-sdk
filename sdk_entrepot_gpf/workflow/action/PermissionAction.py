@@ -23,7 +23,7 @@ class PermissionAction(ActionAbstract):
         self.__permission: Optional[Permission] = None
 
     def run(self, datastore: Optional[str] = None) -> None:
-        Config().om.info("Création d'une permission...")
+        Config().om.info("Création d'une permission...", force_flush=True)
         # Création de la permission
         self.__create_permission(datastore)
         Config().om.info(f"Permissions créées : {self.permission}")

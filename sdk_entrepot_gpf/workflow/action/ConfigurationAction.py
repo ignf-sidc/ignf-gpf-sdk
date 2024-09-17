@@ -25,7 +25,7 @@ class ConfigurationAction(ActionAbstract):
         self.__behavior: str = behavior if behavior is not None else Config().get_str("configuration", "behavior_if_exists")
 
     def run(self, datastore: Optional[str] = None) -> None:
-        Config().om.info("Création et complétion d'une configuration...")
+        Config().om.info("Création et complétion d'une configuration...", force_flush=True)
         # Création de la Configuration
         self.__create_configuration(datastore)
         # Ajout des tags sur la Configuration
@@ -64,7 +64,7 @@ class ConfigurationAction(ActionAbstract):
                 )
         # Création en gérant une erreur de type ConflictError (si la Configuration existe déjà selon les critères de l'API)
         try:
-            Config().om.info("Création de la configuration...")
+            Config().om.info("Création de la configuration...", force_flush=True)
             self.__configuration = Configuration.api_create(self.definition_dict["body_parameters"], route_params={"datastore": datastore})
             Config().om.info(f"Configuration {self.__configuration['name']} créée avec succès.")
         except ConflictError as e:
