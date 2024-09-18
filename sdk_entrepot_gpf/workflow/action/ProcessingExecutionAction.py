@@ -254,7 +254,7 @@ class ProcessingExecutionAction(ActionAbstract):
         # gestion des tags pour compatibility_cartes
         if self.__mode_cartes and self.__processing_execution:
             # mise en base de donnée livrée (vecteur)
-            if self.__processing_execution.id == Config().get_str("compatibility_cartes", "id_mise_en_base"):
+            if self.__processing_execution.get_store_properties().get("processing", {"_id": ""})["_id"] == Config().get_str("compatibility_cartes", "id_mise_en_base"):
                 if "datasheet_name" not in d_tags:
                     raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
                 if not self.__inputs_upload or not self.stored_data:
