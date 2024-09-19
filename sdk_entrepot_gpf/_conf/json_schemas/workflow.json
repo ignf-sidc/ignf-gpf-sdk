@@ -3,9 +3,6 @@
     "title": "Schéma JSON pour un fichier workflow",
     "description": "",
     "type": "object",
-    "workflow": [
-        "workflow"
-    ],
     "properties": {
         "workflow": {
             "type": "object",
@@ -156,6 +153,9 @@
         },
         "tags": {
             "type": "object"
+        },
+        "compatibility_cartes":{
+            "type": "boolean"
         }
     },
     "required": [ "workflow" ],
