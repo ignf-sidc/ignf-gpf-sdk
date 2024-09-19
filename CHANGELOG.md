@@ -8,7 +8,8 @@
 * doc/docs/comme-executable.md : Ajout de la documentation pour la suppression, les annexe, les fichiers statics, les fichiers de métadonnées et les clefs
 * ApiRequester, Authentifier: gestion de l'erreur ConnectionError #168
 * ProcessingExecutionAction: Prise en compte des behaviors pour les exécutions mettant à jour une donnée #166
-* OutputManager: ajout option force_flush pour info, warning, error et critical. Permet de forcé le remonté des logs. Utilisation dans les différentes actions
+* OutputManager: ajout option force_flush pour info, warning, error et critical. Permet de forcer la remontée des logs. Utilisation dans les différentes actions où cela est pertinent.
+* Mode Compatibilité avec cartes.gouv : ce mode permet au SDK de manipuler les entités de l'API en ajoutant les tags qui permettent d'assurer la compatibilité avec l'interface d'alimentation en ligne cartes.gouv.
 
 ### [Changed]
 
