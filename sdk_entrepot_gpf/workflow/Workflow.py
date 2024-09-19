@@ -69,6 +69,7 @@ class Workflow:
         datastore: Optional[str] = None,
         comments: List[str] = [],
         tags: Dict[str, str] = {},
+        compatibility_cartes: Optional[bool] = None,
     ) -> List[StoreEntity]:
         """Lance une étape du workflow à partir de son nom. Liste les entités créées par chaque action et retourne la liste.
 
@@ -80,6 +81,7 @@ class Workflow:
             datastore (Optional[str]): id du datastore à utiliser. Si None, le datastore sera le premier trouvé dans l'action puis dans workflow puis dans configuration.
             comments (Optional[List[str]]): liste des commentaire à rajouté à toute les actions de l'étape (les cas de doublons sont géré).
             tags (Optional[Dict[str, str]]): dictionnaire des tag à rajouté pour toutes les action de l'étape. Écrasé par ceux du workflow, de l'étape et de l'action si les clef sont les même.
+            compatibility_cartes (Optional[bool]): ajout des tags pour compatibilité avec cartes.gouv.fr.
 
         Raises:
             WorkflowError: levée si un problème apparaît pendant l'exécution du workflow
@@ -88,6 +90,9 @@ class Workflow:
             List[StoreEntity]: liste des entités créées
         """
         Config().om.info(f"Lancement de l'étape {step_name}...")
+        # si compatibility_cartes n'est pas déterminé on récupère la valeur dans le workflow ou None
+        if compatibility_cartes is None:
+            compatibility_cartes = self.__raw_definition_dict.get("compatibility_cartes")
         # Création d'une liste pour stocker les entités créées
         l_store_entity: List[StoreEntity] = []
         # Récupération de l'étape dans la définition de workflow (datastore forcé, sinon datastore du workflow/None)
@@ -97,7 +102,7 @@ class Workflow:
         # Pour chaque action définie dans le workflow, instanciation de l'objet Action puis création sur l'entrepôt
         for d_action_raw in d_step_definition["actions"]:
             # création de l'action
-            o_action = Workflow.generate(step_name, d_action_raw, o_parent_action, behavior)
+            o_action = Workflow.generate(step_name, d_action_raw, o_parent_action, behavior, compatibility_cartes)
             # choix du datastore
             ## datastore donné en paramètre
             ## sinon datastore du workflow au niveau de l'action
@@ -254,7 +259,7 @@ class Workflow:
 
     @staticmethod
     def generate(  # pylint: disable=too-many-return-statements
-        workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional[ActionAbstract] = None, behavior: Optional[str] = None
+        workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional[ActionAbstract] = None, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None
     ) -> ActionAbstract:
         """Génération de la bonne action selon le type indiqué dans la représentation du workflow.
 
@@ -263,6 +268,7 @@ class Workflow:
             definition_dict (Dict[str, Any]): dictionnaire définissant l'action
             parent_action (Optional[ActionAbstract], optional): action précédente (si étape à plusieurs action). Defaults to None.
             behavior (Optional[str]): comportement à adopter si l'entité créée par l'action existe déjà sur l'entrepôt. Defaults to None.
+            compatibility_cartes (Optional[bool]): ajout des tags pour compatibilité avec cartes.gouv.fr.
 
         Returns:
             instance permettant de lancer l'action
@@ -270,9 +276,9 @@ class Workflow:
         if definition_dict["type"] == "delete-entity":
             return DeleteAction(workflow_context, definition_dict, parent_action)
         if definition_dict["type"] == "processing-execution":
-            return ProcessingExecutionAction(workflow_context, definition_dict, parent_action, behavior=behavior)
+            return ProcessingExecutionAction(workflow_context, definition_dict, parent_action, behavior=behavior, compatibility_cartes=compatibility_cartes)
         if definition_dict["type"] == "configuration":
-            return ConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
+            return ConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior, compatibility_cartes=compatibility_cartes)
         if definition_dict["type"] == "copy-configuration":
             return CopyConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
         if definition_dict["type"] == "used_data-configuration":

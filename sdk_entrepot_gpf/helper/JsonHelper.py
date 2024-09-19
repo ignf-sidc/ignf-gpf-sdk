@@ -117,12 +117,12 @@ class JsonHelper:
         JsonHelper.validate_object(o_json_data, o_schema_data, s_message_json, s_message_schema)
 
     @staticmethod
-    def validate_object(json_data: object, schema_data: object, json_not_valid_message: str, schema_not_valid_message: str) -> None:
+    def validate_object(json_data: object, schema_data: Any, json_not_valid_message: str, schema_not_valid_message: str) -> None:
         """Fonction de validation d'un fichier json face à un schéma JSON.
 
         Args:
             json_data (object): donnée à valider
-            schema_data (object): schéma de validation
+            schema_data (Any): schéma de validation
             json_not_valid_message (str): message à afficher si le json n'est pas valide
             schema_not_valid_message (str): message à afficher si le schéma n'est pas valide
 
