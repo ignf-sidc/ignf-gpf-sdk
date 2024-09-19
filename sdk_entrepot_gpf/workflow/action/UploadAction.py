@@ -28,11 +28,19 @@ class UploadAction:
     BEHAVIOR_CONTINUE = "CONTINUE"
     BEHAVIORS = [BEHAVIOR_STOP, BEHAVIOR_CONTINUE, BEHAVIOR_DELETE]
 
-    def __init__(self, dataset: Dataset, behavior: Optional[str] = None) -> None:
+    def __init__(self, dataset: Dataset, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None) -> None:
+        """initialise le comportement de UploadAction
+
+        Args:
+            dataset (Dataset): _description_
+            behavior (Optional[str], optional): _description_. Defaults to None.
+            compatibility_cartes (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
+        """
         self.__dataset: Dataset = dataset
         self.__upload: Optional[Upload] = None
         # On suit le comportement donnée en paramètre ou à défaut celui de la config
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
+        self.__mode_cartes = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate", False)
 
     def run(self, datastore: Optional[str], check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
@@ -48,20 +56,25 @@ class UploadAction:
         Returns:
             livraison créée
         """
+        # test: si le mode carte est actif alors le data_sheet doit être présent
+        if self.__mode_cartes and not self.__dataset.tags["datasheet_name"]:
+            raise GpfSdkError("En mode compatibilité avec cartes.gouv, le tag datasheet_name contenant le nom de la fiche de donnée est obligatoire")
         Config().om.info("Création et complétion d'une livraison...")
         # Création de la livraison
         self.__create_upload(datastore)
-
         if not self.upload:
             raise GpfSdkError("Erreur à la création de la livraison.")
         # Cas livraison fermé = déjà traité : on sort
         if not self.upload.is_open():
             return self.upload
+        self.__add_carte_tags("upload_creation")
 
         # Ajout des tags
         self.__add_tags()
         # Ajout des commentaires
         self.__add_comments()
+
+        self.__add_carte_tags("upload_upload_start")
         # Envoie des fichiers de données (pas de vérification sur les problèmes de livraison si check_before_close)
         self.__push_data_files(not check_before_close)
         # Envoie des fichiers md5 (pas de vérification sur les problèmes de livraison si check_before_close)
@@ -79,6 +92,7 @@ class UploadAction:
             # Affichage
             Config().om.info(f"Livraison créée et complétée : {self.upload}")
             Config().om.info("Création et complétion d'une livraison : terminé")
+            self.__add_carte_tags("upload_upload_end")
             # Retour
             return self.upload
         # On ne devrait pas arriver ici...
@@ -127,6 +141,27 @@ class UploadAction:
             self.__upload.api_add_tags(self.__dataset.tags)
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
 
+    @staticmethod
+    def add_carte_tags(mode_cartes: bool, upload: Optional[Upload], upload_step: str) -> None:
+        """En mode cartes, ajoute les tags nécessaires."""
+        # lister toutes les clés dans la section compatibility_cartes, filtrer chaque clé qui commence par upload_step,
+        # mettre la fin de la clé dans un tag et mettre la value (en string) comme value du tag (self.__upload.api_add_tags(...))
+        if not mode_cartes:
+            return
+        d_section = Config().get_config()["compatibility_cartes"]
+        if upload is not None and d_section is not None:
+            d_tag = {}
+            for s_key, s_val in d_section.items():
+                if s_key.startswith(upload_step):
+                    # on va chercher la fin du mot clé (apres le upload_step et le underscore)
+                    d_tag[s_key[len(upload_step) + 1 :]] = str(s_val)
+            if d_tag:
+                upload.api_add_tags(d_tag)
+
+    def __add_carte_tags(self, upload_step: str) -> None:
+        """En mode cartes, ajoute les tags nécessaires via la méthode statique."""
+        UploadAction.add_carte_tags(self.__mode_cartes, self.__upload, upload_step)
+
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
         if self.__upload is not None:
@@ -171,7 +206,7 @@ class UploadAction:
             Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.md5_files)} fichiers md5 ont été ajoutés avec succès. ({i_file_upload} livré(s) lors de ce traitement)")
 
     def __normalise_api_push_md5_file(self, path: Path, nom: str) -> None:
-        """fonction cachant api_push_md5_file pour avoir une fonction ayant les même entrées que api_push_data_file, utilisé comme paramétre de __push_files
+        """fonction cachant api_push_md5_file pour avoir une fonction ayant les même entrées que api_push_data_file, utilisé comme paramètre de __push_files
 
         Args:
             path (Path): chemin le la chef MD5
@@ -304,7 +339,7 @@ class UploadAction:
         return self.__upload
 
     @staticmethod
-    def monitor_until_end(upload: Upload, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None) -> bool:
+    def monitor_until_end(upload: Upload, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None, mode_cartes: Optional[bool] = None) -> bool:
         """Attend que toute les vérifications liées à la Livraison indiquée
         soient terminées (en erreur ou en succès) avant de rendre la main.
 
@@ -377,10 +412,13 @@ class UploadAction:
 
         # Si on est sorti du while c'est que les vérifications sont terminées
         # On log le dernier rapport selon l'état et on sort
+        mode_cartes = mode_cartes if mode_cartes is not None else Config().get_bool("compatibility_cartes", "activate", False)
         if b_success:
             Config().om.info(s_message)
+            UploadAction.add_carte_tags(mode_cartes, upload, "upload_check_ok")
             return True
         Config().om.warning(s_message)
+        UploadAction.add_carte_tags(mode_cartes, upload, "upload_check_ko")
         return False
 
     @staticmethod
