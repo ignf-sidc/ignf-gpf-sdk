@@ -392,8 +392,6 @@ Possibilité de modifier une entité de type : `upload`, `stored_data`, `configu
 
 Correspond aux requêtes de type `PUT` et `PATCH` de l'[API Entrepôt](https://data.geopf.fr/api/swagger-ui/index.html)
 
-La suppression des tags et des commentaires est faite avant l'ajout.
-
 ```jsonc
 {
     "type": "edit-entity",
@@ -403,10 +401,6 @@ La suppression des tags et des commentaires est faite avant l'ajout.
     "entity_id": "{uuid}",
     // Optionnel si non présent requête n'ai pas lancée ( => mise à jour des tags et commentaires uniquement), si l'entité hérite de FullEditInterface (mise à jour totale) => fusion des informations récupérées sur l'API (GET) et de celle fournies, sinon on envoie que celles fournies
     "body_parameters": { ... },
-    // Optionnel :  tags à supprimé
-    "remove_tags": ["clef1", "clef2"],
-    // Optionnel :  commentaire à supprimé
-    "remove_comments": ["commentaire 1", "commentaire 2"],
     // Optionnel : Liste des tags ajoutés à l'entité (uniquement si la classe hérite de TagInterface)
     "tags": {},
     // Optionnel : Liste des commentaires à ajouter (uniquement si la classe hérite de CommentInterface)
