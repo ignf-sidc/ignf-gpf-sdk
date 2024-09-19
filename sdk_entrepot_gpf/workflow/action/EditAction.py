@@ -43,7 +43,7 @@ class EditAction(ActionAbstract):
             raise StepActionError('La clef "entity_id" est obligatoire pour cette action.')
         o_entity: StoreEntity = store.TYPE__ENTITY[self.definition_dict["entity_type"]].api_get(self.definition_dict["entity_id"], datastore=datastore)
 
-        Config().om.info(f"Edition de {o_entity}.")
+        Config().om.info(f"Edition de {o_entity}.", force_flush=True)
 
         # Lancement de la mise à jour si demandé
         if self.definition_dict.get("body_parameters"):
