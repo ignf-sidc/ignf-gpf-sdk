@@ -325,7 +325,7 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
 
         ## mise_en_base : manque datasheet_name
         d_def["tags"] = d_tags
-        o_processing_execution.id = "id_mise_en_base"
+        o_processing_execution.get_store_properties.return_value = {"processing": {"_id": "id_mise_en_base"}}
         o_pe._ProcessingExecutionAction__no_output = False
         with patch.object(ProcessingExecutionAction, "stored_data", new_callable=PropertyMock) as o_mock_stored_data:
             with patch.object(Config(), "get_str", side_effect=lambda x, y: y):
@@ -364,7 +364,7 @@ class ProcessingExecutionActionTestCase(GpfTestCase):
 
         ## pyramide_vecteur : manque datasheet_name
         d_def["tags"] = d_tags
-        o_processing_execution.id = "id_pyramide_vecteur"
+        o_processing_execution.get_store_properties.return_value = {"processing": {"_id": "id_pyramide_vecteur"}}
         with patch.object(ProcessingExecutionAction, "stored_data", new_callable=PropertyMock) as o_mock_stored_data:
             with patch.object(Config(), "get_str", side_effect=lambda x, y: y):
                 with self.assertRaises(GpfSdkError) as e_err_comp:

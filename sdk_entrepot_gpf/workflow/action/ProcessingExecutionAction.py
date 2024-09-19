@@ -253,8 +253,9 @@ class ProcessingExecutionAction(ActionAbstract):
         d_tags = self.definition_dict.get("tags", {})
         # gestion des tags pour compatibility_cartes
         if self.__mode_cartes and self.__processing_execution:
+            s_processing_id = self.__processing_execution.get_store_properties().get("processing", {"_id": ""})["_id"]
             # mise en base de donnée livrée (vecteur)
-            if self.__processing_execution.get_store_properties().get("processing", {"_id": ""})["_id"] == Config().get_str("compatibility_cartes", "id_mise_en_base"):
+            if s_processing_id == Config().get_str("compatibility_cartes", "id_mise_en_base"):
                 if "datasheet_name" not in d_tags:
                     raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
                 if not self.__inputs_upload or not self.stored_data:
@@ -266,7 +267,7 @@ class ProcessingExecutionAction(ActionAbstract):
                     UploadAction.add_carte_tags(self.__mode_cartes, o_upload, "execution_start")
                 d_tags["uuid_upload"] = self.__inputs_upload[0].id
             # création de pyramide vecteur
-            elif self.__processing_execution.id == Config().get_str("compatibility_cartes", "id_pyramide_vecteur"):
+            elif s_processing_id == Config().get_str("compatibility_cartes", "id_pyramide_vecteur"):
                 if "datasheet_name" not in d_tags:
                     raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
                 if not self.__inputs_stored_data or not self.stored_data:
