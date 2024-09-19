@@ -403,9 +403,9 @@ La suppression des tags et des commentaires est faite avant l'ajout.
     "entity_id": "{uuid}",
     // Optionnel si non présent requête n'ai pas lancée ( => mise à jour des tags et commentaires uniquement), si l'entité hérite de FullEditInterface (mise à jour totale) => fusion des informations récupérées sur l'API (GET) et de celle fournies, sinon on envoie que celles fournies
     "body_parameters": { ... },
-    // Optionnel :  tags à supprimé
+    // Optionnel :  tags à supprimer
     "remove_tags": ["clef1", "clef2"],
-    // Optionnel :  commentaire à supprimé
+    // Optionnel :  commentaire à supprimer
     "remove_comments": ["commentaire 1", "commentaire 2"],
     // Optionnel : Liste des tags ajoutés à l'entité (uniquement si la classe hérite de TagInterface)
     "tags": {},
