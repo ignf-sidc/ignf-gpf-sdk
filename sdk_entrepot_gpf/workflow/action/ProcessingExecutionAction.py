@@ -1,5 +1,5 @@
 import time
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.io.Config import Config
@@ -8,6 +8,9 @@ from sdk_entrepot_gpf.store.StoredData import StoredData
 from sdk_entrepot_gpf.workflow.Errors import StepActionError
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 from sdk_entrepot_gpf.store.Upload import Upload
+from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
+
+# cSpell:ignore datasheet vectordb creat
 
 
 class ProcessingExecutionAction(ActionAbstract):
@@ -40,7 +43,9 @@ class ProcessingExecutionAction(ActionAbstract):
     # STATUS_GENERATING STATUS_MODIFYING
     # STATUS_GENERATED
 
-    def __init__(self, workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional["ActionAbstract"] = None, behavior: Optional[str] = None) -> None:
+    def __init__(
+        self, workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional["ActionAbstract"] = None, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None
+    ) -> None:
         super().__init__(workflow_context, definition_dict, parent_action)
         # l'exécution du traitement
         self.__processing_execution: Optional[ProcessingExecution] = None
@@ -48,13 +53,18 @@ class ProcessingExecutionAction(ActionAbstract):
         self.__upload: Optional[Upload] = None
         self.__stored_data: Optional[StoredData] = None
         self.__no_output = False
+        # donnée en entrée
+        self.__inputs_upload: Optional[List[Upload]] = None
+        self.__inputs_stored_data: Optional[List[StoredData]] = None
         # comportement (écrit dans la ligne de commande par l'utilisateur), sinon celui par défaut (dans la config) qui vaut STOP
         self.__behavior: str = behavior if behavior is not None else Config().get_str("processing_execution", "behavior_if_exists")
+        self.__mode_cartes: Optional[bool] = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate")
 
     def run(self, datastore: Optional[str] = None) -> None:
         Config().om.info("Création d'une exécution de traitement et complétion de l'entité en sortie...", force_flush=True)
         # Création de l'exécution du traitement (attributs processing_execution et Upload/StoredData défini)
         self.__create_processing_execution(datastore)
+
         # Ajout des tags sur l'Upload ou la StoredData
         self.__add_tags()
         # Ajout des commentaires sur l'Upload ou la StoredData
@@ -208,8 +218,16 @@ class ProcessingExecutionAction(ActionAbstract):
             # création de la ProcessingExecution
             self.__processing_execution = ProcessingExecution.api_create(self.definition_dict["body_parameters"], {"datastore": datastore})
 
+        d_data = self.__processing_execution.get_store_properties()
+
+        # récupération des entrées :
+        if "upload" in d_data.get("inputs", {}):
+            self.__inputs_upload = [Upload.api_get(d_upload["_id"], datastore=datastore) for d_upload in d_data["inputs"]["upload"]]
+        if "stored_data" in d_data.get("inputs", {}):
+            self.__inputs_stored_data = [StoredData.api_get(d_stored_data["_id"], datastore=datastore) for d_stored_data in d_data["inputs"]["stored_data"]]
+
         # récupération de la sortie si elle existe
-        d_info = self.__processing_execution.get_store_properties().get("output", {"no_output": ""})
+        d_info = d_data.get("output", {"no_output": ""})
 
         if d_info is None:
             Config().om.debug(self.__processing_execution.to_json(indent=4))
@@ -232,17 +250,42 @@ class ProcessingExecutionAction(ActionAbstract):
 
     def __add_tags(self) -> None:
         """Ajout des tags sur l'Upload ou la StoredData en sortie du ProcessingExecution."""
-        if "tags" not in self.definition_dict or self.definition_dict["tags"] == {} or self.__no_output:
-            # cas on a pas de tag ou vide: on ne fait rien
+        d_tags = self.definition_dict.get("tags", {})
+        # gestion des tags pour compatibility_cartes
+        if self.__mode_cartes and self.__processing_execution:
+            s_processing_id = self.__processing_execution.get_store_properties().get("processing", {"_id": ""})["_id"]
+            # mise en base de donnée livrée (vecteur)
+            if s_processing_id == Config().get_str("compatibility_cartes", "id_mise_en_base"):
+                if "datasheet_name" not in d_tags:
+                    raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
+                if not self.__inputs_upload or not self.stored_data:
+                    raise GpfSdkError("Intégration de données vecteur livrées en base : input and output obligatoires")
+                for o_upload in self.__inputs_upload:
+                    # ajout des tags "mode cartes" permettant d'identifier le traitement et la donnée stockée liés à la livraison
+                    o_upload.api_add_tags({"proc_int_id": self.__processing_execution.id, "vectordb_id": self.stored_data.id})
+                    # ajout des tags "mode cartes" permettant de suivre l'étape du traitement
+                    UploadAction.add_carte_tags(self.__mode_cartes, o_upload, "execution_start")
+                d_tags["uuid_upload"] = self.__inputs_upload[0].id
+            # création de pyramide vecteur
+            elif s_processing_id == Config().get_str("compatibility_cartes", "id_pyramide_vecteur"):
+                if "datasheet_name" not in d_tags:
+                    raise GpfSdkError("Mode compatibility_cartes activé, il faut obligatoirement définir le tag 'datasheet_name'")
+                if not self.__inputs_stored_data or not self.stored_data:
+                    raise GpfSdkError("Création de pyramide vecteur : input and output obligatoires")
+                d_tags["vectordb_id"] = self.__inputs_stored_data[0].id
+                d_tags["proc_pyr_creat_id"] = self.__processing_execution.id
+
+        if not self.definition_dict.get("tags") or self.__no_output:
+            # cas on a pas de tag ou pas de donnée en sortie: on ne fait rien
             return
         # on ajoute les tags
         if self.upload is not None:
             Config().om.info(f"Livraison {self.upload['name']} : ajout des {len(self.definition_dict['tags'])} tags...")
-            self.upload.api_add_tags(self.definition_dict["tags"])
+            self.upload.api_add_tags(d_tags)
             Config().om.info(f"Livraison {self.upload['name']} : les {len(self.definition_dict['tags'])} tags ont été ajoutés avec succès.")
         elif self.stored_data is not None:
             Config().om.info(f"Donnée stockée {self.stored_data['name']} : ajout des {len(self.definition_dict['tags'])} tags...")
-            self.stored_data.api_add_tags(self.definition_dict["tags"])
+            self.stored_data.api_add_tags(d_tags)
             Config().om.info(f"Donnée stockée {self.stored_data['name']} : les {len(self.definition_dict['tags'])} tags ont été ajoutés avec succès.")
         else:
             # on a pas de stored_data ni de upload
@@ -397,6 +440,15 @@ class ProcessingExecutionAction(ActionAbstract):
         # Si on est sorti du while c'est que la processing execution est terminée
         ## dernier affichage
         callback_not_null(self.processing_execution)
+
+        # gestion du mode cartes
+        if self.__mode_cartes and self.processing_execution.id == Config().get_str("compatibility_cartes", "id_mise_en_base"):
+            if not self.__inputs_upload:
+                raise GpfSdkError("Intégration de données vecteur livrées en base : input and output obligatoires")
+            s_key = "execution_end_ok_integration_progress" if s_status == ProcessingExecution.STATUS_SUCCESS else "execution_end_ko_integration_progress"
+            for o_upload in self.__inputs_upload:
+                o_upload.api_add_tags({"integration_progress": Config().get_str("compatibility_cartes", s_key)})
+
         ## on return le status de fin
         return str(s_status)
 
@@ -415,6 +467,14 @@ class ProcessingExecutionAction(ActionAbstract):
     @property
     def no_output(self) -> bool:
         return self.__no_output
+
+    @property
+    def inputs_stored_data(self) -> Optional[List[StoredData]]:
+        return self.__inputs_stored_data
+
+    @property
+    def inputs_upload(self) -> Optional[List[Upload]]:
+        return self.__inputs_upload
 
     @property
     def output_new_entity(self) -> bool:

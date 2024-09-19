@@ -122,7 +122,7 @@ class JsonHelper:
 
         Args:
             json_data (object): donnée à valider
-            schema_data (object): schéma de validation
+            schema_data (Any): schéma de validation
             json_not_valid_message (str): message à afficher si le json n'est pas valide
             schema_not_valid_message (str): message à afficher si le schéma n'est pas valide
 

@@ -10,6 +10,7 @@
 * ProcessingExecutionAction: Prise en compte des behaviors pour les exécutions mettant à jour une donnée #166
 * OutputManager: ajout option force_flush pour info, warning, error et critical. Permet de forcer la remontée des logs. Utilisation dans les différentes actions où cela est pertinent.
 * Mode Compatibilité avec cartes.gouv : ce mode permet au SDK de manipuler les entités de l'API en ajoutant les tags qui permettent d'assurer la compatibilité avec l'interface d'alimentation en ligne cartes.gouv.
+* EditAction: possibilité de supprimer les tags et les commentaires #180
 
 ### [Changed]
 
