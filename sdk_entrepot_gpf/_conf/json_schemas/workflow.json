@@ -57,8 +57,20 @@
                                                 "type": "string"
                                             }
                                         },
+                                        "remove_comments": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
                                         "tags": {
                                             "type": "object"
+                                        },
+                                        "remove_tags": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
                                         },
                                         "datastore": {
                                             "type": "string"
