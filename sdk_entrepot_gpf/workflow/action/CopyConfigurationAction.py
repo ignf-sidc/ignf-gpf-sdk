@@ -20,7 +20,7 @@ class CopyConfigurationAction(ConfigurationAction):
         if "body_parameters" not in self.definition_dict or "layer_name" not in self.definition_dict["body_parameters"] or "name" not in self.definition_dict["body_parameters"]:
             raise StepActionError('Les clefs "name" et "layer_name" sont obligatoires dans "body_parameters"')
 
-        Config().om.info("Récupération du paramétrage de l'ancienne configuration...")
+        Config().om.info("Récupération du paramétrage de l'ancienne configuration...", force_flush=True)
         # on récupère la configuration à copier
         o_base_config = Configuration.api_get(self.definition_dict["url_parameters"]["configuration"], datastore=datastore)
         # stockage de l'ancien body_parameters

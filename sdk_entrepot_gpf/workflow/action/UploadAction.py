@@ -56,10 +56,10 @@ class UploadAction:
         Returns:
             livraison créée
         """
-        # test: si le mode carte est actif alors le data_sheet doit être présent
+        Config().om.info("Création et complétion d'une livraison...", force_flush=True)
+        # test: si le mode carte est actif alors le tag datasheet_name doit être présent
         if self.__mode_cartes and not self.__dataset.tags["datasheet_name"]:
             raise GpfSdkError("En mode compatibilité avec cartes.gouv, le tag datasheet_name contenant le nom de la fiche de donnée est obligatoire")
-        Config().om.info("Création et complétion d'une livraison...")
         # Création de la livraison
         self.__create_upload(datastore)
         if not self.upload:
@@ -80,7 +80,7 @@ class UploadAction:
         # Envoie des fichiers md5 (pas de vérification sur les problèmes de livraison si check_before_close)
         self.__push_md5_files(not check_before_close)
         if check_before_close:
-            Config().om.info(f"Livraison {self.upload}: vérification de l'arborescence avant livraison ...")
+            Config().om.info(f"Livraison {self.upload}: vérification de l'arborescence avant livraison ...", force_flush=True)
             # vérification de la livraison des fichiers de données + ficher md5
             l_error = self.__check_file_uploaded(list(self.__dataset.data_files.items()) + [(p_file, "") for p_file in self.__dataset.md5_files])
             if l_error:
@@ -104,7 +104,7 @@ class UploadAction:
         Args:
             datastore (Optional[str]): id du datastore à utiliser.
         """
-        Config().om.info("Création d'une livraison...")
+        Config().om.info("Création d'une livraison...", force_flush=True)
         # On tente de récupérer l'upload
         o_upload = self.find_upload(datastore)
         # S'il n'est pas null
@@ -180,7 +180,7 @@ class UploadAction:
         """
         if self.__upload is not None:
             # Liste les fichiers déjà téléversés sur l'entrepôt et récupère leur taille
-            Config().om.info(f"Livraison {self.__upload['name']} : récupération de l'arborescence des données déjà téléversées...")
+            Config().om.info(f"Livraison {self.__upload['name']} : récupération de l'arborescence des données déjà téléversées...", force_flush=True)
             i_file_upload = self.__push_files(
                 list(self.__dataset.data_files.items()),
                 self.__upload.api_push_data_file,
@@ -357,7 +357,7 @@ class UploadAction:
         i_nb_sec_between_check = Config().get_int("upload", "nb_sec_between_check_updates")
         s_check_message_pattern = Config().get_str("upload", "check_message_pattern")
         b_success: Optional[bool] = None
-        Config().om.info(f"Monitoring des vérifications toutes les {i_nb_sec_between_check} secondes...")
+        Config().om.info(f"Monitoring des vérifications toutes les {i_nb_sec_between_check} secondes...", force_flush=True)
         while b_success is None:
             try:
                 # On récupère les vérifications
@@ -390,7 +390,7 @@ class UploadAction:
                         raise
 
                     # arrêt des vérifications
-                    Config().om.warning("Ctrl+C : vérifications en cours d’interruption, veuillez attendre...")
+                    Config().om.warning("Ctrl+C : vérifications en cours d’interruption, veuillez attendre...", force_flush=True)
                     # suppression des vérifications non terminées
                     for d_check_exec in d_checks["in_progress"]:
                         CheckExecution(d_check_exec, upload.datastore).api_delete()

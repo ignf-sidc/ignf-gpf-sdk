@@ -16,7 +16,7 @@ class EditUsedDataConfigurationAction(ActionAbstract):
 
     def run(self, datastore: Optional[str] = None) -> None:
 
-        Config().om.info("Récupération du paramétrage de l'ancienne configuration...")
+        Config().om.info("Récupération du paramétrage de l'ancienne configuration...", force_flush=True)
         # on récupère la configuration à copier
         o_base_config = Configuration.api_get(self.definition_dict["entity_id"], datastore=datastore)
         # stockage de l'ancien body_parameters
@@ -38,7 +38,7 @@ class EditUsedDataConfigurationAction(ActionAbstract):
             del d_parameter["type_infos"]["bbox"]
 
         # lancement de la modification
-        Config().om.info(f"Modification de la configuration {o_base_config} ...")
+        Config().om.info(f"Modification de la configuration {o_base_config} ...", force_flush=True)
 
         o_base_config.api_full_edit(d_parameter)
         Config().om.info("Modification de la configuration : terminé")

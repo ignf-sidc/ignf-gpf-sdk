@@ -34,7 +34,7 @@ class Offering(PartialEditInterface, StoreEntity):
 
         except NotFoundError:
             # on a un 404 donc l'offre est bien supprimée
-            return
+            pass
 
     def api_synchronize(self) -> None:
         """répercuter des modifications sur la configuration ou les données stockées utilisées au niveau des services de diffusion"""

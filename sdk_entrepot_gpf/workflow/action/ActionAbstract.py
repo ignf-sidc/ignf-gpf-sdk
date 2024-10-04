@@ -70,7 +70,7 @@ class ActionAbstract(ABC):
         Raises:
             StepActionError: _description_
         """
-        Config().om.info(f"Résolution de l'action '{self.workflow_context}-{self.index}'...")
+        Config().om.info(f"Résolution de l'action '{self.workflow_context}-{self.index}'...", force_flush=True)
         # Pour faciliter la résolution, on repasse la définition de l'action en json
         s_definition = str(json.dumps(self.__definition_dict, ensure_ascii=False))
         # lancement des résolveurs

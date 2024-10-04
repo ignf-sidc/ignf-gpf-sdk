@@ -33,7 +33,7 @@ class Config(metaclass=Singleton):
         if not Config.ini_file_path.exists():
             raise ConfigReaderError(f"Fichier de configuration par défaut {Config.ini_file_path} non trouvé.")
 
-        self.__config: Dict[str, Dict[str, Any]] = {}
+        self.__config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
         self.read(Config.ini_file_path)
 
         # Définition du niveau de log pour l'OutputManager par défaut
@@ -61,33 +61,26 @@ class Config(metaclass=Singleton):
         """
         if isinstance(filenames, (str, bytes, os.PathLike)):
             filenames = [filenames]
-        # Ouverture des fichiers existants
-        l_configs = []
+        # liste des fichiers lus
         l_read_files = []
+        # Ouverture des fichiers existants
         for p_file in filenames:
             if os.path.exists(p_file):
                 s_ext = pathlib.Path(p_file).suffix
                 if s_ext == ".ini":
-                    # Fichier ini
-                    o_config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-                    o_config.read(p_file, encoding="utf-8")
-                    try:
-                        d_config = {s: dict(o_config.items(s)) for s in o_config.sections()}
-                    except configparser.InterpolationSyntaxError as e_err:
-                        raise ConfigReaderError(f"Veuillez vérifier la config, les caractères spéciaux doivent être doublés. ({e_err.message}) ") from e_err
-                    l_configs.append(d_config)
+                    # Lecture du fichier ini
+                    self.__config.read(p_file, encoding="utf-8")
+                    # on met à jour la liste des fichiers lus
                     l_read_files.append(str(p_file))
                 elif s_ext == ".toml":
-                    # Fichier toml
+                    # Lecture du fichier toml
                     d_config = toml.load(p_file)
-                    l_configs.append(d_config)
+                    self.__config.read_dict(d_config, str(p_file))
+                    # on met à jour la liste des fichiers lus
                     l_read_files.append(str(p_file))
                 else:
                     # Fichier non géré
                     raise ValueError(f"L'extension {s_ext} n'est pas gérée par la classe Config.")
-        # Fusion des configurations
-        for d_config in l_configs:
-            self.__config = Config.merge(self.__config, d_config)
 
         return l_read_files
 
@@ -127,7 +120,11 @@ class Config(metaclass=Singleton):
         Returns:
             Dict[str, Dict[str, Any]]: la full config
         """
-        return self.__config
+        try:
+            d_config = {s: dict(self.__config.items(s)) for s in self.__config.sections()}
+        except configparser.InterpolationSyntaxError as e_err:
+            raise ConfigReaderError(f"Veuillez vérifier la config, les caractères spéciaux doivent être doublés. ({e_err.message}) ") from e_err
+        return d_config
 
     def get(self, section: str, option: str, fallback: Optional[Any] = None) -> Optional[str]:
         """Récupère la valeur associée au paramètre demandé.
@@ -141,7 +138,11 @@ class Config(metaclass=Singleton):
             Optional[str]: la valeur du paramètre
         """
         s_fallback = str(fallback) if fallback is not None else fallback
-        s_ret = self.__config.get(section, {option: s_fallback}).get(option, s_fallback)
+        try:
+            s_ret = self.__config.get(section, option, fallback=s_fallback)
+        except configparser.InterpolationSyntaxError as e_err:
+            raise ConfigReaderError(f"Veuillez vérifier la config, les caractères spéciaux doivent être doublés. ({e_err.message}) ") from e_err
+
         if s_ret is None:
             return None
         return str(s_ret)
