@@ -23,6 +23,7 @@
 
 * ProcessingExecutionAction: output non obligatoire dans l'étape et dans la processing exécution #165
 * Annexe, Metadata: amélioration de l'affichage des entités
+* PermissionAction: il faut utiliser `api_create` et non `api_create_list` pour créer les permissions.
 
 ## v0.1.28
 
