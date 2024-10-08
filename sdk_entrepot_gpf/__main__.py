@@ -340,6 +340,7 @@ class Main:
             message_ko (str): message si les vérifications sont en erreur
             callback (Optional[Callable[[str], None]], optional): fonction de callback à exécuter avec le message de suivi.
             ctrl_c_action (Optional[Callable[[], bool]], optional): gestion du ctrl-C
+            mode_cartes (Optional[bool]): Si le mode carte est activé
         Returns:
             bool: True si toutes les vérifications sont ok, sinon False
         """
@@ -365,6 +366,7 @@ class Main:
             behavior (Optional[str]): comportement dans le cas où une livraison de même nom existe, comportment par défaut su None
             datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
             check_before_close (bool): Vérification de l'arborescence de la livraison avant fermeture.
+            mode_cartes (Optional[bool]): Si le mode carte est activé
 
         Returns:
             Dict[str, Any]: dictionnaire avec le résultat des livraisons :
@@ -392,6 +394,7 @@ class Main:
                 s_nom = o_dataset.upload_infos["name"]
                 d_upload_fail[s_nom] = e
                 Config().om.error(f"livraison {s_nom} : {e}")
+                Config().om.debug(traceback.format_exc())
 
         # vérification des livraisons
         Config().om.info("Fin des livraisons.", green_colored=True)
@@ -445,6 +448,7 @@ class Main:
 
         Args:
             upload (Upload): livraison à fermé
+            mode_cartes (Optional[bool]): Si le mode carte est activé
 
         Raises:
             GpfSdkError: impossible de fermer la livraison

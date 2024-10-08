@@ -210,7 +210,7 @@ class Config(metaclass=Singleton):
         """
         try:
             s_ret = self.get(section, option, fallback=fallback)
-            return bool(s_ret)
+            return bool(s_ret and s_ret.lower() in ["y", "yes", "t", "true", "on", "1", "oui", "o"])
         except (TypeError, TypeError) as e_err:
             raise ConfigReaderError(f"Veuillez vérifier la config ([{section}-[{option}]]), booléen non reconnu ({s_ret}). ({e_err}) ") from e_err
 
