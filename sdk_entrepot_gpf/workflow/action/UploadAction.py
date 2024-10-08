@@ -58,7 +58,7 @@ class UploadAction:
         """
         Config().om.info("Création et complétion d'une livraison...", force_flush=True)
         # test: si le mode carte est actif alors le tag datasheet_name doit être présent
-        if self.__mode_cartes and not self.__dataset.tags["datasheet_name"]:
+        if self.__mode_cartes and "datasheet_name" not in self.__dataset.tags:
             raise GpfSdkError("En mode compatibilité avec cartes.gouv, le tag datasheet_name contenant le nom de la fiche de donnée est obligatoire")
         # Création de la livraison
         self.__create_upload(datastore)

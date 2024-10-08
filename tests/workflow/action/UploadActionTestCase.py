@@ -716,7 +716,7 @@ class UploadActionTestCase(GpfTestCase):
                 f_callback = MagicMock()
                 f_ctrl_c = MagicMock(return_value=False)
                 # On effectue le monitoring
-                b_result = UploadAction.monitor_until_end(o_upload, f_callback, f_ctrl_c)
+                b_result = UploadAction.monitor_until_end(o_upload, f_callback, f_ctrl_c, mode_cartes=True)
                 # Vérification sur o_mock_list_checks et f_callback: ont dû être appelés 3 fois
                 self.assertEqual(o_mock_list_checks.call_count, 3)
                 self.assertEqual(f_callback.call_count, 3)
@@ -747,7 +747,7 @@ class UploadActionTestCase(GpfTestCase):
                 f_callback = MagicMock()
                 f_ctrl_c = MagicMock(return_value=False)
                 # On effectue le monitoring
-                b_result = UploadAction.monitor_until_end(o_upload, f_callback, f_ctrl_c)
+                b_result = UploadAction.monitor_until_end(o_upload, f_callback, f_ctrl_c, mode_cartes=True)
                 # Vérification sur o_mock_list_checks et f_callback: ont dû être appelés 3 fois
                 self.assertEqual(o_mock_list_checks.call_count, 3)
                 self.assertEqual(f_callback.call_count, 3)
