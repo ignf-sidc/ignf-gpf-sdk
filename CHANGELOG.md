@@ -10,6 +10,9 @@
 
 ### [Fixed]
 
+* debug upload
+* Config debug get_bool() : `True` si valeur est dans la liste `["y", "yes", "t", "true", "on", "1", "oui", "o"]` (en minuscule ou majuscule)
+
 
 ## v0.1.29
 
