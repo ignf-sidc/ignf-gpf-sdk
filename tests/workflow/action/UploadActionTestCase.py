@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, call, patch
 
 import requests
 from sdk_entrepot_gpf.io.Errors import ConflictError
@@ -115,7 +115,8 @@ class UploadActionTestCase(GpfTestCase):
         super().setUpClass()
         # On détruit le Singleton Config
         Config._instance = None
-        # On charge une config spéciale pour les tests d'upload
+        # On surcharge la config de base pour les tests d'upload : nb_sec_between_check_updates=0 au lieu de =10
+        # pour ne pas attendre entre 2 m-à-j du statut de vérification)
         o_config = Config()
         o_config.read(GpfTestCase.conf_dir_path / "test_upload.ini")
         o_config.set_output_manager(MagicMock())
@@ -175,6 +176,7 @@ class UploadActionTestCase(GpfTestCase):
         # upload fermé
         with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload, \
             patch.object(UploadAction, "_UploadAction__add_tags") as o_mock__add_tags, \
+            patch.object(UploadAction, "_UploadAction__add_carte_tags") as o_mock__add_carte_tags, \
             patch.object(UploadAction, "_UploadAction__add_comments") as o_mock__add_comments, \
             patch.object(UploadAction, "_UploadAction__push_data_files") as o_mock__push_data_files, \
             patch.object(UploadAction, "_UploadAction__push_md5_files") as o_mock__push_md5_files, \
@@ -190,15 +192,16 @@ class UploadActionTestCase(GpfTestCase):
             self.assertEqual(o_upload, o_mock_upload)
             o_mock__create_upload.assert_called_once_with(s_datastore)
             o_mock__add_tags.assert_not_called()
+            o_mock__add_carte_tags.assert_not_called()
             o_mock__add_comments.assert_not_called()
             o_mock__push_data_files.assert_not_called()
             o_mock__push_md5_files.assert_not_called()
             o_mock__check_file_uploaded.assert_not_called()
             o_mock__close.assert_not_called()
-
         # upload ouvert sans vérification avant fermeture
         with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload, \
             patch.object(UploadAction, "_UploadAction__add_tags") as o_mock__add_tags, \
+            patch.object(UploadAction, "_UploadAction__add_carte_tags") as o_mock__add_carte_tags, \
             patch.object(UploadAction, "_UploadAction__add_comments") as o_mock__add_comments, \
             patch.object(UploadAction, "_UploadAction__push_data_files") as o_mock__push_data_files, \
             patch.object(UploadAction, "_UploadAction__push_md5_files") as o_mock__push_md5_files, \
@@ -214,6 +217,16 @@ class UploadActionTestCase(GpfTestCase):
             self.assertEqual(o_upload, o_mock_upload)
             o_mock__create_upload.assert_called_once_with(s_datastore)
             o_mock__add_tags.assert_called_once_with()
+            # vérification que o_mock__add_carte_tags a été appelé 3 fois avec les 3 mots clés
+            self.assertEqual(o_mock__add_carte_tags.call_count, 3)
+            self.assertListEqual(
+                o_mock__add_carte_tags.call_args_list,
+                [
+                    call("upload_creation"),
+                    call("upload_upload_start"),
+                    call("upload_upload_end"),
+                ],
+            )
             o_mock__add_comments.assert_called_once_with()
             o_mock__push_data_files.assert_called_once_with(True)
             o_mock__push_md5_files.assert_called_once_with(True)
@@ -223,6 +236,7 @@ class UploadActionTestCase(GpfTestCase):
         # upload ouvert avec vérification avant fermeture ok
         with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload, \
             patch.object(UploadAction, "_UploadAction__add_tags") as o_mock__add_tags, \
+            patch.object(UploadAction, "_UploadAction__add_carte_tags") as o_mock__add_carte_tags, \
             patch.object(UploadAction, "_UploadAction__add_comments") as o_mock__add_comments, \
             patch.object(UploadAction, "_UploadAction__push_data_files") as o_mock__push_data_files, \
             patch.object(UploadAction, "_UploadAction__push_md5_files") as o_mock__push_md5_files, \
@@ -244,6 +258,16 @@ class UploadActionTestCase(GpfTestCase):
             self.assertEqual(o_upload, o_mock_upload)
             o_mock__create_upload.assert_called_once_with(s_datastore)
             o_mock__add_tags.assert_called_once_with()
+            # vérification que o_mock__add_carte_tags a été appelé 3 fois avec les 3 mots clés
+            self.assertEqual(o_mock__add_carte_tags.call_count, 3)
+            self.assertListEqual(
+                o_mock__add_carte_tags.call_args_list,
+                [
+                    call("upload_creation"),
+                    call("upload_upload_start"),
+                    call("upload_upload_end"),
+                ],
+            )
             o_mock__add_comments.assert_called_once_with()
             o_mock__push_data_files.assert_called_once_with(False)
             o_mock__push_md5_files.assert_called_once_with(False)
@@ -261,6 +285,7 @@ class UploadActionTestCase(GpfTestCase):
         # upload ouvert avec vérification avant fermeture ko
         with patch.object(UploadAction, "_UploadAction__create_upload") as o_mock__create_upload, \
             patch.object(UploadAction, "_UploadAction__add_tags") as o_mock__add_tags, \
+            patch.object(UploadAction, "_UploadAction__add_carte_tags") as o_mock__add_carte_tags, \
             patch.object(UploadAction, "_UploadAction__add_comments") as o_mock__add_comments, \
             patch.object(UploadAction, "_UploadAction__push_data_files") as o_mock__push_data_files, \
             patch.object(UploadAction, "_UploadAction__push_md5_files") as o_mock__push_md5_files, \
@@ -285,6 +310,15 @@ class UploadActionTestCase(GpfTestCase):
             self.assertEqual(l_error, o_err.exception.files)
             o_mock__create_upload.assert_called_once_with(s_datastore)
             o_mock__add_tags.assert_called_once_with()
+            # vérification que o_mock__add_carte_tags a été appelé 2 fois avec les 2 mots clés
+            self.assertEqual(o_mock__add_carte_tags.call_count, 2)
+            self.assertListEqual(
+                o_mock__add_carte_tags.call_args_list,
+                [
+                    call("upload_creation"),
+                    call("upload_upload_start"),
+                ],
+            )
             o_mock__add_comments.assert_called_once_with()
             o_mock__push_data_files.assert_called_once_with(False)
             o_mock__push_md5_files.assert_called_once_with(False)
@@ -675,23 +709,26 @@ class UploadActionTestCase(GpfTestCase):
         # elle renvoie une liste avec des traitements en attente 2 fois puis une liste avec que des succès
         l_returns = [d_list_checks_wait_1, d_list_checks_wait_2, d_list_checks_ok]
         with patch.object(Upload, "api_list_checks", side_effect=l_returns) as o_mock_list_checks:
-            # On instancie un Upload
-            o_upload = Upload({"_id": "id_upload_monitor"})
-            # On instancie un faux callback
-            f_callback = MagicMock()
-            f_ctrl_c = MagicMock(return_value=False)
-            # On effectue le monitoring
-            b_result = UploadAction.monitor_until_end(o_upload, f_callback, f_ctrl_c)
-            # Vérification sur o_mock_list_checks et f_callback: ont dû être appelés 3 fois
-            self.assertEqual(o_mock_list_checks.call_count, 3)
-            self.assertEqual(f_callback.call_count, 3)
-            f_callback.assert_any_call("Vérifications : 2 en attente, 0 en cours, 0 en échec, 0 en succès")
-            f_callback.assert_any_call("Vérifications : 1 en attente, 1 en cours, 0 en échec, 0 en succès")
-            f_callback.assert_any_call("Vérifications : 0 en attente, 0 en cours, 0 en échec, 2 en succès")
-            # Vérification sur f_ctrl_c : n'a pas dû être appelée
-            f_ctrl_c.assert_not_called()
-            # Vérifications sur b_result : doit être finalement ok
-            self.assertTrue(b_result)
+            with patch.object(UploadAction, "add_carte_tags") as o_mock__add_carte_tags:
+                # On instancie un Upload
+                o_upload = Upload({"_id": "id_upload_monitor"})
+                # On instancie un faux callback
+                f_callback = MagicMock()
+                f_ctrl_c = MagicMock(return_value=False)
+                # On effectue le monitoring
+                b_result = UploadAction.monitor_until_end(o_upload, f_callback, f_ctrl_c)
+                # Vérification sur o_mock_list_checks et f_callback: ont dû être appelés 3 fois
+                self.assertEqual(o_mock_list_checks.call_count, 3)
+                self.assertEqual(f_callback.call_count, 3)
+                f_callback.assert_any_call("Vérifications : 2 en attente, 0 en cours, 0 en échec, 0 en succès")
+                f_callback.assert_any_call("Vérifications : 1 en attente, 1 en cours, 0 en échec, 0 en succès")
+                f_callback.assert_any_call("Vérifications : 0 en attente, 0 en cours, 0 en échec, 2 en succès")
+                # Vérification sur f_ctrl_c : n'a pas dû être appelée
+                f_ctrl_c.assert_not_called()
+                # Vérifications sur b_result : doit être finalement ok
+                self.assertTrue(b_result)
+                # Vérification sur add_carte_tags() : on devrait avoir "upload_check_ok"
+                o_mock__add_carte_tags.assert_called_once_with(True, o_upload, "upload_check_ok")
 
     def test_monitor_until_end_ko(self) -> None:
         """Vérifie le bon fonctionnement de monitor_until_end si à la fin c'est ko."""
@@ -703,23 +740,26 @@ class UploadActionTestCase(GpfTestCase):
         # elle renvoie une liste avec des traitements en attente 2 fois puis une liste avec des erreurs
         l_returns = [d_list_checks_wait_1, d_list_checks_wait_2, d_list_checks_ko]
         with patch.object(Upload, "api_list_checks", side_effect=l_returns) as o_mock_list_checks:
-            # On instancie un Upload
-            o_upload = Upload({"_id": "id_upload_monitor"})
-            # On instancie un faux callback
-            f_callback = MagicMock()
-            f_ctrl_c = MagicMock(return_value=False)
-            # On effectue le monitoring
-            b_result = UploadAction.monitor_until_end(o_upload, f_callback, f_ctrl_c)
-            # Vérification sur o_mock_list_checks et f_callback: ont dû être appelés 3 fois
-            self.assertEqual(o_mock_list_checks.call_count, 3)
-            self.assertEqual(f_callback.call_count, 3)
-            f_callback.assert_any_call("Vérifications : 2 en attente, 0 en cours, 0 en échec, 0 en succès")
-            f_callback.assert_any_call("Vérifications : 1 en attente, 1 en cours, 0 en échec, 0 en succès")
-            f_callback.assert_any_call("Vérifications : 0 en attente, 0 en cours, 1 en échec, 1 en succès")
-            # Vérification sur f_ctrl_c : n'a pas dû être appelée
-            f_ctrl_c.assert_not_called()
-            # Vérifications sur b_result : doit être finalement ko
-            self.assertFalse(b_result)
+            with patch.object(UploadAction, "add_carte_tags") as o_mock__add_carte_tags:
+                # On instancie un Upload
+                o_upload = Upload({"_id": "id_upload_monitor"})
+                # On instancie un faux callback
+                f_callback = MagicMock()
+                f_ctrl_c = MagicMock(return_value=False)
+                # On effectue le monitoring
+                b_result = UploadAction.monitor_until_end(o_upload, f_callback, f_ctrl_c)
+                # Vérification sur o_mock_list_checks et f_callback: ont dû être appelés 3 fois
+                self.assertEqual(o_mock_list_checks.call_count, 3)
+                self.assertEqual(f_callback.call_count, 3)
+                f_callback.assert_any_call("Vérifications : 2 en attente, 0 en cours, 0 en échec, 0 en succès")
+                f_callback.assert_any_call("Vérifications : 1 en attente, 1 en cours, 0 en échec, 0 en succès")
+                f_callback.assert_any_call("Vérifications : 0 en attente, 0 en cours, 1 en échec, 1 en succès")
+                # Vérification sur f_ctrl_c : n'a pas dû être appelée
+                f_ctrl_c.assert_not_called()
+                # Vérifications sur b_result : doit être finalement ko
+                self.assertFalse(b_result)
+                # Vérification sur add_carte_tags() : on devrait avoir "upload_check_ko"
+                o_mock__add_carte_tags.assert_called_once_with(True, o_upload, "upload_check_ko")
 
     def test_interrupt_monitor_until_end(self) -> None:
         """Vérifie le bon fonctionnement de monitor_until_end si il y a interruption en cours de route."""

@@ -59,3 +59,16 @@ class Metadata(CreatedByUploadFileInterface, DownloadInterface, PartialEditInter
             data={"file_identifiers": file_identifiers, "endpoint": endpoint_id},
             method=ApiRequester.POST,
         )
+
+    def __str__(self) -> str:
+        # Affichage à destination d'un utilisateur.
+        # On affiche l'id et le nom si possible.
+
+        # Liste pour stocker les infos à afficher
+        l_infos = []
+        # Ajout de l'id
+        l_infos.append(f"id={self.id}")
+        l_infos.append(f"type={self['type']}")
+        l_infos.append(f"file_identifier={self['file_identifier']}")
+        # Retour
+        return f"{self.__class__.__name__}({', '.join(l_infos)})"

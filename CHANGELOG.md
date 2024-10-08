@@ -1,5 +1,31 @@
 # CHANGE LOG
 
+## v0.1.29
+
+### [Added]
+
+* Création/consultation des clefs depuis la ligne de commande #96
+* doc/docs/comme-executable.md : Ajout de la documentation pour la suppression, les annexe, les fichiers statics, les fichiers de métadonnées et les clefs
+* ApiRequester, Authentifier: gestion de l'erreur ConnectionError #168
+* ProcessingExecutionAction: Prise en compte des behaviors pour les exécutions mettant à jour une donnée #166
+* OutputManager: ajout option force_flush pour info, warning, error et critical. Permet de forcer la remontée des logs. Utilisation dans les différentes actions où cela est pertinent.
+* Mode Compatibilité avec cartes.gouv : ce mode permet au SDK de manipuler les entités de l'API en ajoutant les tags qui permettent d'assurer la compatibilité avec l'interface d'alimentation en ligne cartes.gouv.
+* EditAction: possibilité de supprimer les tags et les commentaires #180
+
+### [Changed]
+
+* Config :
+  * gestion des fichiers `toml` ;
+  * suppression de la fonction `get_parser` remplacée par `get_config` ;
+  * les fonctions de récupération typées (`get_str`, `get_int`, `get_float`, `get_bool`) renvoient une valeur valide ou lèvent une exception.
+
+### [Fixed]
+
+* ProcessingExecutionAction: output non obligatoire dans l'étape et dans la processing exécution #165
+* Annexe, Metadata: amélioration de l'affichage des entités
+* `ReUploadFileInterface` : ajout de `route_params` pour modifier l'entité. (fix #178)
+* PermissionAction: il faut utiliser `api_create` et non `api_create_list` pour créer les permissions.
+
 ## v0.1.28
 
 ### [Added]

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from sdk_entrepot_gpf.store.Permission import Permission
 from sdk_entrepot_gpf.workflow.Errors import StepActionError
@@ -20,27 +20,27 @@ class PermissionAction(ActionAbstract):
     def __init__(self, workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional["ActionAbstract"] = None) -> None:
         super().__init__(workflow_context, definition_dict, parent_action)
         # Autres attributs
-        self.__permission: Optional[Permission] = None
+        self.__permissions: List[Permission] = []
 
     def run(self, datastore: Optional[str] = None) -> None:
-        Config().om.info("Création d'une permission...")
+        Config().om.info("Création des permissions...", force_flush=True)
         # Création de la permission
-        self.__create_permission(datastore)
-        Config().om.info(f"Permissions créées : {self.permission}")
-        Config().om.info("Création d'une permission : terminée")
+        self.__create_permissions(datastore)
+        Config().om.info(f"Permissions créées : {self.permissions}")
+        Config().om.info("Création des permissions : terminée")
 
-    def __create_permission(self, datastore: Optional[str]) -> None:
-        """Création de la permission sur l'API à partir des paramètres de définition de l'action.
+    def __create_permissions(self, datastore: Optional[str]) -> None:
+        """Création des permissions sur l'API à partir des paramètres de définition de l'action.
 
         Args:
             datastore (Optional[str]): id du datastore à utiliser.
         """
         # Création en gérant une erreur de type ConflictError (si la Permission existe déjà selon les critères de l'API)
         try:
-            self.__permission = Permission.api_create(self.definition_dict["body_parameters"], route_params={"datastore": datastore})
+            self.__permissions = Permission.api_create_list(self.definition_dict["body_parameters"], route_params={"datastore": datastore})
         except ConflictError as e:
-            raise StepActionError(f"Impossible de créer la permission il y a un conflict : \n{e.message}") from e
+            raise StepActionError(f"Impossible de créer les permissions il y a un conflict : \n{e.message}") from e
 
     @property
-    def permission(self) -> Optional[Permission]:
-        return self.__permission
+    def permissions(self) -> List[Permission]:
+        return self.__permissions

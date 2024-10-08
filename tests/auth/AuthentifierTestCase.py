@@ -1,5 +1,6 @@
 from unittest.mock import patch
 from http import HTTPStatus
+import requests
 import requests_mock
 
 from sdk_entrepot_gpf.io.Config import Config
@@ -29,8 +30,7 @@ class AuthentifierTestCase(GpfTestCase):
         # On détruit le Singleton Config
         Config._instance = None
         # On charge une config spéciale pour les tests d'authentification
-        o_config = Config()
-        o_config.read(GpfTestCase.conf_dir_path / "test_authentifier.ini")
+        Config().read(GpfTestCase.conf_dir_path / "test_authentifier.ini")
 
     def setUp(self) -> None:
         """fonction lancée avant chaque test de la classe"""
@@ -47,6 +47,7 @@ class AuthentifierTestCase(GpfTestCase):
     def test_get_access_token_string_ok(self) -> None:
         """Vérifie le bon fonctionnement de get_access_token_string dans un cas normal."""
         # On mock...
+        self.assertEqual(Config().get("store_authentification", "grant_type"), "password")
         with requests_mock.Mocker() as o_mock:
             # Une authentification réussie
             o_mock.post(AuthentifierTestCase.url, json=AuthentifierTestCase.valid_token)
@@ -92,10 +93,10 @@ class AuthentifierTestCase(GpfTestCase):
             o_mock.post(
                 AuthentifierTestCase.url,
                 [
-                    {"status_code": HTTPStatus.INTERNAL_SERVER_ERROR},
-                    {"status_code": HTTPStatus.INTERNAL_SERVER_ERROR},
-                    {"status_code": HTTPStatus.INTERNAL_SERVER_ERROR},
-                    {"status_code": HTTPStatus.INTERNAL_SERVER_ERROR},
+                    {"exc": Exception()},
+                    {"status_code": 1, "json": {"error_description": "..."}},
+                    {"status_code": 1, "json": {}},
+                    {"exc": requests.exceptions.ConnectionError()},
                 ],
             )
             # On s'attend à une exception
@@ -106,6 +107,22 @@ class AuthentifierTestCase(GpfTestCase):
             self.assertEqual(o_arc.exception.message, "La récupération du jeton d'authentification a échoué après 3 tentatives")
             # On a dû faire 4 requêtes
             self.assertEqual(o_mock.call_count, 4, "o_mock.call_count == 4")
+
+    def test_get_access_token_string_ko(self) -> None:
+        """Vérifie les sorties en erreur de get_access_token_string"""
+        # code sortie non spécifique et mdp expirer
+        with requests_mock.Mocker() as o_mock:
+            s_message = "blabla. Account is not fully set up ... suite"
+            o_mock.post(AuthentifierTestCase.url, json={"error_description": s_message}, status_code=1)
+            with self.assertRaises(AuthentificationError) as o_arc:
+                # On tente de récupérer un token...
+                Authentifier().get_access_token_string()
+            print(o_arc.exception.args)
+            self.assertEqual(
+                o_arc.exception.message,
+                f"Problème lors de l'authentification, veuillez vous connecter via l'interface en ligne KeyCloak pour vérifier son compte. Votre mot de passe est sûrement expiré. ({s_message})",
+            )
+        # erreur de connexion
 
     def test_get_http_header(self) -> None:
         """Vérifie le bon fonctionnement de test_get_http_header."""
