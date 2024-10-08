@@ -1,5 +1,18 @@
 # CHANGE LOG
 
+## v0.1.31
+
+### [Added]
+
+
+### [Changed]
+
+
+### [Fixed]
+
+* correction de la version annoncée par le module (0.1.31 au lieu de 0.1.29)
+
+
 ## v0.1.30
 
 ### [Added]
