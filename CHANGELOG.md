@@ -7,6 +7,8 @@
 
 ### [Changed]
 
+* Flit : utilisation de `flit_core` pour effectuer la publication (cf. [ce ticket](https://github.com/pypa/flit/issues/698)).
+
 
 ### [Fixed]
 
