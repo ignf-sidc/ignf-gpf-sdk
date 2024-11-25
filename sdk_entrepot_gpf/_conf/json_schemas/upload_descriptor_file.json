@@ -33,7 +33,6 @@
                             "srs",
                             "type"
                         ],
-                        "additionalProperties": false,
                         "properties": {
                             "description": {
                                 "type": "string"
