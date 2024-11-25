@@ -9,8 +9,9 @@
 
 * Flit : utilisation de `flit_core` pour effectuer la publication (cf. [ce ticket](https://github.com/pypa/flit/issues/698)).
 
-
 ### [Fixed]
+
+* upload_descriptor_file.json: plus de restriction dans upload_infos #198
 
 
 ## v0.1.31
