@@ -121,7 +121,7 @@ class Authentifier(metaclass=Singleton):
                 Config().om.warning(e_error.args[0])
             elif isinstance(e_error, requests.exceptions.ConnectionError):
                 Config().om.warning(
-                    f"Le serveur d'authentification ({self.__token_url}) n'est pas joignable. Cela peut être dû à un problème de configuration si elle a changée récemment."
+                    f"Le serveur d'authentification ({self.__token_url}) n'est pas joignable. Cela peut être dû à un problème de configuration si elle a changé récemment."
                     + " Sinon, c'est un problème sur le service d’authentification : consultez l'état du service pour en savoir plus "
                     + f": {Config().get_str('store_authentification', 'check_status_url')}."
                 )

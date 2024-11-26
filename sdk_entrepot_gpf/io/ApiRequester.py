@@ -162,7 +162,7 @@ class ApiRequester(metaclass=Singleton):
                 raise e_error
             except requests.exceptions.ConnectionError as e_connexion:
                 s_message = (
-                    f"Le serveur de l'API Entrepôt ({url}) n'est pas joignable. Cela peut être dû à un problème de configuration si elle a changée récemment."
+                    f"Le serveur de l'API Entrepôt ({url}) n'est pas joignable. Cela peut être dû à un problème de configuration si elle a changé récemment."
                     + " Sinon, c'est un problème sur l'API Entrepôt : consultez l'état du service pour en savoir plus "
                     + f": {Config().get_str('store_api', 'check_status_url')}."
                 )
