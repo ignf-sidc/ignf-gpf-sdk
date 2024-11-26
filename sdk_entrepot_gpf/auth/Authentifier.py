@@ -1,3 +1,4 @@
+import datetime
 import time
 import traceback
 from http import HTTPStatus
@@ -60,7 +61,7 @@ class Authentifier(metaclass=Singleton):
             d_params["username"] = Config().get_str("store_authentification", "login")
             d_params["password"] = Config().get_str("store_authentification", "password")
             d_params["client_id"] = Config().get_str("store_authentification", "client_id")
-            s_client_secret = Config().get_str("store_authentification", "client_secret")
+            s_client_secret = Config().get("store_authentification", "client_secret")
             if s_client_secret is not None:
                 d_params["client_secret"] = s_client_secret
         elif s_grant_type == "client_credentials":
@@ -87,6 +88,8 @@ class Authentifier(metaclass=Singleton):
             d_data = self.__request_params.copy()
             if self.__totp:
                 d_data["totp"] = self.__totp.now()
+                # On affiche le TOTP Code en mode debug :
+                Config().om.debug(f"TOTP code : {d_data['totp']} ({datetime.datetime.now():%H:%M:%S})")
             # Requête KeyCloak de récupération du jeton
             o_response = requests.post(
                 self.__token_url,
@@ -103,22 +106,38 @@ class Authentifier(metaclass=Singleton):
                 try:
                     s_message = o_response.json()["error_description"]
                 except Exception:
-                    s_message = "pas de raison indiqué"
+                    s_message = "pas de raison indiquée"
+                if "Account is not fully set up" in s_message:
+                    raise AuthentificationError(
+                        "Problème lors de l'authentification, veuillez vous connecter via l'interface en ligne KeyCloak pour vérifier son compte."
+                        + f" Votre mot de passe est sûrement expiré. ({s_message})"
+                    )
                 raise requests.exceptions.HTTPError(f"Code retour authentification KeyCloak = {o_response.status_code} ({s_message})", response=o_response, request=o_response.request)
+        except AuthentificationError as e_auth:
+            # On propage l'erreur
+            raise e_auth
         except Exception as e_error:
             if isinstance(e_error, requests.exceptions.HTTPError):
                 Config().om.warning(e_error.args[0])
+            elif isinstance(e_error, requests.exceptions.ConnectionError):
+                Config().om.warning(
+                    f"Le serveur d'authentification ({self.__token_url}) n'est pas joignable. Cela peut être dû à un problème de configuration si elle a changé récemment."
+                    + " Sinon, c'est un problème sur le service d’authentification : consultez l'état du service pour en savoir plus "
+                    + f": {Config().get_str('store_authentification', 'check_status_url')}."
+                )
             else:
                 Config().om.warning("La récupération du jeton d'authentification a échoué...")
-            # Affiche la pile d'exécution
-            Config().om.debug(traceback.format_exc())
             # Une erreur s'est produite : attend un peu et relance une nouvelle fois la fonction
             if nb_attempts > 0:
                 time.sleep(self.__sec_between_attempt)
                 self.__request_new_token(nb_attempts - 1)
             # Le nombre de tentatives est atteint : comme dirait Jim, this is the end...
             else:
+                # On affiche un message d'erreur
                 Config().om.error(f"La récupération du jeton d'authentification a échoué après {self.__nb_attempts} tentatives")
+                # Affiche la pile d'exécution
+                Config().om.debug(traceback.format_exc())
+                # On propage l'erreur
                 raise e_error
 
     def get_access_token_string(self) -> str:
@@ -134,6 +153,12 @@ class Authentifier(metaclass=Singleton):
             while (self.__last_token is None) or (self.__last_token.is_valid() is False):
                 self.__request_new_token(self.__nb_attempts)
             return self.__last_token.get_access_string()
+        except AuthentificationError as e_auth:
+            # erreur déjà traité
+            Config().om.error(e_auth.message)
+            # Affiche la pile d'exécution
+            Config().om.debug(traceback.format_exc())
+            raise e_auth
         except Exception as e_error:
             s_error_message = f"La récupération du jeton d'authentification a échoué après {self.__nb_attempts} tentatives"
             Config().om.error(s_error_message)

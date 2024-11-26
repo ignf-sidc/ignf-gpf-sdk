@@ -28,7 +28,7 @@ class OfferingAction(ActionAbstract):
         self.__behavior: str = behavior if behavior is not None else Config().get_str("offering", "behavior_if_exists")
 
     def run(self, datastore: Optional[str] = None) -> None:
-        Config().om.info("Création d'une offre...")
+        Config().om.info("Création d'une offre...", force_flush=True)
         # Ajout de l'Offering
         self.__create_offering(datastore)
         # Affichage
@@ -42,7 +42,7 @@ class OfferingAction(ActionAbstract):
         o_offering.api_update()
         Config().om.info(f"Offre créée : {self.__offering}\n   - " + "\n   - ".join(o_offering.get_url()), green_colored=True)
         # vérification du status.
-        Config().om.info("vérification du statut ...")
+        Config().om.info("vérification du statut ...", force_flush=True)
         while True:
             o_offering.api_update()
             s_status = o_offering["status"]
@@ -82,7 +82,10 @@ class OfferingAction(ActionAbstract):
                 )
         # Création en gérant une erreur de type ConflictError (si la Configuration existe déjà selon les critères de l'API)
         try:
-            self.__offering = Offering.api_create(self.definition_dict["body_parameters"], route_params=self.definition_dict["url_parameters"])
+            self.__offering = Offering.api_create(
+                self.definition_dict["body_parameters"],
+                route_params={"datastore": datastore, **self.definition_dict["url_parameters"]},
+            )
         except ConflictError as e:
             raise StepActionError(f"Impossible de créer l'offre il y a un conflict : \n{e.message}") from e
 

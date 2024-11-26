@@ -49,22 +49,16 @@ class Upload(TagInterface, CommentInterface, SharingInterface, EventInterface, P
             file_path,
             s_file_key,
             route_params={"datastore": self.datastore, self._entity_name: self.id},
-            params={"path": api_path},
+            params={"path": api_path + "/" + file_path.name},
             method=ApiRequester.POST,
         )
 
     def api_delete_data_file(self, api_path: str) -> None:
         """Supprime un fichier de données de la Livraison.
 
-        Retire `data/` de devant le chemin distant si jamais il le contient.
-
         Args:
             api_path: chemin distant vers le fichier à supprimer
         """
-        # On retire data/ de devant le chemin si jamais il le contient
-        if api_path.startswith("data/"):
-            api_path = api_path[5:]
-
         # Génération du nom de la route
         s_route = f"{self._entity_name}_delete_data"
 

@@ -67,8 +67,9 @@ class Dataset:
                 Config().om.info(f"Le fichier md5 {p_md5_dir_suf.relative_to(self.__root_dir)} n'existe pas, il va être créé")
 
                 # On parcourt les fichiers pour remplir un dictionnaire temporaire
+                # la liste des fichiers est ordonnée selon le chemin complet du ficher
                 d_md5 = {}
-                for p_file in self.__data_files:
+                for p_file in sorted(self.__data_files, key=str):
                     if p_md5_dir in p_file.parents:
                         p_file_trunc = p_file.relative_to(self.__root_dir)
                         d_md5[p_file_trunc] = FileHelper.md5_hash(p_file)

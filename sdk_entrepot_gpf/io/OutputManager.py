@@ -17,7 +17,7 @@ class OutputManager(metaclass=Singleton):
                 [logging](https://docs.python.org/fr/3/library/logging.html#logging.Formatter)) ou `None` si on veut le format par défaut.
         """
         # initialisation du loger
-        self.__logger = logging.getLogger(__name__)
+        self.__logger: logging.Logger = logging.getLogger(__name__)
         self.__logger.setLevel(logging.INFO)
 
         # création formateur
@@ -36,57 +36,78 @@ class OutputManager(metaclass=Singleton):
             o_fh.setFormatter(o_formatter)
             self.__logger.addHandler(o_fh)
 
-    def debug(self, message: str) -> None:
+    def _force_flush(self) -> None:
+        """force la remonté des logs"""
+        for o_handeler in self.__logger.handlers:
+            o_handeler.flush()
+
+    def debug(self, message: str, force_flush: bool = False) -> None:
         """Ajout d'un message de type debug
+
         Args:
             message (str): message de type debug à journaliser
+            force_flush (bool, optional): forcer la remonté des logs. Defaults to False.
         """
         self.__logger.debug("%sDEBUG - %s%s", Color.GREY, message, Color.END)
+        if force_flush:
+            self._force_flush()
 
-    def info(self, message: str, green_colored: bool = False) -> None:
+    def info(self, message: str, green_colored: bool = False, force_flush: bool = False) -> None:
         """Ajout d'un message de type info
 
         Args:
             message (str): message de type info à journaliser
             green_colored (bool, optional): indique si le message doit être écrit en vert (par défaut False)
+            force_flush (bool, optional): forcer la remonté des logs. Defaults to False.
         """
         if green_colored is False:
             self.__logger.info("INFO - %s", message)
         else:
             self.__logger.info("%sINFO - %s%s", Color.GREEN, message, Color.END)
+        if force_flush:
+            self._force_flush()
 
-    def warning(self, message: str, yellow_colored: bool = True) -> None:
+    def warning(self, message: str, yellow_colored: bool = True, force_flush: bool = False) -> None:
         """Ajout d'un message de type warning
         Args:
             message (str): message de type warning à journaliser
             yellow_colored (bool, optional): indique si le message doit être écrit en jaune (par défaut True)
+            force_flush (bool, optional): forcer la remonté des logs. Defaults to False.
         """
         if yellow_colored is False:
             self.__logger.warning("ALERTE - %s", message)
         else:
             self.__logger.warning("%sALERTE - %s%s", Color.YELLOW, message, Color.END)
+        if force_flush:
+            self._force_flush()
 
-    def error(self, message: str, red_colored: bool = True) -> None:
+    def error(self, message: str, red_colored: bool = True, force_flush: bool = False) -> None:
         """Ajout d'un message de type erreur
         Args:
             message (str): message de type erreur à journaliser
             red_colored (bool, optional): indique si le message doit être écrit en rouge (par défaut False)
+            force_flush (bool, optional): forcer la remonté des logs. Defaults to False.
         """
         if red_colored is False:
             self.__logger.error("ERREUR - %s", message)
         else:
             self.__logger.error("%sERREUR - %s%s", Color.RED, message, Color.END)
+        if force_flush:
+            self._force_flush()
 
-    def critical(self, message: str, red_colored: bool = True) -> None:
+    def critical(self, message: str, red_colored: bool = True, force_flush: bool = False) -> None:
         """Ajout d'un message de type critique (apparaît en rouge dans la console)
         Args:
             message (str): message de type critique à journaliser
             red_colored (bool, optional): indique si le message doit être écrit en rouge (par défaut True)
+            force_flush (bool, optional): forcer la remonté des logs. Defaults to False.
         """
         if red_colored is False:
             self.__logger.critical("ERREUR FATALE - %s", message)
         else:
             self.__logger.critical("%sERREUR FATALE - %s%s", Color.RED, message, Color.END)
+        if force_flush:
+            self._force_flush()
 
     def set_log_level(self, level: str) -> None:
         """Défini le niveau de log du logger.

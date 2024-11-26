@@ -102,7 +102,7 @@ class FileResolver(AbstractResolver):
         s_data = self.__resolve_str(string_to_solve, s_path)
         # on vérifie que cela est bien une liste
         try:
-            l_to_solve = json.loads(s_data)
+            l_to_solve = json.loads(s_data)  # json.loads ok car on veut récupérer l'erreur
         except json.decoder.JSONDecodeError as e_not_list:
             raise ResolveFileInvalidError(self.name, string_to_solve) from e_not_list
 
@@ -125,7 +125,7 @@ class FileResolver(AbstractResolver):
         s_data = self.__resolve_str(string_to_solve, s_path)
         # on vérifie que cela est bien un dictionnaire
         try:
-            d_to_solve = json.loads(s_data)
+            d_to_solve = json.loads(s_data)  # json.loads ok car on veut récupérer l'erreur
         except json.decoder.JSONDecodeError as e_not_list:
             raise ResolveFileInvalidError(self.name, string_to_solve) from e_not_list
 

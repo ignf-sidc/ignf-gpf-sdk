@@ -1,3 +1,4 @@
+import json
 import re
 from typing import Any, Dict, Optional, Pattern, Type
 
@@ -14,6 +15,8 @@ from sdk_entrepot_gpf.store.Upload import Upload
 from sdk_entrepot_gpf.store.Endpoint import Endpoint
 from sdk_entrepot_gpf.store.Static import Static
 from sdk_entrepot_gpf.store.Datastore import Datastore
+from sdk_entrepot_gpf.store.Permission import Permission
+from sdk_entrepot_gpf.store.Key import Key
 from sdk_entrepot_gpf.io.Config import Config
 
 
@@ -35,6 +38,8 @@ class StoreEntityResolver(AbstractResolver):
         Endpoint.entity_name(): Endpoint,
         Static.entity_name(): Static,
         Datastore.entity_name(): Datastore,
+        Permission.entity_name(): Permission,
+        Key.entity_name(): Key,
     }
 
     def __init__(self, name: str) -> None:
@@ -86,17 +91,44 @@ class StoreEntityResolver(AbstractResolver):
         if len(l_entities) == 0:
             raise NoEntityFoundError(self.name, string_to_solve)
         # Sinon on regarde ce qu'on doit envoyer
-        o_entity = l_entities[0]
+
+        if d_groups["number_dict"] == "ONE":
+            # json de la première entité trouvée
+            l_entities[0].api_update()
+            return l_entities[0].to_json()
+        if d_groups["number_dict"] == "ALL":
+            # json de toutes les entités trouvées
+            l_res1 = []
+            for o_entity in l_entities:
+                o_entity.api_update()
+                l_res1.append(o_entity.get_store_properties())
+            return json.dumps(l_res1)
+        try:
+            if not d_groups["number_selected"] or d_groups["number_selected"] == "ONE":
+                # une seule entité à traiter, affichage d'une info ou d'un tag
+                return self._get_info_or_tag(l_entities[0], d_groups)
+            if d_groups["number_selected"] == "ALL":
+                # affichage d'une info ou d'un tag pour toutes les entités trouvées
+                l_res2 = [self._get_info_or_tag(o_entity, d_groups) for o_entity in l_entities]
+                if d_groups["selected_field_type"] == "tags":
+                    l_res2 = list(set(l_res2))
+                return json.dumps(l_res2)
+        except KeyError as e:
+            raise ResolverError(self.name, string_to_solve) from e
+
+        raise ResolverError(self.name, string_to_solve)
+
+    def _get_info_or_tag(self, o_entity: StoreEntity, d_groups: Dict[str, Any]) -> str:
         o_entity.api_update()
         s_selected_field = d_groups["selected_field"]
         # On doit envoyer une info ?
         if d_groups["selected_field_type"] == "infos":
             # On doit renvoyer une info
-            return str(o_entity[s_selected_field])
+            return str(self.get(o_entity.get_store_properties(), s_selected_field))
         # On doit renvoyer un tag, possible que si ça implémente TagInterface
         if isinstance(o_entity, TagInterface):
             return o_entity.get_tag(s_selected_field)
-        raise ResolverError(self.name, string_to_solve)
+        raise KeyError()
 
     @property
     def regex(self) -> Pattern[str]:

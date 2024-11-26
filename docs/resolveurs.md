@@ -8,8 +8,9 @@ Le nom d'un résolveur est donné à son initialisation. Il est possible d'avoir
 
 A l'utilisation du SDK comme un exécutable, il y a 2 résolveurs d’instanciés :
 
-* `user` : un [UserResolver](#userresolver)
-* `store_entity` : un [StoreEntityResolver](#storeentityresolver)
+* `user` : un [UserResolver](UserResolver)
+* `store_entity` : un [StoreEntityResolver](StoreEntityResolver)
+* `datetime`: un [DateResolver](DateResolver)
 
 A l'utilisation comme module, il n'y a aucun résolveur d’instancié. Il faut instancier des résolveurs dans le programme et les ajouter au `GlobalResolver`.
 
@@ -23,10 +24,11 @@ Dans le fichier de workflow, pour utiliser le résolveur il faut ajouter le patt
 
 Il y a 4 résolveurs de base :
 
-* [DictResolver](#dictresolver): permet d'insérer les valeurs contenues dans un dictionnaire ;
-* [FileResolver](#fileresolver): insère les valeurs contenues dans un fichier ;
-* [StoreEntityResolver](#storeentityresolver): récupère des informations sur les entités depuis la GPF ;
-* [UserResolver](#userresolver): récupère des informations de l'utilisateur courant depuis la GPF.
+* [DictResolver](DictResolver): permet d'insérer les valeurs contenues dans un dictionnaire ;
+* [FileResolver](FileResolver): insère les valeurs contenues dans un fichier ;
+* [StoreEntityResolver](StoreEntityResolver): récupère des informations sur les entités depuis la GPF ;
+* [UserResolver](UserResolver): récupère des informations de l'utilisateur courant depuis la GPF ;
+* [DateResolver](#dateresolver): insertion d'une date au format désiré.
 
 ### DictResolver
 
@@ -189,6 +191,92 @@ prénom de l'utilisateur >{user.first_name}<
 
 # resolution
 print(GlobalResolver().resolve(text))
+```
+
+### DateResolver
+
+Permet d'insérer la date actuelle ou une date relative à la date actuelle dans le workflow.
+
+Utilisation, résolveur nommé *my_date* et date actuelle `19/02/2024 14:01`:
+
+* date actuelle : `my_date.now.date` => `19/02/2024`
+* heure actuelle : `my_date.now.time` => `14:01`
+* date et heure actuelle : `date.now.datetime`=> `19/02/2024 14:01`
+* changement du pattern de sortie : `date.now.strtime(%Y-%m-%dT%H:%M:%S)` => `2024-02-19T14:01:02`
+
+* date et heure actuelle + ajouter/enlever du temps :
+  * `my_date.now.add(hour=4,year=1,month=2,day=3,minutes=5).datetime` => `22/04/2025 18:06`
+  * `my_date.now.datetime.add(year=-1).datetime` => `19/02/2023 14:01`
+  * `my_date.now.datetime.add(weak=-1).datetime` => `19/02/2023 14:01`
+
+donc `{nom_resolver}.now[.add\(year(s)=X,month(s)=X,day(s)=X,hour(s)=X,minute(s)=X,second(s)=X,week(s)=X\)].(date|time|datetime|strtime\({pattern}\))`
+
+Pour `add` on a les options : `year`,`month` ,`day`, `hour`, `minute`, `second`, `week` (ou avec des `s`) qui permettent d'ajouter (valeur positive) ou enlever (valeur négative) du temps à la date. Il n'y a pas d'ordre dans les paramètres et ils ne sont pas tous obligatoires.
+
+Les pattern pour les dates (date, time, datetime, pattern donné avec strtime) suivent les [patterns de datetime](https://docs.python.org/fr/3/library/datetime.html#strftime-and-strptime-format-codes). Les pattern des sorties par défaut (date, time, datetime) sont dans la configuration.
+
+```ini
+datetime_pattern = %d/%m/%Y %H:%M
+date_pattern = %d/%m/%Y
+time_pattern = %H:%M
+```
+
+Exemple :
+
+```python
+from sdk_entrepot_gpf.workflow.resolver.DateResolver import DateResolver
+from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
+from sdk_entrepot_gpf.io.Config import Config
+
+# configuration
+Config().read("config.ini")
+
+# initialisation
+date_resolver = DateResolver("date")
+GlobalResolver().add_resolver(date_resolver)
+
+# texte à résoudre
+text = """
+## Affichage date courante
+datetime courant > {date.now.datetime} <
+date courant > {date.now.date} <
+heure courant > {date.now.time} <
+date actuelle pattern différent > {date.now.strtime(%Y-%m-%dT%H:%M:%S)} <
+
+## Ajout de temps
+date +1an > {date.now.add(year=1).date} <
+date +1semaine > {date.now.add(week=1).date} <
+heure +4h > {date.now.add(hours=4).time} <
+datetime +1an 4h > {date.now.add(year=1, hours=4).datetime} <
+date +1an 4h pattern différent > {date.now.add(year=1, hours=4).strtime(%Y-%m-%dT%H:%M:%S)} <
+
+## différentes modifications de date :
+Y+1 M+2 D+3 H+4 M+5 > {date.now.add(year=1,month=2,day=3,hour=4,minute=5).datetime} <
+Y-1 M+2 D+3 H-4 M+5 > {date.now.add(year=-1,month=2,day=3,hour=-4,minute=5).datetime} <
+Y-1 M+2 D+3 H-4 M+5 > {date.now.add(years=-1,months=2,days=3,hours=-4,minutes=5).datetime} <
+"""
+
+# resolution
+print(GlobalResolver().resolve(text))
+
+## affichage
+#    ## Affichage date courante
+#    datetime courant > 20/02/2024 11:08 <
+#    date courant > 20/02/2024 <
+#    heure courant > 11:08 <
+#    date actuelle pattern différent > 2024-02-20T11:08:03 <
+#
+#    ## Ajout de temps
+#    date +1an > 20/02/2025 <
+#    date +1semaine > 27/02/2024 <
+#    heure +4h > 15:08 <
+#    datetime +1an 4h > 20/02/2025 15:08 <
+#    date +1an 4h pattern différent > 2025-02-20T15:08:03 <
+#
+#    ## différentes modifications de date :
+#    Y+1 M+2 D+3 H+4 M+5 > 23/04/2025 15:13 <
+#    Y-1 M+2 D+3 H-4 M+5 > 23/04/2023 07:13 <
+#    Y-1 M+2 D+3 H-4 M+5 > 23/04/2023 07:13 <
 ```
 
 ## Créer son résolveur

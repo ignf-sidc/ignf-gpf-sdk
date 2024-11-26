@@ -1,12 +1,16 @@
+from pathlib import Path
 import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
+import requests
 
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
+from sdk_entrepot_gpf.io.Errors import ConflictError
 from sdk_entrepot_gpf.store.CheckExecution import CheckExecution
 from sdk_entrepot_gpf.store.Upload import Upload
 from sdk_entrepot_gpf.io.Dataset import Dataset
 from sdk_entrepot_gpf.io.Config import Config
+from sdk_entrepot_gpf.workflow.Errors import UploadFileError
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 
 
@@ -24,18 +28,27 @@ class UploadAction:
     BEHAVIOR_CONTINUE = "CONTINUE"
     BEHAVIORS = [BEHAVIOR_STOP, BEHAVIOR_CONTINUE, BEHAVIOR_DELETE]
 
-    def __init__(self, dataset: Dataset, behavior: Optional[str] = None) -> None:
+    def __init__(self, dataset: Dataset, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None) -> None:
+        """initialise le comportement de UploadAction
+
+        Args:
+            dataset (Dataset): _description_
+            behavior (Optional[str], optional): _description_. Defaults to None.
+            compatibility_cartes (Optional[bool]): récupère l'information du fonctionnement en mode compatibilité avec cartes.gouv
+        """
         self.__dataset: Dataset = dataset
         self.__upload: Optional[Upload] = None
         # On suit le comportement donnée en paramètre ou à défaut celui de la config
         self.__behavior: str = behavior if behavior is not None else Config().get_str("upload", "behavior_if_exists")
+        self.__mode_cartes = compatibility_cartes if compatibility_cartes is not None else Config().get_bool("compatibility_cartes", "activate", False)
 
-    def run(self, datastore: Optional[str]) -> Upload:
+    def run(self, datastore: Optional[str], check_before_close: bool = False) -> Upload:
         """Crée la livraison décrite dans le dataset et livre les données avant de
         retourner la livraison créée.
 
         Args:
             datastore (Optional[str]): id du datastore à utiliser. Si None, le datastore sera récupéré dans la configuration.
+            check_before_close (bool): Vérification de l'arborescence de la livraison avant fermeture.
 
         Raises:
             GpfSdkError: levée si création non effectuée
@@ -43,29 +56,43 @@ class UploadAction:
         Returns:
             livraison créée
         """
-        Config().om.info("Création et complétion d'une livraison...")
+        Config().om.info("Création et complétion d'une livraison...", force_flush=True)
+        # test: si le mode carte est actif alors le tag datasheet_name doit être présent
+        if self.__mode_cartes and "datasheet_name" not in self.__dataset.tags:
+            raise GpfSdkError("En mode compatibilité avec cartes.gouv, le tag datasheet_name contenant le nom de la fiche de donnée est obligatoire")
         # Création de la livraison
         self.__create_upload(datastore)
-
+        if not self.upload:
+            raise GpfSdkError("Erreur à la création de la livraison.")
         # Cas livraison fermé = déjà traité : on sort
-        if self.upload and not self.upload.is_open():
+        if not self.upload.is_open():
             return self.upload
+        self.__add_carte_tags("upload_creation")
 
         # Ajout des tags
         self.__add_tags()
         # Ajout des commentaires
         self.__add_comments()
-        # Envoie des fichiers de données
-        self.__push_data_files()
-        # Envoie des fichiers md5
-        self.__push_md5_files()
+
+        self.__add_carte_tags("upload_upload_start")
+        # Envoie des fichiers de données (pas de vérification sur les problèmes de livraison si check_before_close)
+        self.__push_data_files(not check_before_close)
+        # Envoie des fichiers md5 (pas de vérification sur les problèmes de livraison si check_before_close)
+        self.__push_md5_files(not check_before_close)
+        if check_before_close:
+            Config().om.info(f"Livraison {self.upload}: vérification de l'arborescence avant livraison ...", force_flush=True)
+            # vérification de la livraison des fichiers de données + ficher md5
+            l_error = self.__check_file_uploaded(list(self.__dataset.data_files.items()) + [(p_file, "") for p_file in self.__dataset.md5_files])
+            if l_error:
+                raise UploadFileError(f"Livraison {self.upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.", l_error)
         # Fermeture de la livraison
         self.__close()
         # Affiche et retourne la livraison
         if self.upload is not None:
             # Affichage
-            Config().om.info(f"Livraison créée et complétée : {self.__upload}")
+            Config().om.info(f"Livraison créée et complétée : {self.upload}")
             Config().om.info("Création et complétion d'une livraison : terminé")
+            self.__add_carte_tags("upload_upload_end")
             # Retour
             return self.upload
         # On ne devrait pas arriver ici...
@@ -77,7 +104,7 @@ class UploadAction:
         Args:
             datastore (Optional[str]): id du datastore à utiliser.
         """
-        Config().om.info("Création d'une livraison...")
+        Config().om.info("Création d'une livraison...", force_flush=True)
         # On tente de récupérer l'upload
         o_upload = self.find_upload(datastore)
         # S'il n'est pas null
@@ -101,7 +128,7 @@ class UploadAction:
                     Config().om.info(f"Livraison identique {o_upload} trouvée, le programme va la reprendre et la compléter.")
                 self.__upload = o_upload
             else:
-                raise GpfSdkError(f"Le comportement {self.__behavior} n'est pas reconnu, l'exécution de traitement est annulée.")
+                raise GpfSdkError(f"Le comportement {self.__behavior} n'est pas reconnu ({'|'.join(self.BEHAVIORS)}), l'exécution de traitement est annulée.")
         else:
             # Si la livraison est nulle, on en crée une nouvelle (on utilise les champs de "upload_infos" du dataset)
             self.__upload = Upload.api_create(self.__dataset.upload_infos, route_params={"datastore": datastore})
@@ -109,10 +136,31 @@ class UploadAction:
 
     def __add_tags(self) -> None:
         """Ajoute les tags."""
-        if self.__upload is not None and self.__dataset.tags is not None:
+        if self.__upload is not None and self.__dataset.tags:
             Config().om.info(f"Livraison {self.__upload['name']} : ajout des {len(self.__dataset.tags)} tags...")
             self.__upload.api_add_tags(self.__dataset.tags)
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.tags)} tags ont été ajoutés avec succès.")
+
+    @staticmethod
+    def add_carte_tags(mode_cartes: bool, upload: Optional[Upload], upload_step: str) -> None:
+        """En mode cartes, ajoute les tags nécessaires."""
+        # lister toutes les clés dans la section compatibility_cartes, filtrer chaque clé qui commence par upload_step,
+        # mettre la fin de la clé dans un tag et mettre la value (en string) comme value du tag (self.__upload.api_add_tags(...))
+        if not mode_cartes:
+            return
+        d_section = Config().get_config()["compatibility_cartes"]
+        if upload is not None and d_section is not None:
+            d_tag = {}
+            for s_key, s_val in d_section.items():
+                if s_key.startswith(upload_step):
+                    # on va chercher la fin du mot clé (apres le upload_step et le underscore)
+                    d_tag[s_key[len(upload_step) + 1 :]] = str(s_val)
+            if d_tag:
+                upload.api_add_tags(d_tag)
+
+    def __add_carte_tags(self, upload_step: str) -> None:
+        """En mode cartes, ajoute les tags nécessaires via la méthode statique."""
+        UploadAction.add_carte_tags(self.__mode_cartes, self.__upload, upload_step)
 
     def __add_comments(self) -> None:
         """Ajoute les commentaires."""
@@ -124,64 +172,141 @@ class UploadAction:
                     self.__upload.api_add_comment({"text": s_comment})
             Config().om.info(f"Livraison {self.__upload['name']} : les {len(self.__dataset.comments)} commentaires ont été ajoutés avec succès.")
 
-    def __push_data_files(self) -> None:
-        """Téléverse les fichiers de données (listés dans le dataset)."""
+    def __push_data_files(self, check_conflict: bool = True) -> None:
+        """Téléverse les fichiers de données (listés dans le dataset).
+
+        Args:
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée.
+        """
         if self.__upload is not None:
             # Liste les fichiers déjà téléversés sur l'entrepôt et récupère leur taille
-            Config().om.info(f"Livraison {self.__upload['name']} : récupération de l'arborescence des données déjà téléversées...")
-            l_arborescence = self.__upload.api_tree()
-            d_destination_taille = UploadAction.parse_tree(l_arborescence)
+            Config().om.info(f"Livraison {self.__upload['name']} : récupération de l'arborescence des données déjà téléversées...", force_flush=True)
+            i_file_upload = self.__push_files(
+                list(self.__dataset.data_files.items()),
+                self.__upload.api_push_data_file,
+                self.__upload.api_delete_data_file,
+                check_conflict,
+            )
 
-            for p_file_path, s_api_path in self.__dataset.data_files.items():
-                # Regarde si le fichier du dataset est déjà dans la liste des fichiers téléversés sur l'entrepôt
-                # NB: sur l'entrepôt, tous les fichiers "data" sont dans le dossier parent "data" TODO vérifier que c'est toujours le cas !
-                s_data_api_path = f"{s_api_path}/{p_file_path.name}"
-                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}...")
-                if s_data_api_path in d_destination_taille:
-                    # le fichier est déjà livré, on check sa taille :
-                    if d_destination_taille[s_data_api_path] == p_file_path.stat().st_size:
-                        # le fichier a été complètement téléversé. On passe au fichier suivant.
-                        Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
-                        continue
+            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.data_files)} fichiers de données ont été ajoutés avec succès. ({i_file_upload} livré(s) lors de ce traitement)")
 
-                    # le fichier n'a pas été téléversé en totalité.
-                    # Si le mode "Append" n'est pas disponible sur le serveur, il faut supprimer le fichier à moitié téléversé.
-                    # Sinon il faudra reprendre le téléversement (!)
-                    self.__upload.api_delete_data_file(s_data_api_path)
+    def __push_md5_files(self, check_conflict: bool = True) -> None:
+        """Téléverse les fichiers de clefs (listés dans le dataset).
 
-                # sinon, on doit livrer le fichier
-                self.__upload.api_push_data_file(p_file_path, s_api_path)
-                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: terminé")
-            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.data_files)} fichiers de données ont été ajoutés avec succès.")
-
-    def __push_md5_files(self) -> None:
-        """Téléverse les fichiers de clefs (listés dans le dataset)."""
+        Args:
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée..
+        """
         if self.__upload is not None:
-            # Liste les fichiers md5 téléversés sur l'entrepôt et récupère leur taille
-            l_arborescence = self.__upload.api_tree()
-            d_destination_taille = UploadAction.parse_tree(l_arborescence)
+            i_file_upload = self.__push_files(
+                [(p_file, "") for p_file in self.__dataset.md5_files],
+                self.__normalise_api_push_md5_file,
+                self.__upload.api_delete_md5_file,
+                check_conflict,
+            )
+            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.md5_files)} fichiers md5 ont été ajoutés avec succès. ({i_file_upload} livré(s) lors de ce traitement)")
 
-            for p_file_path in self.__dataset.md5_files:
-                # Regarde si le fichier du dataset est déjà dans la liste des fichiers téléversés sur l'entrepôt
-                # NB: sur l'entrepot, tous les fichiers md5 sont à la racine
-                s_api_path = p_file_path.name
-                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_api_path}...")
-                if s_api_path in d_destination_taille:
-                    # le fichier est déjà livré, on check sa taille :
-                    if d_destination_taille[s_api_path] == p_file_path.stat().st_size:
-                        # le fichier a été complètement téléversé. On passe au fichier suivant.
-                        Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_api_path}: déjà livré")
-                        continue
+    def __normalise_api_push_md5_file(self, path: Path, nom: str) -> None:
+        """fonction cachant api_push_md5_file pour avoir une fonction ayant les même entrées que api_push_data_file, utilisé comme paramètre de __push_files
 
-                    # le fichier n'a pas été téléversé en totalité.
-                    # Si le mode "Append" n'est pas disponible sur le serveur, il faut supprimer le fichier à moitié téléversé.
-                    # Sinon il faudra reprendre le téléversement (!)
-                    self.__upload.api_delete_data_file(s_api_path)
+        Args:
+            path (Path): chemin le la chef MD5
+            nom (str): non du ficher md5
+        """
+        if self.__upload is None:
+            raise GpfSdkError(f"Aucune livraison de définie - impossible de livrer {nom}")
+        self.__upload.api_push_md5_file(path)
 
-                # sinon, on doit livrer le fichier
-                self.__upload.api_push_md5_file(p_file_path)
-                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_api_path}: terminé")
-            Config().om.info(f"Livraison {self.__upload}: les {len(self.__dataset.md5_files)} fichiers md5 ont été ajoutés avec succès.")
+    def __push_files(self, l_files: List[Tuple[Path, str]], f_api_push: Callable[[Path, str], None], f_api_delete: Callable[[str], None], check_conflict: bool = True) -> int:
+        """pousse un ficher de données ou un ficher md5 sur le store. Gère la reprise de Livraison et les conflicts lors de la livraison.
+
+        Args:
+            l_files (List[Tuple[Path, str]]): liste de tuple Path du ficher à livre, nom du ficher sous la gpf
+            f_api_push (Callable[[Path, str], None]): fonction pour livrer les données
+            f_api_delete (Callable[[str], None]): fonction pour supprimé les données si livrer partiellement.
+            check_conflict (bool): Si une vérification de la bonne livraison des fichier en conflict ou en timeout est lancée..
+
+        Returns:
+            int: nombre de ficher réellement téléverser durant l'action
+        """
+        if self.__upload is None:
+            raise GpfSdkError("Aucune livraison de définie")
+        # Liste les fichiers téléversés sur l'entrepôt et récupère leur taille
+        l_arborescence = self.__upload.api_tree()
+        d_destination_taille = UploadAction.parse_tree(l_arborescence)
+        l_conflict = []
+        i_file_upload = 0
+        for p_file_path, s_api_path in l_files:
+            # Regarde si le fichier du dataset est déjà dans la liste des fichiers téléversés sur l'entrepôt
+            # NB: sur l'entrepot, tous les fichiers md5 sont à la racine
+            s_data_api_path = f"{s_api_path}/{p_file_path.name}" if s_api_path else p_file_path.name
+            Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}...")
+            if s_data_api_path in d_destination_taille:
+                # le fichier est déjà livré, on check sa taille :
+                if d_destination_taille[s_data_api_path] == p_file_path.stat().st_size:
+                    # le fichier a été complètement téléversé. On passe au fichier suivant.
+                    Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
+                    continue
+
+                # le fichier n'a pas été téléversé en totalité.
+                # Si le mode "Append" n'est pas disponible sur le serveur, il faut supprimer le fichier à moitié téléversé.
+                # Sinon il faudra reprendre le téléversement (!)
+                f_api_delete(s_data_api_path)
+
+            try:
+                # livraison du fichier
+                f_api_push(p_file_path, s_api_path)
+                i_file_upload += 1
+                Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: terminé")
+            except requests.Timeout:
+                Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: timeout.")
+                l_conflict.append((p_file_path, s_api_path))
+            except ConflictError:
+                Config().om.warning(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: conflict.")
+                l_conflict.append((p_file_path, s_api_path))
+        if not check_conflict and l_conflict:
+            # pas de vérification des conflicts
+            Config().om.info(f"Livraison {self.__upload}: {len(l_conflict)} fichiers en conflict : " + "\n * ".join([s_data_api_path for (p_file_path, s_data_api_path) in l_conflict]))
+        elif l_conflict:
+            # vérification des fichiers en conflict
+            Config().om.info(f"Livraison {self.__upload}: {len(l_conflict)} fichiers en conflict, vérification de leur livraisons...")
+            l_error = self.__check_file_uploaded(l_conflict)
+            if l_error:
+                raise UploadFileError(f"Livraison {self.__upload['name']} : Problème de livraison pour {len(l_error)} fichiers. Il faut relancer la livraison.", l_error)
+        return i_file_upload
+
+    def __check_file_uploaded(self, l_files: List[Tuple[Path, str]]) -> List[Tuple[Path, str]]:
+        """vérifie si les fichiers donnée en entrée soit bien livrer
+
+        Args:
+            l_files (List[Tuple[Path, str]]): liste des ficher à vérifier (path du fichier, chemin du fichier sur la GPF)
+
+        Raises:
+            GpfSdkError: _description_
+
+        Returns:
+            List[Tuple[Path, str]]: liste des fichiers en erreur (path du fichier, chemin du fichier sur la GPF)
+        """
+        if self.__upload is None:
+            raise GpfSdkError("Aucune livraison de définie")
+        # on recharge la l'arborescence
+        l_arborescence = self.__upload.api_tree()
+        d_destination_taille = UploadAction.parse_tree(l_arborescence)
+        l_error: List[Tuple[Path, str]] = []
+        # vérifications
+        for p_file_path, s_api_path in l_files:
+            s_data_api_path = f"{s_api_path}/{p_file_path.name}" if s_api_path else p_file_path.name
+            if s_data_api_path in d_destination_taille:
+                # le fichier est déjà livré, on check sa taille :
+                if d_destination_taille[s_data_api_path] == p_file_path.stat().st_size:
+                    # le fichier a été complètement téléversé. On passe au fichier suivant.
+                    Config().om.info(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: déjà livré")
+                else:
+                    Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: à re-livrer, problème de taille")
+                    l_error.append((p_file_path, s_api_path))
+            else:
+                Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: non trouvé dans la liste des fichiers livrés")
+                l_error.append((p_file_path, s_api_path))
+        return l_error
 
     def __close(self) -> None:
         """Ferme la livraison."""
@@ -214,7 +339,7 @@ class UploadAction:
         return self.__upload
 
     @staticmethod
-    def monitor_until_end(upload: Upload, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None) -> bool:
+    def monitor_until_end(upload: Upload, callback: Optional[Callable[[str], None]] = None, ctrl_c_action: Optional[Callable[[], bool]] = None, mode_cartes: Optional[bool] = None) -> bool:
         """Attend que toute les vérifications liées à la Livraison indiquée
         soient terminées (en erreur ou en succès) avant de rendre la main.
 
@@ -232,7 +357,7 @@ class UploadAction:
         i_nb_sec_between_check = Config().get_int("upload", "nb_sec_between_check_updates")
         s_check_message_pattern = Config().get_str("upload", "check_message_pattern")
         b_success: Optional[bool] = None
-        Config().om.info(f"Monitoring des vérifications toutes les {i_nb_sec_between_check} secondes...")
+        Config().om.info(f"Monitoring des vérifications toutes les {i_nb_sec_between_check} secondes...", force_flush=True)
         while b_success is None:
             try:
                 # On récupère les vérifications
@@ -265,7 +390,7 @@ class UploadAction:
                         raise
 
                     # arrêt des vérifications
-                    Config().om.warning("Ctrl+C : vérifications en cours d’interruption, veuillez attendre...")
+                    Config().om.warning("Ctrl+C : vérifications en cours d’interruption, veuillez attendre...", force_flush=True)
                     # suppression des vérifications non terminées
                     for d_check_exec in d_checks["in_progress"]:
                         CheckExecution(d_check_exec, upload.datastore).api_delete()
@@ -287,10 +412,13 @@ class UploadAction:
 
         # Si on est sorti du while c'est que les vérifications sont terminées
         # On log le dernier rapport selon l'état et on sort
+        mode_cartes = mode_cartes if mode_cartes is not None else Config().get_bool("compatibility_cartes", "activate", False)
         if b_success:
             Config().om.info(s_message)
+            UploadAction.add_carte_tags(mode_cartes, upload, "upload_check_ok")
             return True
         Config().om.warning(s_message)
+        UploadAction.add_carte_tags(mode_cartes, upload, "upload_check_ko")
         return False
 
     @staticmethod

@@ -3,9 +3,6 @@
     "title": "Schéma JSON pour un fichier workflow",
     "description": "",
     "type": "object",
-    "workflow": [
-        "workflow"
-    ],
     "properties": {
         "workflow": {
             "type": "object",
@@ -39,9 +36,13 @@
                                                 "delete-entity",
                                                 "processing-execution",
                                                 "configuration",
-                                                "copie-configuration",
+                                                "copy-configuration",
+                                                "used_data-configuration",
                                                 "offering",
-                                                "synchronize-offering"
+                                                "synchronize-offering",
+                                                "access",
+                                                "edit-entity",
+                                                "permission"
                                             ]
                                         },
                                         "url_parameters": {
@@ -56,8 +57,20 @@
                                                 "type": "string"
                                             }
                                         },
+                                        "remove_comments": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
                                         "tags": {
                                             "type": "object"
+                                        },
+                                        "remove_tags": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
                                         },
                                         "datastore": {
                                             "type": "string"
@@ -90,6 +103,21 @@
                                         },
                                         "confirm": {
                                             "type": "boolean"
+                                        },
+                                        "delete_used_data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "append_used_data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "reset_bbox": {
+                                            "type": "boolean"
                                         }
                                     }
                                 }
@@ -108,6 +136,18 @@
                             },
                             "tags": {
                                 "type": "object"
+                            },
+                            "iter_vals" : {
+                                "type": "array",
+                                "items": {
+                                    "type": ["string",  "object"]
+                                }
+                            },
+                            "iter_key": {
+                                "type": "string"
+                            },
+                            "datastore": {
+                                "type": "string"
                             }
                         }
                     }
@@ -125,6 +165,9 @@
         },
         "tags": {
             "type": "object"
+        },
+        "compatibility_cartes":{
+            "type": "boolean"
         }
     },
     "required": [ "workflow" ],

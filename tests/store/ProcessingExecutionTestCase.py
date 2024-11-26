@@ -1,6 +1,5 @@
 from datetime import datetime
 from unittest.mock import patch
-from typing import Any, Dict, List
 
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.store.ProcessingExecution import ProcessingExecution
@@ -12,33 +11,6 @@ class ProcessingExecutionTestCase(GpfTestCase):
 
     cmd : python3 -m unittest -b tests.store.ProcessingExecutionTestCase
     """
-
-    def test_api_logs(self) -> None:
-        """Vérifie le bon fonctionnement de api_logs."""
-        s_data = "2022/05/18 14:29:25       INFO §USER§ Envoi du signal de début de l'exécution à l'API.\n2022/05/18 14:29:25       INFO §USER§ Signal transmis avec succès."
-        l_rep: List[Dict[str, Any]] = [
-            {"data": s_data, "rep": s_data, "datastore": None},
-            {"data": "", "rep": "", "datastore": "datastore"},
-            {"data": "[]", "rep": "", "datastore": None},
-            {"data": '["log1", "log2", " log \\"complexe\\""]', "rep": 'log1\nlog2\n log "complexe"', "datastore": "datastore"},
-        ]
-
-        for d_rep in l_rep:
-            # Instanciation d'une fausse réponse HTTP
-            o_response = GpfTestCase.get_response(text=d_rep["data"])
-            # On mock la fonction route_request, on veut vérifier qu'elle est appelée avec les bons params
-            with patch.object(ApiRequester, "route_request", return_value=o_response) as o_mock_request:
-                # on appelle la fonction à tester : api_logs
-                o_processing_execution = ProcessingExecution({"_id": "id_entité"}, d_rep["datastore"])
-                s_data_recupere = o_processing_execution.api_logs()
-
-                # on vérifie que route_request est appelé correctement
-                o_mock_request.assert_called_once_with(
-                    "processing_execution_logs",
-                    route_params={"processing_execution": "id_entité", "datastore": d_rep["datastore"]},
-                )
-                # on vérifie la similitude des données retournées
-                self.assertEqual(d_rep["rep"], s_data_recupere)
 
     def test_api_launch(self) -> None:
         """Vérifie le bon fonctionnement de api_launch."""

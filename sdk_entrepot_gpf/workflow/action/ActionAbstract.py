@@ -26,6 +26,7 @@ class ActionAbstract(ABC):
     BEHAVIOR_STOP = "STOP"
     BEHAVIOR_DELETE = "DELETE"
     BEHAVIOR_CONTINUE = "CONTINUE"
+    BEHAVIOR_RESUME = "RESUME"
 
     def __init__(self, workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional["ActionAbstract"] = None) -> None:
         super().__init__()
@@ -69,7 +70,7 @@ class ActionAbstract(ABC):
         Raises:
             StepActionError: _description_
         """
-        Config().om.info(f"Résolution de l'action '{self.workflow_context}-{self.index}'...")
+        Config().om.info(f"Résolution de l'action '{self.workflow_context}-{self.index}'...", force_flush=True)
         # Pour faciliter la résolution, on repasse la définition de l'action en json
         s_definition = str(json.dumps(self.__definition_dict, ensure_ascii=False))
         # lancement des résolveurs
@@ -113,7 +114,7 @@ class ActionAbstract(ABC):
         l_tags = Config().get_str(config_key, "uniqueness_constraint_tags", "").split(";")
         d_tags = {}
         for s_tag in l_tags:
-            if s_tag != "":
+            if s_tag != "" and s_tag in tags:
                 d_tags[s_tag] = tags[s_tag]
         # On peut maintenant renvoyer les filtres
         return d_infos, d_tags

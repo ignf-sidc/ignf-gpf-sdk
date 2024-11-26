@@ -52,13 +52,13 @@ class DeleteActionTestCase(GpfTestCase):
         for c_classe in [Upload, StoredData, Configuration, Offering]:
             print(c_classe.entity_name())
             # rien trouvé avec les filtres
-            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {}}
+            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {"nom": "name"}, "filter_tags": {"tag1": "val1"}}
             o_action_delete = DeleteAction("contexte", d_action)
             with patch.object(c_classe, "api_list", return_value=[]) as o_mock_api_list:
                 with self.assertRaises(StepActionError) as o_err:
                     o_action_delete.run(s_datastore)
             self.assertEqual("Aucune entité trouvée pour la suppression", o_err.exception.message)
-            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_infos"), datastore=s_datastore)
+            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_tags"), datastore=s_datastore)
 
             # rien trouvé avec "entity_id"
             d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "entity_id": s_entity_id}
@@ -69,14 +69,14 @@ class DeleteActionTestCase(GpfTestCase):
             self.assertEqual("Aucune entité trouvée pour la suppression", o_err.exception.message)
             o_mock_api_list.assert_called_once_with(s_entity_id, datastore=s_datastore)
 
-        d_action = {"type": "delete-entity", "entity_type": "offering", "filter_infos": {}, "if_multi": "error"}
+        d_action = {"type": "delete-entity", "entity_type": "offering", "filter_infos": {"nom": "name"}, "filter_tags": {"tag1": "val1"}, "if_multi": "error"}
         o_action_delete = DeleteAction("contexte", d_action)
         l_entities = [MagicMock(), MagicMock(), MagicMock()]
         with patch.object(Offering, "api_list", return_value=l_entities) as o_mock_api_list:
             with self.assertRaises(StepActionError) as o_err:
                 o_action_delete.run(s_datastore)
         self.assertEqual(f"Plusieurs entités trouvées pour la suppression : {l_entities}", o_err.exception.message)
-        o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_infos"), datastore=s_datastore)
+        o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_tags"), datastore=s_datastore)
 
     def test_run_ok(self) -> None:  # pylint: disable=too-many-locals,too-many-statements
         """test pour la fonction run() sortie sans erreur"""
@@ -84,13 +84,13 @@ class DeleteActionTestCase(GpfTestCase):
         s_entity_id = "entity_id"
         for c_classe in [Upload, StoredData, Configuration, Offering]:
             # Aucune entité mais c'est OK
-            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {}, "if_multi": "error", "not_found_ok": True}
+            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {"nom": "name"}, "filter_tags": {"tag1": "val1"}, "if_multi": "error", "not_found_ok": True}
             o_action_delete = DeleteAction("contexte", d_action)
             with patch.object(c_classe, "api_list", return_value=[]) as o_mock_api_list:
                 with patch.object(StoreEntity, "delete_liste_entities", return_value=[]) as o_mock_delete:
                     o_action_delete.run(s_datastore)
-            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_infos"), datastore=s_datastore)
-            o_mock_delete.assert_called_once_with([], DeleteAction.question_before_delete)
+            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_tags"), datastore=s_datastore)
+            o_mock_delete.assert_not_called()
 
             # suppression avec entity_id
             o_entity = MagicMock()
@@ -119,13 +119,13 @@ class DeleteActionTestCase(GpfTestCase):
             # suppression avec les filtres
             o_entity_1 = MagicMock()
             o_entity_2 = MagicMock()
-            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {}}
+            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {"nom": "name"}, "filter_tags": {"tag1": "val1"}}
             o_action_delete = DeleteAction("contexte", d_action)
             with patch.object(c_classe, "api_list", return_value=[o_entity_1, o_entity_2]) as o_mock_api_list:
                 with patch.object(StoreEntity, "delete_liste_entities", return_value=[]) as o_mock_delete:
                     o_action_delete.run(s_datastore)
             o_mock_delete.assert_called_once_with([o_entity_1, o_entity_2], DeleteAction.question_before_delete)
-            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_infos"), datastore=s_datastore)
+            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_tags"), datastore=s_datastore)
             o_entity_1.get_liste_deletable_cascade.assert_not_called()
             o_entity_2.get_liste_deletable_cascade.assert_not_called()
 
@@ -135,26 +135,26 @@ class DeleteActionTestCase(GpfTestCase):
             o_entity_1.get_liste_deletable_cascade.return_value = l_cascade
             o_entity_2 = MagicMock()
             o_entity_2.get_liste_deletable_cascade.return_value = l_cascade
-            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {}, "cascade": True}
+            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {"nom": "name"}, "filter_tags": {"tag1": "val1"}, "cascade": True}
             o_action_delete = DeleteAction("contexte", d_action)
             with patch.object(c_classe, "api_list", return_value=[o_entity_1, o_entity_2]) as o_mock_api_list:
                 with patch.object(StoreEntity, "delete_liste_entities", return_value=[]) as o_mock_delete:
                     o_action_delete.run(s_datastore)
             o_mock_delete.assert_called_once_with(l_cascade * 2, DeleteAction.question_before_delete)
-            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_infos"), datastore=s_datastore)
+            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_tags"), datastore=s_datastore)
             o_entity_1.get_liste_deletable_cascade.assert_called_once_with()
             o_entity_2.get_liste_deletable_cascade.assert_called_once_with()
 
             # suppression avec les filtres avec "if_multi": "first"
             o_entity_1 = MagicMock()
             o_entity_2 = MagicMock()
-            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {}, "if_multi": "first"}
+            d_action = {"type": "delete-entity", "entity_type": c_classe.entity_name(), "filter_infos": {"nom": "name"}, "filter_tags": {"tag1": "val1"}, "if_multi": "first"}
             o_action_delete = DeleteAction("contexte", d_action)
             with patch.object(c_classe, "api_list", return_value=[o_entity_1, o_entity_2]) as o_mock_api_list:
                 with patch.object(StoreEntity, "delete_liste_entities", return_value=[]) as o_mock_delete:
                     o_action_delete.run(s_datastore)
             o_mock_delete.assert_called_once_with([o_entity_1], DeleteAction.question_before_delete)
-            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_infos"), datastore=s_datastore)
+            o_mock_api_list.assert_called_once_with(d_action.get("filter_infos"), d_action.get("filter_tags"), datastore=s_datastore)
             o_entity_1.get_liste_deletable_cascade.assert_not_called()
             o_entity_2.get_liste_deletable_cascade.assert_not_called()
 

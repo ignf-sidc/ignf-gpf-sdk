@@ -54,7 +54,7 @@ class FullEditInterfaceTestCase(GpfTestCase):
 
         print(d_fusion)
 
-        o_entity = FullEditInterface({"_id": "1"})
+        o_entity = FullEditInterface(d_entity)
         with patch.object(FullEditInterface, "api_full_edit", return_value=None) as o_mock_api_edit:
             o_entity.edit(d_edit)
             o_mock_api_edit.assert_called_once_with(d_fusion)

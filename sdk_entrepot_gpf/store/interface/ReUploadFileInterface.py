@@ -26,6 +26,7 @@ class ReUploadFileInterface(StoreEntity):
             s_route,
             file,
             s_file_key,
+            route_params={self._entity_name: self.id, "datastore": self.datastore},
             method=ApiRequester.PUT,
         )
 

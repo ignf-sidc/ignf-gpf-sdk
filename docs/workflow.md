@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/workflow/
+-->
+
 # Workflows
 
 Le fichier workflow est un fichier au format JSON permettant de décrire les actions à réaliser sur des données stockées ou livrées.
@@ -11,6 +20,7 @@ Les actions sont les suivantes :
 * publier un géoservice (càd créer une offering) ;
 * supprimer une entité de type upload, stored_data, configuration ou offering ;
 * modifier une entité de type upload, stored_data, configuration ou offering ;
+* Mettre à jour les used_data et la bbox d'une configuration
 * copier une configuration (création d'une nouvelle configuration en reprenant les paramètres non précisés de la précédente) ;
 * synchroniser une offre (mettre à jour avec la donnée stockée et une offering).
 
@@ -48,22 +58,23 @@ Ce workflow permet de lancer 2 étapes `etape 1` et `etape 2`.
 
 Les actions possibles sont les suivantes :
 
-* [exécuter un traitement](#executer-un-traitement)
-* [configurer un flux](#configurer-un-flux)
-* [publier un flux](#publier-un-flux)
-* [supprimer une entité](#supprimer-une-entite)
-* [modifier une entité](#modifier-une-entite)
-* [copier une configuration](#copier-une-configuration)
-* [synchroniser une publication](#synchroniser-une-publication)
+* [Exécuter un traitement](Exécuter un traitement)
+* [Configurer un géoservice](Configurer un géoservice)
+* [Publier un géoservice](Publier un géoservice)
+* [Supprimer une entité](Supprimer une entité)
+* [Modifier une entité](Modifier une entité)
+* [Mettre à jour les used_data et la bbox d'une configuration](Mettre à jour les used_data et la bbox d'une configuration)
+* [Copier une configuration](Copier une configuration)
+* [Synchroniser une publication](Synchroniser une publication)
 
 ### Exécuter un traitement
 
 * `type`: `processing-execution`
 * `body_parameters`: dictionnaire paramétrant l’exécution :
-  * `processing`: id du traitement à utiliser
-  * `inputs` : dictionnaire décrivant la/les données d'entrée (se référer à la documentation du traitement)
-  * `output`: dictionnaire décrivant la sortie du traitement (se référer à la documentation du traitement)
-  * `parameters`: dictionnaire des paramètres à utiliser pour le traitement (se référer à la documentation du traitement)
+    * `processing`: id du traitement à utiliser
+    * `inputs` : dictionnaire décrivant la/les données d'entrée (se référer à la documentation du traitement)
+    * `output`: dictionnaire décrivant la sortie du traitement (se référer à la documentation du traitement)
+    * `parameters`: dictionnaire des paramètres à utiliser pour le traitement (se référer à la documentation du traitement)
 * `comments` : liste des commentaires à ajouter à la donnée en sortie (si mise à jour : les commentaires déjà présents ne sont pas ajoutés).
 * `tags` : tags à ajouter à la donnée en sortie (clef-valeur) (si mise à jour : les tags déjà présents ne sont pas ajoutés).
 
@@ -72,34 +83,34 @@ La liste des traitement est disponible ici : [/datastores/{datastore}/processing
 
 Le détail d'un traitement est disponible ici : [/datastores/{datastore}/processings/{processing}](https://data.geopf.fr/api/swagger-ui/index.html#/Traitements/get_6)
 
-### Configurer un flux
+### Configurer un géoservice
 
 * `type`*: `configuration`
 * `body_parameters`*: dictionnaire paramétrant la configuration :
-  * `type`*: type du flux (WMS-VECTOR, WFS, WMTS-TMS, WMS-RASTER, DOWNLOAD, ITINERARY-ISOCURVE, ALTIMETRY, SEARCH, VECTOR-TMS)
-  * `name`*: Nom de la configuration
-  * `layer_name`*: Nom technique de la ressource. Ce nom doit être unique sur la plateforme pour un type de configuration donné. Uniquement des caractères alphanumériques, tiret, tiret bas, point (pattern: ^[A-Za-z0-9_\-.]+$)
-  * `type_infos`* : description des données à utiliser (dépend du flux)
-  * `attribution`: (optionnel) Métadonnées liées au propriétaire de la configuration
-    * `title`*: Nom du propriétaire
-    * `url`*: URL vers le site du propriétaire
-    * `logo`: Dictionnaire décrivant le logo du propriétaire
-    * `format`*: le format (mime-type) du logo (pattern: `\w+/[-+.\w]+`, example: `image/jpeg`)
-    * `url`*: l'URL d'accès au logo
-    * `width`*: la largeur du logo
-    * `height`*: la hauteur du logo
+    * `type`*: type du flux (WMS-VECTOR, WFS, WMTS-TMS, WMS-RASTER, DOWNLOAD, ITINERARY-ISOCURVE, ALTIMETRY, SEARCH, VECTOR-TMS)
+    * `name`*: Nom de la configuration
+    * `layer_name`*: Nom technique de la ressource. Ce nom doit être unique sur la plateforme pour un type de configuration donné. Uniquement des caractères alphanumériques, tiret, tiret bas, point (pattern: ^[A-Za-z0-9_\-.]+$)
+    * `type_infos`* : description des données à utiliser (dépend du flux)
+    * `attribution`: (optionnel) Métadonnées liées au propriétaire de la configuration
+        * `title`*: Nom du propriétaire
+        * `url`*: URL vers le site du propriétaire
+        * `logo`: Dictionnaire décrivant le logo du propriétaire
+        * `format`*: le format (mime-type) du logo (pattern: `\w+/[-+.\w]+`, example: `image/jpeg`)
+        * `url`*: l'URL d'accès au logo
+        * `width`*: la largeur du logo
+        * `height`*: la hauteur du logo
 * `comments` : liste des commentaires à ajouter à la configuration.
 * `tags` : tags à ajouter à la configuration (clef-valeur).
 
-type_infos selon le flux :
+`type_infos` selon le géoservice :
 
 #### WFS
 
 * `bbox`: dictionnaire Bounding box :
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
+    * `west`*
+    * `south`*
+    * `east`*
+    * `north`*
 * `used_data`*: liste de dictionnaires :
   * `stored_data`*: identifiant de la donnée stockée
   * `relations`*: liste de dictionnaires décrivant la relation :
@@ -112,15 +123,15 @@ type_infos selon le flux :
 #### WMTS-TMS
 
 * `bbox`: dictionnaire Bounding box :
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
+    * `west`*
+    * `south`*
+    * `east`*
+    * `north`*
 * `title`*: titre
 * `keywords`: liste de mots clés (doivent être uniques)
 * `styles`: liste des identifiants des fichiers statiques de style Rok4
 * `used_data`*: liste de dictionnaire :
-  * `bottom_level`*:niveau minimum
+  * `bottom_level`*: niveau minimum
   * `top_level`*: niveau maximum
   * `stored_data`*: identifiant de la donnée stockée
 * `abstract`*: description
@@ -142,10 +153,10 @@ type_infos selon le flux :
 #### WMS-VECTOR
 
 * `bbox`: dictionnaire Bounding box :
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
+    * `west`*
+    * `south`*
+    * `east`*
+    * `north`*
 * `title`*: titre
 * `keywords`: Liste de mots clés (doivent être uniques)
 * `abstract`*: Description
@@ -154,21 +165,20 @@ type_infos selon le flux :
   * `relations`*: liste de dictionnaires décrivant la relation :
     * `name`*: Nom de la table
     * `style`*: uuid du statiques de style
-    * `ftl`: uuid de ?????
 
 #### WMS-RASTER
 
 * `bbox`: dictionnaire Bounding box :
-  * `west`*
-  * `south`*
-  * `east`*
-  * `north`*
+    * `west`*
+    * `south`*
+    * `east`*
+    * `north`*
 * `title`*: titre
 * `keywords`: Liste de mots clés (doivent être uniques)
 * `styles`: liste des identifiants des fichiers statiques de style Rok4
 * `used_data`*: liste de dictionnaire :
-  * `bottom_level`*: niveau minimum
-  * `top_level`*: niveau maximum
+  * `bottom_level`*: Niveau minimum
+  * `top_level`*: Niveau maximum
   * `stored_data`*: Identifiant de la donnée stockée
 * `interpolation`: Interpolation utilisée pour les conversions de résolution : [ NEAREST-NEIGHBOUR, LINEAR, BICUBIC, LANCZOS2, LANCZOS3, LANCZOS4 ] (default: BICUBIC)
 * `bottom_resolution`: Résolution minimale de la couche
@@ -186,13 +196,13 @@ type_infos selon le flux :
 * `keywords`: Liste de mots clés (doivent être uniques)
 * `abstract`*: Description
 * `used_data`*: liste de dictionnaire :
-  * `sub_name`*: nom
-  * `title`: titre
-  * `keywords`: Liste de mots clés (doivent être uniques)
-  * `format`: format
-  `zone`: zone
-  * `stored_data`*: Identifiant de la donnée stockée
-  * `abstract`*: Description
+    * `sub_name`*: nom
+    * `title`: titre
+    * `keywords`: Liste de mots clés (doivent être uniques)
+    * `format`: format
+    `zone`: zone
+    * `stored_data`*: Identifiant de la donnée stockée
+    * `abstract`*: Description
 
 #### ALTIMETRY
 
@@ -233,7 +243,7 @@ type_infos selon le flux :
 * `keywords`: liste des mots clés
 * `abstract`*: Description
 * `used_data`*: liste de dictionnaire :
-  * `stored_data`*: Identifiant de la donnée stockée
+    * `stored_data`*: Identifiant de la donnée stockée
 
 #### ITINERARY-ISOCURVE
 
@@ -246,10 +256,10 @@ type_infos selon le flux :
 * `keywords`: liste des mots clés
 * `abstract`*: Description
 * `limits`: dictionnaire décrivant les limites pour les calculs d'itinéraire (nombre d'étapes et de contraintes) et d'isochrone (durée et distance)
-  * `steps`: Nombre d'étapes maximal pour le service d'itinéraire (maximum: 25, minimum: 0, default: 16)
-  * `constraints`: Nombre de contraintes maximal pour le service d'itinéraire (maximum: 6, minimum: 0, default: 3)
-  * `duration`: Durée maximale pour le calcul d'isochrone (maximum: 86400, minimum: 0, default: 43200)
-  * `distance`: Distance maximale pour le calcul d'isochrone (maximum: 2000000, minimum: 0, default: 1000000)
+    * `steps`: Nombre d'étapes maximal pour le service d'itinéraire (maximum: 25, minimum: 0, default: 16)
+    * `constraints`: Nombre de contraintes maximal pour le service d'itinéraire (maximum: 6, minimum: 0, default: 3)
+    * `duration`: Durée maximale pour le calcul d'isochrone (maximum: 86400, minimum: 0, default: 43200)
+    * `distance`: Distance maximale pour le calcul d'isochrone (maximum: 2000000, minimum: 0, default: 1000000)
 * `constraints`: Dictionnaire de définition des contraintes pour la configuration (pas d'information sur le contenu dans la documentation API GPF)
 * `srss`: liste des projections
 * `used_data`* dictionnaire :
@@ -266,20 +276,77 @@ type_infos selon le flux :
     * `default`: boolean
   * `stored_data`*: Identifiant de la donnée stockée
 
-### Publier un flux
+### Publier un géoservice
 
 * `type`*: `offering`
 * `url_parameters`: dictionnaire :
-  * `configuration`: uuid de la configuration que l'on veux publier
+    * `configuration`: uuid de la configuration que l'on veux publier
 * `body_parameters`*: dictionnaire paramétrant l'offre:
-  * `visibility`: niveau de visibilité [ PRIVATE, REFERENCED, PUBLIC ] (default: PRIVATE)
-  * `endpoint`*: uuid du endpoint à utiliser
-  * `open`: boolean
-  * `permissions`: liste des uuid des permissions
+    * `visibility`: niveau de visibilité [ PRIVATE, REFERENCED, PUBLIC ] (default: PRIVATE)
+    * `endpoint`*: uuid du endpoint à utiliser
+    * `open`: boolean
+    * `permissions`: liste des uuid des permissions
+
+
+### Créer une permission
+
+Si vous avez publiés votre géoservice sur un point d'accès privé, il vous faudra créer une permission autorisant un utilisateur ou une communautés à en gérer les accès. Vous devez créer une permission pour vous même si vous souhaitez gérer les accès.
+
+Exemple d'action rédigée en JSON :
+
+```jsonc
+{
+  "type": "permission",
+  "body_parameters": {
+    // Date de fin
+    "end_date": "2024-12-31T20:00:00Z",
+    // Licence
+    "licence": "licence",
+    // Liste des offres concernées
+    "offerings": ["offering-id"],
+    // Si la permission doit utiliser une clef à authentification oauth
+    "only_oauth": false,
+    // (au choix) Type de permission et utilisateurs concernées
+    "type": "ACCOUNT",
+    "users": ["user-id"],
+    // (au choix) Type de permission et communautés concernées
+    "type": "COMMUNITY",
+    "communities": ["community-id"]
+  }
+}
+```
+
+Pour avoir une description exhaustive du `body_parameters`, voir POST [/datastores/{datastore}/permissions](https://data.geopf.fr/api/swagger-ui/index.html#/Gestion%20des%20permissions/create_2).
+
+
+### Créer un accès
+
+Une fois la permission créée, vous pouvez utiliser cette permission pour donner un accès à une ou plusieurs offre(s) à une clef.
+
+Exemple d'action rédigée en JSON :
+
+```jsonc
+{
+  "type": "access",
+  "url_parameters": {
+    // Clef concernée
+    "key": "key-id"
+  },
+  "body_parameters": {
+    // Permission utilisée
+    "permission": "permission-id",
+    // Offres concernées
+    "offerings": ["offering-id"]
+  }
+}
+```
+
+Pour avoir une description exhaustive du `body_parameters`, voir POST [/users//me/keys/{key}/accesses](https://data.geopf.fr/api/swagger-ui/index.html#/Utilisateurs/postAccesses).
+
 
 ### Supprimer une entité
 
-Possibilité de supprimer des entités de type : upload, stored_data, configuration et offering.
+Possibilité de supprimer des entités de type : `upload`, `stored_data`, `configuration`, `offering`, `key` et `permission`.
 
 * suppression par ID de l'entité :
 
@@ -296,6 +363,8 @@ Possibilité de supprimer des entités de type : upload, stored_data, configurat
     "not_found_ok": true,
 }
 ```
+
+***ATTENTION** ici la valeur **`{uuid}` doit être une uuid en dur et non une uuid récupérée par le résolveur `store_entity`**(StoreEntityResolver) pour que l'option `"not_found_ok": true,`(valeur par défaut) fonctionne. **S'il y a besoin d'utiliser le résolveur `store_entity` il faut utiliser la solution suivante**. Avec l'utilisation du résolveur `store_entity` si l'entité n'existe pas une erreur sera levée pendant la résolution de l'action et les résolveurs gardant en mémoire les valeurs déjà trouvées la réutilisation du résolveur avec les même filtre pointera vers l'entité supprimée.*
 
 * suppression par filtre sur la liste :
 
@@ -318,9 +387,11 @@ Possibilité de supprimer des entités de type : upload, stored_data, configurat
 
 ### Modifier une entité
 
-Possibilité de modifier une entité de type : upload, stored_data, configuration et offering.
+Possibilité de modifier une entité de type : `upload`, `stored_data`, `configuration`, `offering`, `key` et `permission`.
 
-Correspond aux requêtes PUT et PATCH de l'[API Entrepôt](https://data.geopf.fr/api/swagger-ui/index.html).
+Correspond aux requêtes de type `PUT` et `PATCH` de l'[API Entrepôt](https://data.geopf.fr/api/swagger-ui/index.html)
+
+La suppression des tags et des commentaires est faite avant l'ajout.
 
 ```json
 {
@@ -331,6 +402,10 @@ Correspond aux requêtes PUT et PATCH de l'[API Entrepôt](https://data.geopf.fr
     "entity_id": "{uuid}",
     // Optionnel si non présent requête n'est pas lancée ( => mise à jour des tags et commentaires uniquement), si l'entité hérite de FullEditInterface (mise à jour totale) => fusion des informations récupérées sur l'API (GET) et de celle fournies, sinon on n'envoie que celles fournies
     "body_parameters": { ... },
+    // Optionnel :  tags à supprimer
+    "remove_tags": ["clef1", "clef2"],
+    // Optionnel :  commentaire à supprimer
+    "remove_comments": ["commentaire 1", "commentaire 2"],
     // Optionnel : Liste des tags ajoutés à l'entité (uniquement si la classe hérite de TagInterface)
     "tags": {},
     // Optionnel : Liste des commentaires à ajouter (uniquement si la classe hérite de CommentInterface)
@@ -338,16 +413,59 @@ Correspond aux requêtes PUT et PATCH de l'[API Entrepôt](https://data.geopf.fr
 }
 ```
 
-Pour le `body_parameters` se référer à la documentation API GPF :
+Il suffit d'indiquer dans le `body_parameters` les valeurs qui sont modifiées, les autres valeurs seront récupérées depuis l'API Entrepôt. Pour connaître les valeurs possibles se référer à la documentation API Entrepôt :
 
 * upload *(partielle)* : PATCH [/datastores/{datastore}/uploads/{upload}](https://data.geopf.fr/api/swagger-ui/index.html#/Livraisons%20et%20v%C3%A9rifications/update_2)
-  * Seul le nom de la livraison, sa description et sa visibilité sont modifiables, et uniquement par le propriétaire. Les autres informations, comme le type de la livraison, sont figées.
+
+!!! note
+    Seuls le nom de la livraison, sa description et sa visibilité sont modifiables et uniquement par le propriétaire. Les autres informations, comme le type de la livraison, sont figées.
+
 * stored_data *(partielle)* : PATCH [/datastores/{datastore}/stored_data/{stored_data}](https://data.geopf.fr/api/swagger-ui/index.html#/Donn%C3%A9es%20stock%C3%A9es/update_3)
-  * Seul le nom de la donnée et sa visibilité sont modifiables, et uniquement par le propriétaire. Les autres informations, comme le type de la donnée, sont figées pour une donnée.
+
+!!! note
+    Seuls le nom de la donnée et sa visibilité sont modifiables et uniquement par le propriétaire. Les autres informations, comme le type de la donnée, sont figées pour une donnée.
+
 * configuration *(totale)* : PUT [/datastores/{datastore}/configurations/{configuration}](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/update_1)
-  * Si la configuration est liée à des offres en cours de publication, la modification n'est pas possible. Si la configuration est liée à des offres publiées, les modifications sont répercutées sur les serveurs de diffusion. Le nom technique et le type ne sont pas modifiables.
+
+!!! note "Notes"
+    * Si la configuration est liée à des offres en cours de publication, la modification n'est pas possible. Si la configuration est liée à des offres publiées, les modifications sont répercutées sur les serveurs de diffusion. Le nom technique et le type ne sont pas modifiables.
+    * Cas particulier de la modification des used_data (`[type_infos][used_data]`) : la liste doit être de la même longueur que celle de la configuration et chaque dictionnaire sera fusionné avec l'ancien (cf. [#83](https://github.com/Geoplateforme/sdk-entrepot/issues/83) et [#66](https://github.com/Geoplateforme/sdk-entrepot/issues/66)). Pour supprimer/ajouter une used_data cf. action suivante [Mise à jour des used_data d'une configuration](#mise-à-jour-des-used_data-dune-configuration).
+
 * offering *(partielle)*: PATCH [/datastores/{datastore}/offerings/{offering}](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/update_4)
-  * Il est possible de modifier la visibilité d'une offre afin qu'elle apparaisse dans les catalogues ou qu'on puisse donner des permissions, ou au contraire qu'elle en disparaisse. On peut également désactiver une offre pour en couper la consommation rapidement, sans déconfigurer les permissions
+
+!!! note
+    Il est possible de modifier la visibilité d'une offre afin qu'elle apparaisse dans les catalogues ou qu'on puisse donner des permissions, ou au contraire qu'elle en disparaisse. On peut également désactiver une offre pour en couper la consommation rapidement, sans déconfigurer les permissions.
+
+* key *(partielle)*: PATCH [/users/me/keys/{key}](https://data.geopf.fr/api/swagger-ui/index.html#/Utilisateurs/patchKey)
+
+!!! note
+    Seuls le nom, les listes d'autorisations et d'interdictions, le *user agent* et le *referer* sont modifiables et uniquement par le propriétaire
+
+* permission *(partielle)*: PATCH [/datastores/{datastore}/permissions/{permission}](https://data.geopf.fr/api/swagger-ui/index.html#/Gestion%20des%20permissions/patch_1)
+
+!!! note
+    Seules la date de fin, la licences et la liste des offres sont modifiables.
+
+### Mettre à jour les used_data et la bbox d'une configuration
+
+L'action d'édition d'une configuration ne permet pas de supprimer ni ajouter une `used_data`. Cette action permet donc de supprimer/ajouter une `used_data` ainsi que de pouvoir mettre à jour la BBox avec les données utilisées.
+
+```jsonc
+{
+  // mise à jour de la bbox de la configuration
+  "type": "used_data-configuration",
+  "entity_id":  "{uuid_config}",
+  // Optionnel : liste des used_data à supprimer, toutes les used_data existantes qui sont l'intersection des clefs spécifiées seront supprimées
+  // dans l'exemple, on supprime toutes les used_data liées à la stored_data "id_store_data" et toutes celles qui sont liées à la zone "ZONE"
+  "delete_used_data": [{"stored_data": "id_store_data"}, {"zone": "ZONE"}],
+  // Optionnel : liste des used_data à ajouter, selon le format demandé par l'API Entrepôt
+  "append_used_data": [{...}],
+  // Optionnel : si on veut mettre à jour la BBox avec les données utilisées (bbox calculée après la modification des used_data). Par défaut à false.
+  "reset_bbox": true
+}
+```
+
+**Note** : La modification de la configuration n'est pas prise en compte automatiquement par les publications il faut les [synchroniser](#synchroniser-une-publication) pour que la modification soit visible dans le flux lié à la configuration.
 
 ### Copier une configuration
 

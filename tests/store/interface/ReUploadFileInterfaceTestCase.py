@@ -33,6 +33,7 @@ class ReUploadFileInterfaceTestCase(GpfTestCase):
                         "store_entity_re_upload",
                         p_file,
                         s_file_key,
+                        route_params={"store_entity": "123456789", "datastore": None},
                         method=ApiRequester.PUT,
                     )
                     o_mock_update.assert_called_once_with()

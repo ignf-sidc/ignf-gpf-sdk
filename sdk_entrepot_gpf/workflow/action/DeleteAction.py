@@ -5,6 +5,8 @@ from sdk_entrepot_gpf.store.Offering import Offering
 from sdk_entrepot_gpf.store.StoreEntity import StoreEntity
 from sdk_entrepot_gpf.store.StoredData import StoredData
 from sdk_entrepot_gpf.store.Upload import Upload
+from sdk_entrepot_gpf.store.Permission import Permission
+from sdk_entrepot_gpf.store.Key import Key
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
 from sdk_entrepot_gpf.io.Config import Config
 from sdk_entrepot_gpf.io.Errors import NotFoundError
@@ -21,7 +23,14 @@ class DeleteAction(ActionAbstract):
         __parent_action (Optional["Action"]): action parente
     """
 
-    DELETABLE_TYPES = [Upload.entity_name(), StoredData.entity_name(), Configuration.entity_name(), Offering.entity_name()]
+    DELETABLE_TYPES = [
+        Upload.entity_name(),
+        StoredData.entity_name(),
+        Configuration.entity_name(),
+        Offering.entity_name(),
+        Permission.entity_name(),
+        Key.entity_name(),
+    ]
 
     @staticmethod
     def question_before_delete(l_delete: List[StoreEntity]) -> List[StoreEntity]:
@@ -75,20 +84,23 @@ class DeleteAction(ActionAbstract):
                 pass
         elif "filter_infos" in self.definition_dict or "filter_tags" in self.definition_dict:
             ## par liste des éléments
-            l_entities = store.TYPE__ENTITY[self.definition_dict["entity_type"]].api_list(self.definition_dict.get("filter_infos"), self.definition_dict.get("filter_infos"), datastore=datastore)
+            l_entities = store.TYPE__ENTITY[self.definition_dict["entity_type"]].api_list(self.definition_dict.get("filter_infos"), self.definition_dict.get("filter_tags"), datastore=datastore)
         else:
             raise StepActionError('Il faut au moins une des clefs suivantes : "entity_id", "filter_infos", "filter_tags" pour cette action.')
 
-        if len(l_entities) == 0 and not self.definition_dict.get("not_found_ok"):
-            raise StepActionError("Aucune entité trouvée pour la suppression")
-        if len(l_entities) > 1:
-            if self.definition_dict.get("if_multi") == "error":
-                # On sort en erreur
-                raise StepActionError(f"Plusieurs entités trouvées pour la suppression : {l_entities}")
-            if self.definition_dict.get("if_multi") == "first":
-                # on ne supprime que le 1er élément trouvé
-                l_entities = [l_entities[0]]
-            # on les supprimera tous
+        if len(l_entities) == 0:
+            if not self.definition_dict.get("not_found_ok"):
+                raise StepActionError("Aucune entité trouvée pour la suppression")
+            # sinon OK
+            Config().om.info("Aucune entité à supprimer.", green_colored=True)
+            return
+        if len(l_entities) > 1 and self.definition_dict.get("if_multi") == "error":
+            # On sort en erreur
+            raise StepActionError(f"Plusieurs entités trouvées pour la suppression : {l_entities}")
+        if len(l_entities) > 1 and self.definition_dict.get("if_multi") == "first":
+            # on ne supprime que le 1er élément trouvé
+            l_entities = [l_entities[0]]
+        # on les supprimera tous
 
         # récupération des entités en cascades si demandé
         if self.definition_dict.get("cascade", False):
@@ -103,3 +115,4 @@ class DeleteAction(ActionAbstract):
 
         # suppression
         StoreEntity.delete_liste_entities(l_entities, o_before_delete)
+        Config().om.info("Suppression : terminé")

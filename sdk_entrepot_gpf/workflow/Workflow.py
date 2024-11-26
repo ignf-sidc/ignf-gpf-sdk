@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
@@ -10,13 +11,18 @@ from sdk_entrepot_gpf.store.StoreEntity import StoreEntity
 from sdk_entrepot_gpf.workflow.Errors import WorkflowError
 from sdk_entrepot_gpf.io.Config import Config
 from sdk_entrepot_gpf.workflow.action.ActionAbstract import ActionAbstract
-from sdk_entrepot_gpf.workflow.action.CopieConfigurationAction import CopieConfigurationAction
+from sdk_entrepot_gpf.workflow.action.CopyConfigurationAction import CopyConfigurationAction
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.EditAction import EditAction
+from sdk_entrepot_gpf.workflow.action.EditUsedDataConfigurationAction import EditUsedDataConfigurationAction
+from sdk_entrepot_gpf.workflow.action.PermissionAction import PermissionAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.workflow.action.ConfigurationAction import ConfigurationAction
 from sdk_entrepot_gpf.workflow.action.OfferingAction import OfferingAction
 from sdk_entrepot_gpf.workflow.action.SynchronizeOfferingAction import SynchronizeOfferingAction
+from sdk_entrepot_gpf.workflow.resolver.DictResolver import DictResolver
+from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
+from sdk_entrepot_gpf.workflow.action.AccessAction import AccessAction
 
 
 class Workflow:
@@ -63,6 +69,7 @@ class Workflow:
         datastore: Optional[str] = None,
         comments: List[str] = [],
         tags: Dict[str, str] = {},
+        compatibility_cartes: Optional[bool] = None,
     ) -> List[StoreEntity]:
         """Lance une étape du workflow à partir de son nom. Liste les entités créées par chaque action et retourne la liste.
 
@@ -72,8 +79,9 @@ class Workflow:
             ctrl_c_action (Optional[Callable[[], bool]], optional): gestion du ctrl-C lors d'une exécution de traitement.
             behavior (Optional[str]): comportement à adopter si une entité existe déjà sur l'entrepôt.
             datastore (Optional[str]): id du datastore à utiliser. Si None, le datastore sera le premier trouvé dans l'action puis dans workflow puis dans configuration.
-            comments (Optional[List[str]]): liste des commentaires à rajouter à toute les actions de l'étape (les cas de doublons sont gérés).
-            tags (Optional[Dict[str, str]]): dictionnaire des tags à rajouter pour toutes les actions de l'étape. Écrasé par ceux du workflow, de l'étape et de l'action si les clefs sont les mêmes.
+            comments (Optional[List[str]]): liste des commentaire à rajouter à toutes les actions de l'étape (les cas de doublons sont gérés).
+            tags (Optional[Dict[str, str]]): dictionnaire des tags à rajouter pour toutes les action de l'étape. Écrasé par ceux du workflow, de l'étape et de l'action si les clef sont les mêmes.
+            compatibility_cartes (Optional[bool]): ajout des tags pour compatibilité avec cartes.gouv.fr.
 
         Raises:
             WorkflowError: levée si un problème apparaît pendant l'exécution du workflow
@@ -82,25 +90,26 @@ class Workflow:
             List[StoreEntity]: liste des entités créées
         """
         Config().om.info(f"Lancement de l'étape {step_name}...")
+        # si compatibility_cartes n'est pas déterminé on récupère la valeur dans le workflow ou None
+        if compatibility_cartes is None:
+            compatibility_cartes = self.__raw_definition_dict.get("compatibility_cartes")
         # Création d'une liste pour stocker les entités créées
         l_store_entity: List[StoreEntity] = []
-        # Récupération de l'étape dans la définition de workflow
-        d_step_definition = self.__get_step_definition(step_name, comments, tags)
+        # Récupération de l'étape dans la définition de workflow (datastore forcé, sinon datastore du workflow/None)
+        d_step_definition = self.__get_step_definition(step_name, comments, tags, datastore if datastore else self.__datastore)
         # initialisation des actions parentes
         o_parent_action: Optional[ActionAbstract] = None
         # Pour chaque action définie dans le workflow, instanciation de l'objet Action puis création sur l'entrepôt
         for d_action_raw in d_step_definition["actions"]:
             # création de l'action
-            o_action = Workflow.generate(step_name, d_action_raw, o_parent_action, behavior)
+            o_action = Workflow.generate(step_name, d_action_raw, o_parent_action, behavior, compatibility_cartes)
             # choix du datastore
-            ## par défaut datastore du workflow, si None il sera récupérer dans la configuration
-            s_use_datastore = self.__datastore
-            if datastore:
-                # datastore dans l'appel à la fonction on prend
-                s_use_datastore = datastore
-            elif "datastore" in o_action.definition_dict:
-                # datastore dans l'étape
-                s_use_datastore = o_action.definition_dict["datastore"]
+            ## datastore donné en paramètre
+            ## sinon datastore du workflow au niveau de l'action
+            ## sinon datastore du workflow au niveau de l'étape
+            ## sinon datastore du workflow au niveau global (self.__datastore)
+            # NB: si None il sera récupérer dans la configuration
+            s_use_datastore = datastore if datastore else o_action.definition_dict.get("datastore", d_step_definition.get("datastore", self.__datastore))
 
             # résolution
             o_action.resolve(datastore=s_use_datastore)
@@ -136,7 +145,7 @@ class Workflow:
         # Retour de la liste
         return l_store_entity
 
-    def __get_step_definition(self, step_name: str, comments: List[str] = [], tags: Dict[str, str] = {}) -> Dict[str, Any]:
+    def __get_step_definition(self, step_name: str, comments: List[str] = [], tags: Dict[str, str] = {}, datastore: Optional[str] = None) -> Dict[str, Any]:
         """Renvoie le dictionnaire correspondant à une étape du workflow à partir de son nom.
         Lève une WorkflowError avec un message clair si l'étape n'est pas trouvée.
 
@@ -152,39 +161,55 @@ class Workflow:
             Dict[str, Any]: dictionnaire de l'étape
         """
         # Recherche de l'étape correspondante
-        if step_name in self.__raw_definition_dict["workflow"]["steps"]:
-            # récupération e l'étape :
-            d_step = dict(self.__raw_definition_dict["workflow"]["steps"][step_name])
+        if step_name not in self.__raw_definition_dict["workflow"]["steps"]:
+            # Si on passe le if, c'est que l'étape n'existe pas dans la définition du workflow
+            s_error_message = f"L'étape {step_name} n'est pas définie dans le workflow {self.__name}"
+            Config().om.error(s_error_message)
+            raise WorkflowError(s_error_message)
 
-            # on récupère les commentaires commun au workflow et à l'étape
-            if "comments" in self.__raw_definition_dict:
-                comments.extend(self.__raw_definition_dict["comments"])
-            if "comments" in d_step:
-                comments.extend(d_step["comments"])
+        # récupération e l'étape :
+        d_step = dict(self.__raw_definition_dict["workflow"]["steps"][step_name])
 
-            # on récupère les tags commun au workflow et à l'étape
-            if "tags" in self.__raw_definition_dict:
-                tags.update(self.__raw_definition_dict["tags"])
-            if "tags" in d_step:
-                tags.update(d_step["tags"])
+        # Gestion des itérations
+        if "iter_vals" in d_step and "iter_key" in d_step:
+            # on itère sur les clefs
+            l_actions = []
+            s_actions = str(json.dumps(d_step["actions"], ensure_ascii=False))
 
-            # Ajout des commentaire et des tags à chaque actions
-            for d_action in d_step["actions"]:
-                if "comments" in d_action:
-                    d_action["comments"] = [*comments, *d_action["comments"]]
-                else:
-                    d_action["comments"] = comments
-                if "tags" in d_action:
-                    d_action["tags"] = {**tags, **d_action["tags"]}
-                else:
-                    d_action["tags"] = tags
+            # on lance la résolution sur iter_vals
+            d_step["iter_vals"] = JsonHelper.loads(GlobalResolver().resolve(json.dumps(d_step["iter_vals"]), datastore=datastore), "iter_vals résolu")
+            Config().om.debug(f"iter_vals : {d_step['iter_vals']}")
+            if isinstance(d_step["iter_vals"][0], (str, float, int)):
+                # si la liste est une liste de string, un int ou float : on remplace directement
+                for o_val in d_step["iter_vals"]:
+                    l_actions += JsonHelper.loads(s_actions.replace("{" + d_step["iter_key"] + "}", o_val), "iter_val str/float/int")
+            else:
+                # on a une liste de sous dict ou apparenté on utilise un résolveur
+                for i, o_val in enumerate(d_step["iter_vals"]):
+                    l_actions += JsonHelper.loads(s_actions.replace(d_step["iter_key"], f"iter_resolve_{i}"), f"iter_vals list({i})")
+                    GlobalResolver().add_resolver(DictResolver(f"iter_resolve_{i}", o_val))
+            d_step["actions"] = l_actions
 
-            return d_step
+        elif "iter_vals" in d_step or "iter_key" in d_step:
+            # on a une seule des deux clef
+            s_error_message = f"Une seule des clefs iter_vals ou iter_key est trouvée: il faut mettre les deux valeurs ou aucune. Étape {step_name} workflow {self.__name}"
+            Config().om.error(s_error_message)
+            raise WorkflowError(s_error_message)
 
-        # Si on passe le if, c'est que l'étape n'existe pas dans la définition du workflow
-        s_error_message = f"L'étape {step_name} n'est pas définie dans le workflow {self.__name}"
-        Config().om.error(s_error_message)
-        raise WorkflowError(s_error_message)
+        # on récupère les commentaires commun au workflow et à l'étape
+        comments.extend(self.__raw_definition_dict.get("comments", []))
+        comments.extend(d_step.get("comments", []))
+
+        # on récupère les tags commun au workflow et à l'étape
+        tags.update(self.__raw_definition_dict.get("tags", {}))
+        tags.update(d_step.get("tags", {}))
+
+        # Ajout des commentaires et des tags à chaque actions
+        for d_action in d_step["actions"]:
+            d_action["comments"] = [*comments, *d_action.get("comments", [])]
+            d_action["tags"] = {**tags, **d_action.get("tags", {})}
+
+        return d_step
 
     def get_actions(self, step_name: str) -> List[ActionAbstract]:
         """Instancie les actions de l'étape demandée et en renvoie la liste.
@@ -234,7 +259,7 @@ class Workflow:
 
     @staticmethod
     def generate(  # pylint: disable=too-many-return-statements
-        workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional[ActionAbstract] = None, behavior: Optional[str] = None
+        workflow_context: str, definition_dict: Dict[str, Any], parent_action: Optional[ActionAbstract] = None, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None
     ) -> ActionAbstract:
         """Génération de la bonne action selon le type indiqué dans la représentation du workflow.
 
@@ -243,6 +268,7 @@ class Workflow:
             definition_dict (Dict[str, Any]): dictionnaire définissant l'action
             parent_action (Optional[ActionAbstract], optional): action précédente (si étape à plusieurs action). Defaults to None.
             behavior (Optional[str]): comportement à adopter si l'entité créée par l'action existe déjà sur l'entrepôt. Defaults to None.
+            compatibility_cartes (Optional[bool]): ajout des tags pour compatibilité avec cartes.gouv.fr.
 
         Returns:
             instance permettant de lancer l'action
@@ -250,17 +276,23 @@ class Workflow:
         if definition_dict["type"] == "delete-entity":
             return DeleteAction(workflow_context, definition_dict, parent_action)
         if definition_dict["type"] == "processing-execution":
-            return ProcessingExecutionAction(workflow_context, definition_dict, parent_action, behavior=behavior)
+            return ProcessingExecutionAction(workflow_context, definition_dict, parent_action, behavior=behavior, compatibility_cartes=compatibility_cartes)
         if definition_dict["type"] == "configuration":
-            return ConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
-        if definition_dict["type"] == "copie-configuration":
-            return CopieConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
+            return ConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior, compatibility_cartes=compatibility_cartes)
+        if definition_dict["type"] == "copy-configuration":
+            return CopyConfigurationAction(workflow_context, definition_dict, parent_action, behavior=behavior)
+        if definition_dict["type"] == "used_data-configuration":
+            return EditUsedDataConfigurationAction(workflow_context, definition_dict, parent_action)
         if definition_dict["type"] == "offering":
             return OfferingAction(workflow_context, definition_dict, parent_action, behavior=behavior)
         if definition_dict["type"] == "synchronize-offering":
             return SynchronizeOfferingAction(workflow_context, definition_dict, parent_action)
         if definition_dict["type"] == "edit-entity":
             return EditAction(workflow_context, definition_dict, parent_action)
+        if definition_dict["type"] == "access":
+            return AccessAction(workflow_context, definition_dict, parent_action)
+        if definition_dict["type"] == "permission":
+            return PermissionAction(workflow_context, definition_dict, parent_action)
         raise WorkflowError(f"Aucune correspondance pour ce type d'action : {definition_dict['type']}")
 
     @staticmethod

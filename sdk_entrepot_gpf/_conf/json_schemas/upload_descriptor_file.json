@@ -33,7 +33,6 @@
                             "srs",
                             "type"
                         ],
-                        "additionalProperties": false,
                         "properties": {
                             "description": {
                                 "type": "string"
@@ -45,12 +44,10 @@
                                 "type": "string"
                             },
                             "type": {
-                                "type": "string",
-                                "enum": [
-                                    "RASTER",
-                                    "VECTOR",
-                                    "ARCHIVE"
-                                ]
+                                "type": "string"
+                            },
+                            "type_infos": {
+                                "type": "object"
                             }
                         }
                     },

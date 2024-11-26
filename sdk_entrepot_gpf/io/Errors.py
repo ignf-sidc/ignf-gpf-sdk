@@ -106,7 +106,7 @@ class _WithResponseError(AbstractRequestError):
         self.response_data = None
         # On tente de parser la réponse
         try:
-            self.response_data = json.loads(self.response_str)
+            self.response_data = json.loads(self.response_str)  # json.loads ok car on veut récupérer l'erreur
         except json.JSONDecodeError:
             # Le parsing a échoué, pas grave
             pass

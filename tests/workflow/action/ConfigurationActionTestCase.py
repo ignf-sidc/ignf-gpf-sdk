@@ -101,7 +101,7 @@ class ConfigurationActionTestCase(GpfTestCase):
         with patch.object(Configuration, "api_create", **d_api_create) as o_mock_configuration_api_create:
             with patch.object(ConfigurationAction, "find_configuration", return_value=o_configs) as o_mock_find_configuration:
                 # initialisation de Configuration
-                o_conf = ConfigurationAction("contexte", d_action, behavior=behavior)
+                o_conf = ConfigurationAction("contexte", d_action, behavior=behavior, compatibility_cartes=False)
                 if config_already_exists:
                     if behavior == "STOP":
                         # on attend une erreur
