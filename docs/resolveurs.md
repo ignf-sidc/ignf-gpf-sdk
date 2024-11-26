@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/resolveurs/
+-->
+
 # Résolveur
 
 Les résolveurs sont des outils permettant de compléter les workflows en remplaçant un pattern par la valeur calculée.
@@ -6,11 +15,11 @@ Les résolveurs sont des outils permettant de compléter les workflows en rempla
 
 Le nom d'un résolveur est donné à son initialisation. Il est possible d'avoir plusieurs résolveurs d'un même type.
 
-A l'utilisation du SDK comme un exécutable, il y a 2 résolveurs d’instanciés :
+A l'utilisation du SDK comme un exécutable, il y a 3 résolveurs d’instanciés :
 
-* `user` : un [UserResolver](UserResolver)
-* `store_entity` : un [StoreEntityResolver](StoreEntityResolver)
-* `datetime`: un [DateResolver](DateResolver)
+* `user` : un [UserResolver](#userresolver)
+* `store_entity` : un [StoreEntityResolver](#storeentityresolver)
+* `datetime`: un [DateResolver](#dateresolver)
 
 A l'utilisation comme module, il n'y a aucun résolveur d’instancié. Il faut instancier des résolveurs dans le programme et les ajouter au `GlobalResolver`.
 
@@ -24,10 +33,10 @@ Dans le fichier de workflow, pour utiliser le résolveur il faut ajouter le patt
 
 Il y a 4 résolveurs de base :
 
-* [DictResolver](DictResolver): permet d'insérer les valeurs contenues dans un dictionnaire ;
-* [FileResolver](FileResolver): insère les valeurs contenues dans un fichier ;
-* [StoreEntityResolver](StoreEntityResolver): récupère des informations sur les entités depuis la GPF ;
-* [UserResolver](UserResolver): récupère des informations de l'utilisateur courant depuis la GPF ;
+* [DictResolver](#dictresolver): permet d'insérer les valeurs contenues dans un dictionnaire ;
+* [FileResolver](#fileresolver): insère les valeurs contenues dans un fichier ;
+* [StoreEntityResolver](#storeentityresolver): récupère des informations sur les entités depuis la GPF ;
+* [UserResolver](#userresolver): récupère des informations de l'utilisateur courant depuis la GPF ;
 * [DateResolver](#dateresolver): insertion d'une date au format désiré.
 
 ### DictResolver

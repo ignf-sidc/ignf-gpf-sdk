@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/configuration_details/
+-->
+
 # La configuration en détails
 
 Comme indiqué dans la page précédente, la majorité de la configuration est déjà définie et n'a pas besoin d'être modifiée à priori.
@@ -158,7 +167,6 @@ Chaque route permet de faire une action via l'API. Tous ces paramètres n'ont à
 | `annexe_download`                       | str  | `{routing:annexe_get}/file`                           | Téléchargement d'un fichier d'annexe |
 | `annexe_publish_by_label`               | str  | `{routing:annexe_list}/publication`                   | Publication des annexes par labels |
 | `annexe_unpublish_by_label`             | str  | `{routing:annexe_list}/unpublication`                 | Dépublication des annexes par labels |
-
 | **Routes concernant l'entité Tms** {: colspan=4 } | &#8288 {: .dn }| &#8288 {: .dn }| &#8288 {: .dn } |
 | `tms_list`                              | str  | `{store_api:root_url}/statics/tms`                    | Liste des TMS disponibles pour tout la GPF |
 | `tms_get`                               | str  | `{routing:tms_list}/{tms}`                            | Détails d'un TMS |

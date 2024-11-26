@@ -15,6 +15,7 @@ theme:
   favicon: assets/images/favicon.ico
   features:
     - content.code.annotate
+    - content.code.copy
   icon:
     repo: fontawesome/brands/github
 

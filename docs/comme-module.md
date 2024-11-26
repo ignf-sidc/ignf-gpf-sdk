@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/comme-module/
+-->
+
 # Utilisation comme module Python
 
 ## Configuration
@@ -39,8 +48,8 @@ o_upload = o_upload_action.run()
 b_status = UploadAction.monitor_until_end(o_upload, Livraison.callback_check)
 ```
 
-**:information_source: Utiliser un datastore spécifique**
-Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui indiqué en configuration :
+???+ note "Utiliser un datastore spécifique**
+    Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui indiqué en configuration :
 
 ```py
 # On crée la livraison en précisant un datastore spécifique
@@ -89,8 +98,8 @@ upload.api_push_md5_file(Path('checksum.md5'))
 upload.api_close()
 ```
 
-**:information_source: Utiliser un datastore spécifique**
-Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui indiqué en configuration :
+???+ note "Utiliser un datastore spécifique**
+    Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui indiqué en configuration :
 
 ```py
 # Création d'une livraison en précisant un datastore spécifique

@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/
+-->
+
 # SDK Python
 
 L'API Entrepôt Géoplateforme vous permet de téléverser, traiter puis publier vos données géographiques. Bien que très puissante, cette API n'est pas aisée à prendre en main. Ce module Python a été créé afin de vous permettre d'utiliser la Géoplateforme facilement.

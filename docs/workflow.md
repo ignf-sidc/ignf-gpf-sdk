@@ -15,21 +15,21 @@ Certaines valeurs du workflow peuvent être complétées avec un système de ré
 
 Les actions sont les suivantes :
 
-* lancer un traitement (càd créer une processing exécution) ;
-* configurer un géoservice (càd créer une configuration) ;
+* lancer un traitement (càd créer une `processing_execution`) ;
+* configurer un géoservice (càd créer une `configuration`) ;
 * publier un géoservice (càd créer une offering) ;
-* supprimer une entité de type upload, stored_data, configuration ou offering ;
-* modifier une entité de type upload, stored_data, configuration ou offering ;
-* Mettre à jour les used_data et la bbox d'une configuration
-* copier une configuration (création d'une nouvelle configuration en reprenant les paramètres non précisés de la précédente) ;
-* synchroniser une offre (mettre à jour avec la donnée stockée et une offering).
+* supprimer une entité (types gérés : `upload`, `stored_data`, `configuration` ou `offering`) ;
+* modifier une entité (types gérés : `upload`, `stored_data`, `configuration` ou `offering`) ;
+* mettre à jour les données stockées utilisées (càd les `used_data`) et la bbox d'une configuration
+* copier une configuration (création d'une nouvelle `configuration` en reprenant les paramètres non précisés de la précédente) ;
+* synchroniser une offre (mettre à jour une `offering` à partir d'une `stored_data`).
 
 ## Définition
 
 Le fichier doit contenir un dictionnaire `workflow`. Qui contient deux clefs :
 
-* `datastore`: (optionnel) uuid du datastore à utiliser pour le workflow ;
-* `step`: (obligatoire) dictionnaire des étapes à lancer ;
+* `datastore` : (optionnel) uuid du datastore à utiliser pour le workflow ;
+* `step` : (obligatoire) dictionnaire des étapes à lancer ;
   * la clef sera le nom de l'étape qui servira à la lancer ;
   * sa valeur est un dictionnaire décrivant l'étape :
     * `actions` : (obligatoire) listes des actions à lancer, la liste sera exécutée dans l'ordre. Le dictionnaire décrivant l'action dépend du type d'action à lancer, la clef `type` permet de définir le type d'action à effectuer (description plus bas) ;
@@ -58,14 +58,16 @@ Ce workflow permet de lancer 2 étapes `etape 1` et `etape 2`.
 
 Les actions possibles sont les suivantes :
 
-* [Exécuter un traitement](Exécuter un traitement)
-* [Configurer un géoservice](Configurer un géoservice)
-* [Publier un géoservice](Publier un géoservice)
-* [Supprimer une entité](Supprimer une entité)
-* [Modifier une entité](Modifier une entité)
-* [Mettre à jour les used_data et la bbox d'une configuration](Mettre à jour les used_data et la bbox d'une configuration)
-* [Copier une configuration](Copier une configuration)
-* [Synchroniser une publication](Synchroniser une publication)
+* [Exécuter un traitement](#executer-un-traitement)
+* [Configurer un géoservice](#configurer-un-geoservice)
+* [Publier un géoservice](#publier-un-geoservice)
+* [Créer une permission](#creer-une-permission)
+* [Créer un accès](#creer-un-acces)
+* [Supprimer une ou des entité(s)](#supprimer-une-entite)
+* [Modifier une entité](#modifier-une-entite)
+* [Mettre à jour les used_data et la bbox d'une configuration](#mettre-a-jour-les-used_data-et-la-bbox-dune-configuration)
+* [Copier une configuration](#copier-une-configuration)
+* [Synchroniser une publication](#synchroniser-une-publication)
 
 ### Exécuter un traitement
 
@@ -520,7 +522,7 @@ Si aucun résultat, on sort en erreur.
 
 Pour "filter_infos" voir les filtres possibles pour la requête [/datastores/{datastore}/offerings](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/getAll_6). Si on a `"configuration" : "{uuid}"` c'est la requête  [/datastores/{datastore}/configurations/{configuration}/offerings](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/getOfferings) qui sera utilisée dans l'attente que la filtration sur les configurations soit possible.
 
-## Exemple
+## Exemples
 
 ### Actions de base
 

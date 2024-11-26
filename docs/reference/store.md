@@ -6,6 +6,8 @@
 
 ::: sdk_entrepot_gpf.store.Access
 
+::: sdk_entrepot_gpf.store.Annexe
+
 ::: sdk_entrepot_gpf.store.Check
 
 ::: sdk_entrepot_gpf.store.CheckExecution

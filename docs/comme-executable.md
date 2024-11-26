@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/comme-executable/
+-->
+
 # Utilisation comme exécutable
 
 ## Configuration
@@ -54,8 +63,8 @@ Vous êtes membre de 1 communauté(s) :
 Dans cet exemple, l'identifiant du datastore à utiliser est `33333333333333333333`.
 
 
-**:warning: Attention !**
-Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.
+???+ warning "Attention"
+    Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.
 
 
 ## Afficher toute la configuration
@@ -158,10 +167,11 @@ Avec comme options supplémentaires :
 
 * `--force` : aucune question ne sera posée avant la suppression
 * `--cascade` : suppression des éléments liés en aval, fonctionne uniquement pour :
-  * `stored_data` : suppression des configuration et offres liées
-  * `configuration` : suppression des offres liées
+    * `stored_data` : suppression des configuration et offres liées
+    * `configuration` : suppression des offres liées
 
-NB : s'il y a des des éléments liés en aval et que vous ne demandez pas la suppression il sera impossible de supprimer l'élément ciblé.
+???+ note "Nota bene"
+    S'il y a des éléments liés en aval et que vous ne demandez pas la suppression il sera impossible de supprimer l'élément ciblé.
 
 Exemples :
 

@@ -1,7 +1,16 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/configuration/
+-->
+
 # Configuration
 
 Ce module Python vient avec une configuration par défaut vous permettant de définir un minimum de paramètres.
-Vous pouvez cependant écraser chaque paramètre par défaut en redéfinissant sa valeur dans un nouveau fichier de configuration.
+Vous pouvez cependant surcharger chaque paramètre par défaut en redéfinissant sa valeur dans un nouveau fichier de configuration.
 
 Certains paramètres (comme vos identifiants d'API) **doivent** être redéfinis.
 
@@ -24,7 +33,7 @@ Nous pouvons faire référence à la `valeur_1_1` par l'intitulé `section_1.opt
 
 ## Votre fichier de configuration
 
-Créez un fichier `config.ini` à la racine du projet.
+Créez un fichier `config.ini` à la racine du projet ou dans votre dossier de travail.
 
 Il faudra à minima renseigner vos identifiants API (section `store_authentification`) et éventuellement l'entrepôt principal (*datastore*) sur lequel vous allez travailler (section `store_api`).
 
@@ -88,8 +97,8 @@ Vous êtes membre de 1 communauté(s) :
 Dans cet exemple, l'identifiant du datastore à utiliser est `33333333333333333333`.
 
 
-**:warning: Attention !**
-Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.
+???+ warning "Attention"
+    Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.
 
 ## Utilisations
 

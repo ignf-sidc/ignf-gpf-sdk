@@ -43,7 +43,7 @@ class AbstractResolver(ABC):
 
         Args:
             key_value (Dict[str, Any]): dictionnaire dont on veut récupérer l'info
-            string (str): pattern type JS pour récupérer la valeur du dictionnaire
+            js_key (str): pattern type JS pour récupérer la valeur du dictionnaire
 
         Returns:
             str: valeur demandée
