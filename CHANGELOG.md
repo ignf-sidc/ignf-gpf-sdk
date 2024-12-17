@@ -1,5 +1,21 @@
 # CHANGE LOG
 
+## v0.1.32
+
+### [Added]
+
+
+### [Changed]
+
+* Flit : utilisation de `flit_core` pour effectuer la publication (cf. [ce ticket](https://github.com/pypa/flit/issues/698)).
+
+### [Fixed]
+
+* upload_descriptor_file.json: plus de restriction dans upload_infos #198
+* Workflows génériques : les storages n'ont plus a être tagués "IGN" #201
+* UserResolver : si la clef `last_name` n'est pas définie, on renvoi `last_name`
+
+
 ## v0.1.31
 
 ### [Added]
