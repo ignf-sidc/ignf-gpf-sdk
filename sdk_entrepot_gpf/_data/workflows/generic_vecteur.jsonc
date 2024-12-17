@@ -20,7 +20,7 @@
                                 "stored_data": {
                                     // On crée une nouvelle Donnée Stockée nommée "UserLastName__Base_intermédiaire"
                                     "name": "{user.last_name}__Base_intermédiaire",
-                                    "storage_tags": ["IGN", "VECTEUR"]
+                                    "storage_tags": ["VECTEUR"]
                                 }
                             },
                             "parameters": {}
@@ -185,7 +185,7 @@
                                 "stored_data": {
                                     // On crée une nouvelle Donnée Stockée nommée "UserLastName__Pyramide_vecteur"
                                     "name": "{user.last_name}__Pyramide_vecteur",
-                                    "storage_tags": ["IGN", "PYRAMIDE"]
+                                    "storage_tags": ["PYRAMIDE"]
                                 }
                             },
                             "parameters": {
