@@ -1,5 +1,15 @@
 # CHANGE LOG
 
+## v0.1.33
+
+### [Added]
+
+* Upload : ajout du BEHAVIOR_RESUME pour la reprise des livraisons si les vérifications on échouer (ouverture et comportement comme BEHAVIOR_CONTINUE) [#196](https://github.com/Geoplateforme/sdk-entrepot/issues/196)
+
+### [Changed]
+
+### [Fixed]
+
 ## v0.1.32
 
 ### [Added]
