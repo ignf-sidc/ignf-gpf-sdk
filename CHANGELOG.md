@@ -8,6 +8,8 @@
 
 ### [Changed]
 
+* Resolver : au niveau des erreurs possibilité de détailler la cause de l'erreur [#185](https://github.com/Geoplateforme/sdk-entrepot/issues/185)
+
 ### [Fixed]
 
 ## v0.1.32
