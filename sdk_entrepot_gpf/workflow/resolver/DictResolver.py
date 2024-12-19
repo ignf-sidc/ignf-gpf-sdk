@@ -46,4 +46,4 @@ class DictResolver(AbstractResolver):
         except KeyError as e:
             Config().om.error(f"Impossible de résoudre la clef '{string_to_solve}' pour le résolveur '{self.name}', clefs possibles au niveau 1 : {', '.join(self.__key_value.keys())}")
             # Sinon on lève une exception
-            raise ResolverError(self.name, string_to_solve, f"la clef demandé ne se trouve pas dans le dictionnaire ({e.args[0]})") from e
+            raise ResolverError(self.name, string_to_solve, f"la clef demandée ne se trouve pas dans le dictionnaire ({e.args[0]})") from e
