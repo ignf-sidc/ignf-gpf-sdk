@@ -153,7 +153,7 @@ class FileResolver(AbstractResolver):
         # On cherche les résolutions à effectuer
         o_result = FileResolver._file_regex.search(string_to_solve)
         if o_result is None:
-            raise ResolverError(self.name, string_to_solve)
+            raise ResolverError(self.name, string_to_solve, f"la chaîne ne correspond pas au pattern ({self._file_regex})")
         d_groups = o_result.groupdict()
         if d_groups["resolver_type"] == "str":
             s_result = str(self.__resolve_str(string_to_solve, d_groups["resolver_file"]))
@@ -162,5 +162,5 @@ class FileResolver(AbstractResolver):
         elif d_groups["resolver_type"] == "dict":
             s_result = str(self.__resolve_dict(string_to_solve, d_groups["resolver_file"]))
         else:
-            raise ResolverError(self.name, string_to_solve)
+            raise ResolverError(self.name, string_to_solve, f"cas non prévu par le résolveur (resolver_type = {d_groups['resolver_type']})")
         return s_result

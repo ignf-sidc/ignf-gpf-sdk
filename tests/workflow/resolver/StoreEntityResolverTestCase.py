@@ -26,12 +26,15 @@ class StoreEntityResolverTestCase(GpfTestCase):
         # Si mot clé incorrect erreur levée
         with self.assertRaises(ResolverError) as o_arc_1:
             o_store_entity_resolver.resolve("other()")
-        self.assertEqual(o_arc_1.exception.message, "Erreur du résolveur 'store_entity' avec la chaîne 'other()'.")
+        self.assertRegex(o_arc_1.exception.message, r"^Erreur du résolveur 'store_entity' avec la chaîne 'other\(\)' : la chaîne ne correspond pas au pattern \(.*\)$")
 
         # Si mot clé incorrect erreur levée
         with self.assertRaises(ResolverError) as o_arc_2:
             o_store_entity_resolver.resolve("upload.infos._id [IFO(name=titi)]")
-        self.assertEqual(o_arc_2.exception.message, "Erreur du résolveur 'store_entity' avec la chaîne 'upload.infos._id [IFO(name=titi)]'.")
+        self.assertRegex(
+            o_arc_2.exception.message,
+            r"^Erreur du résolveur 'store_entity' avec la chaîne 'upload.infos._id \[IFO\(name=titi\)\]' : la chaîne ne correspond pas au pattern \(.*\)$",
+        )
 
         # pas de possibilité de récupérer un tag pour une entité endpoint
         l_endpoints = [Endpoint({"_id": "endpoint", "name": "Name", "type": "ARCHIVE"})]
@@ -42,7 +45,10 @@ class StoreEntityResolverTestCase(GpfTestCase):
             with self.assertRaises(ResolverError) as o_arc:
                 o_store_entity_resolver.resolve("endpoint.tags.k_tag [INFOS(type=ARCHIVE)]")
             # Vérification erreur
-            self.assertEqual(o_arc.exception.message, f"Erreur du résolveur 'store_entity' avec la chaîne '{s_to_solve}'.")
+            self.assertEqual(
+                o_arc.exception.message,
+                f"Erreur du résolveur 'store_entity' avec la chaîne '{s_to_solve}' : la clef demandé ne se trouve pas dans le détail de l’entité (k_tag)",
+            )
             # Vérifications o_mock_api_list
             o_mock_api_list.assert_called_once_with(
                 infos_filter={"type": "ARCHIVE"},
@@ -90,7 +96,10 @@ class StoreEntityResolverTestCase(GpfTestCase):
                 with self.assertRaises(ResolverError) as o_arc:
                     o_store_entity_resolver.resolve(s_to_solve)
                 # message d'erreur :
-                self.assertEqual(o_arc.exception.message, f"Erreur du résolveur 'store_entity' avec la chaîne '{s_to_solve}'.")
+                self.assertEqual(
+                    o_arc.exception.message,
+                    f"Erreur du résolveur 'store_entity' avec la chaîne '{s_to_solve}' : la clef demandé ne se trouve pas dans le détail de l’entité (not_in_dict)",
+                )
                 # Vérifications o_mock_api_list
                 o_mock_api_list.assert_called_once_with(
                     infos_filter={"name": "start_%"},
