@@ -23,7 +23,7 @@ class FileResolverTestCase(GpfTestCase):
         # Si mot clé incorrect erreur levée
         with self.assertRaises(ResolverError) as o_arc_1:
             o_file_resolver.resolve("other(text.txt)")
-        self.assertEqual(o_arc_1.exception.message, "Erreur du résolveur 'file' avec la chaîne 'other(text.txt)'.")
+        self.assertRegex(o_arc_1.exception.message, r"^Erreur du résolveur 'file' avec la chaîne 'other\(text.txt\)' : la chaîne ne correspond pas au pattern \(.*\)$")
 
     def test_resolve_str(self) -> None:
         """Vérifie le bon fonctionnement de la fonction resolve pour un str."""

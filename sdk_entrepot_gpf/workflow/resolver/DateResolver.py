@@ -41,14 +41,14 @@ class DateResolver(AbstractResolver):
         # On parse la chaîne à résoudre
         o_result = self.__regex.search(string_to_solve)
         if o_result is None:
-            raise ResolverError(self.name, string_to_solve)
+            raise ResolverError(self.name, string_to_solve, f"la chaîne ne correspond pas au pattern ({self.__regex})")
         d_groups = o_result.groupdict()
 
         # date de référence
         if d_groups["date"] == "now":
             o_date = datetime.now()
         else:
-            raise ResolverError(self.name, string_to_solve)
+            raise ResolverError(self.name, string_to_solve, f"cas non prévu par le résolveur (date = {d_groups['date']})")
         # print(string_to_solve, d_groups["add_param"])
         # ajout si besoin (nom négatif accepté)
         if "add_param" in d_groups and d_groups["add_param"]:
@@ -76,4 +76,4 @@ class DateResolver(AbstractResolver):
             return o_date.strftime(d_groups["output_pattern"])
 
         # pattern de sortie non gérer
-        raise ResolverError(self.name, string_to_solve)
+        raise ResolverError(self.name, string_to_solve, f"cas non prévu par le résolveur (output = {d_groups['output']})")

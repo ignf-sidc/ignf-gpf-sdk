@@ -69,7 +69,7 @@ class StoreEntityResolver(AbstractResolver):
         # On parse la chaîne à résoudre
         o_result = self.regex.search(string_to_solve)
         if o_result is None:
-            raise ResolverError(self.name, string_to_solve)
+            raise ResolverError(self.name, string_to_solve, f"la chaîne ne correspond pas au pattern ({self.__regex})")
         d_groups = o_result.groupdict()
         # On récupère les filtres à utiliser
         # Sur les infos
@@ -114,7 +114,7 @@ class StoreEntityResolver(AbstractResolver):
                     l_res2 = list(set(l_res2))
                 return json.dumps(l_res2)
         except KeyError as e:
-            raise ResolverError(self.name, string_to_solve) from e
+            raise ResolverError(self.name, string_to_solve, f"la clef demandé ne se trouve pas dans le détail de l’entité ({e.args[0]})") from e
 
         raise ResolverError(self.name, string_to_solve)
 
@@ -128,7 +128,7 @@ class StoreEntityResolver(AbstractResolver):
         # On doit renvoyer un tag, possible que si ça implémente TagInterface
         if isinstance(o_entity, TagInterface):
             return o_entity.get_tag(s_selected_field)
-        raise KeyError()
+        raise KeyError(s_selected_field)
 
     @property
     def regex(self) -> Pattern[str]:
