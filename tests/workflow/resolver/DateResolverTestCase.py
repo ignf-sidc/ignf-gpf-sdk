@@ -49,4 +49,7 @@ class DateResolverTestCase(GpfTestCase):
         s_to_solve = "non_existant"
         with self.assertRaises(ResolverError) as o_arc:
             o_resolver.resolve(s_to_solve)
-        self.assertEqual(o_arc.exception.message, f"Erreur du résolveur '4t' avec la chaîne '{s_to_solve}'.")
+        self.assertRegex(
+            o_arc.exception.message,
+            rf"^Erreur du résolveur '4t' avec la chaîne '{s_to_solve}' : la chaîne ne correspond pas au pattern \(.*\)$",
+        )
