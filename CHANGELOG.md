@@ -9,6 +9,7 @@
 ### [Changed]
 
 * Resolver : au niveau des erreurs possibilité de détailler la cause de l'erreur [#185](https://github.com/Geoplateforme/sdk-entrepot/issues/185)
+* ApiRequester : ajout de logs niveau debug
 
 ### [Fixed]
 
