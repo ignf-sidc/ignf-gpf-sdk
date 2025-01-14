@@ -127,4 +127,4 @@ class Dataset:
                 # Création du chemin relatif pour l'API
                 p_api = p_rep_elt.relative_to(self.__root_dir)
                 # Remplissage du dictionnaire __data_files
-                self.__data_files[p_rep_elt] = str(p_api.parent)
+                self.__data_files[p_rep_elt] = p_api.parent.as_posix()

@@ -35,7 +35,7 @@ class FileResolverTestCase(GpfTestCase):
         with self.assertRaises(ResolveFileNotFoundError) as o_arc_1:
             o_file_resolver.resolve("str(not-existing.txt)")
         self.assertEqual(
-            o_arc_1.exception.message, f"Erreur de traitement d'un fichier (résolveur 'file') avec la chaîne 'str(not-existing.txt)': fichier ({self.root_path}/not-existing.txt) non existant."
+            o_arc_1.exception.message, f"Erreur de traitement d'un fichier (résolveur 'file') avec la chaîne 'str(not-existing.txt)': fichier ({self.root_path / 'not-existing.txt'}) non existant."
         )
 
     def test_resolve_list(self) -> None:
@@ -48,7 +48,7 @@ class FileResolverTestCase(GpfTestCase):
         with self.assertRaises(ResolveFileNotFoundError) as o_arc_1:
             o_file_resolver.resolve("list(not-existing.json)")
         self.assertEqual(
-            o_arc_1.exception.message, f"Erreur de traitement d'un fichier (résolveur 'file') avec la chaîne 'list(not-existing.json)': fichier ({self.root_path}/not-existing.json) non existant."
+            o_arc_1.exception.message, f"Erreur de traitement d'un fichier (résolveur 'file') avec la chaîne 'list(not-existing.json)': fichier ({self.root_path / 'not-existing.json'}) non existant."
         )
         # Si pas liste erreur levée
         with self.assertRaises(ResolveFileInvalidError) as o_arc_2:
@@ -69,7 +69,7 @@ class FileResolverTestCase(GpfTestCase):
         with self.assertRaises(ResolveFileNotFoundError) as o_arc_1:
             o_file_resolver.resolve("dict(not-existing.json)")
         self.assertEqual(
-            o_arc_1.exception.message, f"Erreur de traitement d'un fichier (résolveur 'file') avec la chaîne 'dict(not-existing.json)': fichier ({self.root_path}/not-existing.json) non existant."
+            o_arc_1.exception.message, f"Erreur de traitement d'un fichier (résolveur 'file') avec la chaîne 'dict(not-existing.json)': fichier ({self.root_path / 'not-existing.json'}) non existant."
         )
         # Si pas liste erreur levée
         with self.assertRaises(ResolveFileInvalidError) as o_arc_2:

@@ -3,24 +3,40 @@ on: [pull_request]
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
-    name: Checks
+    name: Matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        pip install --upgrade pip setuptools flit
-        flit install --extras test
-    - name: "Analyse code with black"
-      run: black --diff --check sdk_entrepot_gpf tests
-    - name: "Analyse code with pylint"
-      run: pylint --rcfile=.pylintrc --disable=fixme sdk_entrepot_gpf --recursive=y
-    - name: "Analyse tests with pylint"
-      run: pylint --rcfile=.pylintrc --disable=fixme tests --recursive=y
-    - name: "Analyse code with mypy"
-      run: mypy --strict sdk_entrepot_gpf tests
-    - name: "Run unit tests"
-      run: coverage run -m unittest discover -b -p *TestCase.py
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip setuptools flit
+          flit install --extras test
+      - name: "Analyse code with black"
+        run: black --diff --check sdk_entrepot_gpf tests
+      - name: "Analyse code with pylint"
+        run: pylint --rcfile=.pylintrc --disable=fixme sdk_entrepot_gpf --recursive=y
+      - name: "Analyse tests with pylint"
+        run: pylint --rcfile=.pylintrc --disable=fixme tests --recursive=y
+      - name: "Analyse code with mypy"
+        run: mypy --strict sdk_entrepot_gpf tests
+      - name: "Run unit tests"
+        run: coverage run -m unittest discover -b -p *TestCase.py
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    needs: tests
+    if: always()
+    steps:
+      - name: All tests ok
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Some tests failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: exit 1
