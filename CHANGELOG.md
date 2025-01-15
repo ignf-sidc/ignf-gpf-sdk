@@ -4,10 +4,13 @@
 
 ### [Added]
 
+* Ajout de tests automatiques GitHub sous Windows et MacOS.
+
 ### [Changed]
 
 ### [Fixed]
 
+* Correction de la génération des fichiers md5 sous Windows.
 
 ## v0.1.33
 
