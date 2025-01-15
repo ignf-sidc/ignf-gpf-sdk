@@ -77,7 +77,7 @@ class Dataset:
                 # A la fin on rempli le fichier .md5
                 with open(p_md5_dir_suf, "w", encoding="utf-8") as o_md5_file:
                     for p_file, s_md5 in d_md5.items():
-                        o_md5_file.write(f"{s_pattern}\n".format(md5_key=s_md5, file_path=p_file))
+                        o_md5_file.write(f"{s_pattern}\n".format(md5_key=s_md5, file_path=p_file.as_posix()))
 
             # Enfin, on l'ajoute à la liste des fichiers md5
             self.__md5_files.append(p_md5_dir_suf)
@@ -127,4 +127,4 @@ class Dataset:
                 # Création du chemin relatif pour l'API
                 p_api = p_rep_elt.relative_to(self.__root_dir)
                 # Remplissage du dictionnaire __data_files
-                self.__data_files[p_rep_elt] = str(p_api.parent)
+                self.__data_files[p_rep_elt] = p_api.parent.as_posix()
