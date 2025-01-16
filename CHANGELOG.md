@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* Possibilité d'appeler le programme via des executables : `egpf` (ou `entrepot_gpf`)
+
 ### [Changed]
 
 ### [Fixed]
