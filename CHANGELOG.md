@@ -6,6 +6,8 @@
 
 ### [Changed]
 
+* Modification du nom du traitement raster dans le workflow exemple.
+
 ### [Fixed]
 
 
