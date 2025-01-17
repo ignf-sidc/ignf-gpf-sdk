@@ -4,6 +4,8 @@
 
 ### [Added]
 
+* Ajout d'un jeu de données raster d'exemple (`3_dataset_raster`).
+
 ### [Changed]
 
 * Modification du nom du traitement raster dans le workflow exemple.
