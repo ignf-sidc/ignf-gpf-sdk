@@ -12,33 +12,29 @@ Suivez la page [configuration](configuration.md) pour définir le fichier de con
 
 ## Récupération du jeu de données
 
-Le jeu de données « 1_dataset_raster » contient des données raster à téléverser.
+Le jeu de données « 3_dataset_raster » contient des données raster à téléverser.
 
 Récupérez les données en lançant la commande :
 
 ```sh
-python -m sdk_entrepot_gpf dataset -n 4_dataset_raster_gpf
+python -m sdk_entrepot_gpf dataset -n 3_dataset_raster
 ```
 
 Observez la structure du fichier :
 
 ```text
-4_dataset_raster_gpf/
-├── test
-│   ├── 977-2018-0510-1979-U20N-0M50-E100.jp2
-│   ├── 977-2018-0510-1979-U20N-0M50-E100.tab
-│   ├── 977-2018-0510-1980-U20N-0M50-E100.jp2
-│   ├── 977-2018-0510-1980-U20N-0M50-E100.tab
-│   ├── 977-2018-0510-1981-U20N-0M50-E100.jp2
-│   ├── 977-2018-0510-1981-U20N-0M50-E100.tab
-│   ├── 977-2018-0510-1982-U20N-0M50-E100.jp2
-│   └── 977-2018-0510-1982-U20N-0M50-E100.tab
-├── test.md5
+3_dataset_raster/
+├── ain
+│   ├── 01-2021-0920-6564-LA93-0M50-E100.tiff
+│   ├── 01-2021-0920-6565-LA93-0M50-E100.tiff
+│   ├── 01-2021-0921-6564-LA93-0M50-E100.tiff
+│   └── 01-2021-0921-6565-LA93-0M50-E100.tiff
+└── ain.md5
 └── upload_descriptor.jsonc
 ```
 
-Les données que la Géoplateforme va traiter sont situées dans le dossier `test`.
-Le fichier `test.md5` permettra de valider les données téléversées côté Géoplateforme.
+Les données que la Géoplateforme va traiter sont situées dans le dossier `ain`.
+Le fichier `ain.md5` permettra de valider les données téléversées côté Géoplateforme.
 
 Enfin, le fichier `upload_descriptor.json` permet de décrire la livraison à effectuer.
 
@@ -59,7 +55,7 @@ Chaque dataset contient :
 Livrez les données en indiquant le chemin du fichier descripteur au programme :
 
 ```sh
-python -m sdk_entrepot_gpf upload -f 4_dataset_raster_gpf/upload_descriptor.jsonc
+python -m sdk_entrepot_gpf upload -f 3_dataset_raster/upload_descriptor.jsonc
 ```
 
 Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérification côté API avant de conclure que tout est bon. (Memo : cette partie est assez longue du à des problèmes de performance côté back. Le problème a déjà été remonté.)
@@ -80,13 +76,13 @@ Ouvrez le fichier. Vous trouverez plus de détails dans la [documentation sur le
 
 ```mermaid
 ---
-title: Workflow de publication de données Raster en WMS et WMST
+title: Workflow de publication de données Raster en WMS et WMTS
 ---
 %% doc mermaid ici https://mermaid-js.github.io/mermaid/#/flowchart?id=flowcharts-basic-syntax
 flowchart TD
     A("upload") -->|pyramide| B("pyramide raster")
-    B -->|configuration-WMST| C("configuration WMST")
-    C -->|publication-WMST| D("offre WMST")
+    B -->|configuration-WMTS| C("configuration WMTS")
+    C -->|publication-WMTS| D("offre WMTS")
     B -->|configuration-WMS| E("configuration WMS")
     E -->|publication-WMS| F("offre WMS")
 ```
@@ -96,21 +92,21 @@ flowchart TD
 Le workflow « generic_raster » permet de passer de la livraison à un flux WMS servant la donnée. Il comporte les étapes suivantes:
 
 * `pyramide` : création d'une pyramide avec les données téléversées
-* `configuration-WMST` : configuration d'un service de flux WMST à partir de la pyramide ;
-* `publication-WMST` : publication du service de flux WMST sur le bon endpoint.
+* `configuration-WMTS` : configuration d'un service de flux WMTS à partir de la pyramide ;
+* `publication-WMTS` : publication du service de flux WMTS sur le bon endpoint.
 * `configuration-WMS` : configuration d'un service de flux WMS à partir de la pyramide ;
 * `publication-WMS` : publication du service de flux WMS sur le bon endpoint.
 
-La partie WMST et WMS sont indépendantes : elles peuvent être traitées en parallèle ou dans n'importe quel sens.
+La partie WMTS et WMS sont indépendantes : elles peuvent être traitées en parallèle ou dans n'importe quel sens.
 
 Les commandes à lancer sont les suivantes :
 
 ```sh
 # partie création de la pyramide
 python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s pyramide
-# partie publication WMST
-python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s configuration-WMST
-python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication-WMST
+# partie publication WMTS
+python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s configuration-WMTS
+python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication-WMTS
 # partie publication WMS
 python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s configuration-WMS
 python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication-WMS

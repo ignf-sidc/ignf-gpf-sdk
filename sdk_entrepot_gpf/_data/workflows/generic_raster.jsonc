@@ -24,7 +24,7 @@
                             },
                             "parameters": {
                                 "parallelization": 4,
-                                "top": "3",
+                                "top": "0",
                                 "bottom": "18",
                                 "tms": "PM",
                                 "compression": "jpg",
