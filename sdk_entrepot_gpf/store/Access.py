@@ -8,7 +8,7 @@ from sdk_entrepot_gpf.store.Errors import StoreEntityError
 class Access(StoreEntity):
     """Classe Python représentant l'entité Access (accès)."""
 
-    _entity_name = "Access"
+    _entity_name = "access"
     _entity_title = "accès"
 
     # On doit redéfinir la fonction car l'API ne renvoie rien... A retirer quand ça sera bon.
