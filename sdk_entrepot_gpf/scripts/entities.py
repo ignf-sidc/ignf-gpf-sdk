@@ -145,7 +145,11 @@ class Entities:
 
     @staticmethod
     def action_upload_checks(upload: Upload) -> None:
+        checks = upload.api_list_checks()
         Config().om.info(f"Bilan des vérifications de la livraison {upload} :")
+        [Config().om.info("La vérification " + verification["check"]["name"] + " est bien passé") for verification in checks["passed"]]
+        [Config().om.warning("La vérification " + verification["check"]["name"] + " n'est pas encore effectué ou finis") for verification in checks["asked"] + checks["in_progress"]]
+        [Config().om.error("La verification " + verification["check"]["name"] + " ayant l'id " + verification["_id"] + " n'est pas passé") for verification in checks["failed"]]
 
     @staticmethod
     def action_upload_delete_files(upload: Upload, delete_files: List[str]) -> None:
