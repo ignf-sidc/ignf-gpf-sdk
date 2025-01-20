@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 from typing import List, Optional
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -153,6 +154,7 @@ class Entities:
         """
         Ouvre la livraison puis supprime les fichiers et referme la livraison
         """
+
         Config().om.info(f"Suppression de {len(delete_files)} fichiers téléversés sur la livraison {upload} :")
         upload.api_open()
         for file in delete_files:
@@ -160,11 +162,23 @@ class Entities:
                 upload.api_delete_md5_file(file)
             else:
                 upload.api_delete_data_file(file)
-        upload.api_close()
 
     @staticmethod
     def action_upload_delete_failed_files(upload: Upload) -> None:
         Config().om.info(f"Suppression des fichiers mal téléversés sur la livraison {upload} :")
+        files = []
+        checks = upload.api_list_checks()
+        for verification in checks["failed"]:
+            check = CheckExecution(verification)
+            lines = check.api_logs_filter("ERROR")
+            for line in lines:
+                correspondance = re.search(r'\((.*?)\)', line)
+                if correspondance:
+                    Config().om.warning(correspondance.group(1))
+                    files.append(correspondance.group(1))
+        upload.api_open()
+        for file in files:
+            upload.api_delete_data_file(file)
 
     @staticmethod
     def complete_parser_entities(o_sub_parsers) -> None:  # pylint: disable=too-many-statements,too-many-branches
@@ -260,7 +274,7 @@ class Entities:
                 o_exclusive.add_argument("--open", action="store_true", default=False, help="Rouvrir une livraison fermée (uniquement avec --id)")
                 o_exclusive.add_argument("--close", action="store_true", default=False, help="Fermer une livraison ouverte (uniquement avec --id)")
                 o_exclusive.add_argument("--checks", action="store_true", default=False, help="Affiche le bilan des vérifications d'une livraison")
-                o_exclusive.add_argument("--delete-files", type=str, nargs="*", default=False, help="Supprime les fichiers téléversés indiqué d'une livraison.")
+                o_exclusive.add_argument("--delete-files", type=str, nargs="*", default=None, help="Supprime les fichiers téléversés indiqué d'une livraison.")
                 o_exclusive.add_argument("--delete-failed-files", action="store_true", default=False, help="Supprime les fichiers mal téléversés d'une livraison vérifiées et en erreur.")
                 # TODO déprécié
                 o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin vers le fichier descriptor dont on veut effectuer la livraison)")
