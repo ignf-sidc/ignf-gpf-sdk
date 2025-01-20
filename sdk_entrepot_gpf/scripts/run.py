@@ -83,11 +83,11 @@ class Main:
         elif self.o_args.task == "dataset":
             self.dataset()
         elif self.o_args.task == "delete":
-            Config.om.warning("La commande 'delete est dépréciée, merci d'utiliser la commande liée au type de l'entité.")
+            Config().om.warning("La commande 'delete est dépréciée, merci d'utiliser la commande liée au type de l'entité.")
             self.delete()
         else:
             if getattr(self.o_args, "file", None) is not None:
-                Config.om.warning("L'argument --file dans ce contexte est déprécié, merci d'utiliser la commande 'delivery'.")
+                Config().om.warning("L'argument --file dans ce contexte est déprécié, merci d'utiliser la commande 'delivery'.")
                 if self.o_args.task == "upload":
                     self.upload()
                 elif self.o_args.task == "annexe":
@@ -296,7 +296,7 @@ class Main:
         Si un id est précisé, on affiche la livraison.
         Sinon on liste les Livraisons avec éventuellement des filtres.
         """
-        Config.om.warning("Le téléversement de données via la commande 'upload' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement de données via la commande 'upload' est déprécié, merci d'utiliser 'delivery' à la place.")
         # on livre les données selon le fichier descripteur donné
         d_res = Delivery.upload_from_descriptor_file(self.o_args.file, self.o_args.behavior, self.o_args.datastore, self.o_args.check_before_close, self.o_args.mode_cartes)
         # Affichage du bilan
@@ -317,7 +317,7 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def dataset(self) -> None:
         """Liste les jeux de données d'exemple proposés et, si demandé par l'utilisateur, en export un."""
-        Config.om.warning("La commande 'dataset' est dépréciée, merci d'utiliser 'example' à la place.")
+        Config().om.warning("La commande 'dataset' est dépréciée, merci d'utiliser 'example' à la place.")
         p_root = Config.data_dir_path / "datasets"
         if self.o_args.name is not None:
             s_dataset = str(self.o_args.name)
@@ -420,7 +420,7 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def delete(self) -> None:
         """suppression d'une entité par son type et son id"""
-        Config.om.warning("La commande 'delete' est dépréciée, merci d'utiliser la commande liée au type de l'entité à supprimer.")
+        Config().om.warning("La commande 'delete' est dépréciée, merci d'utiliser la commande liée au type de l'entité à supprimer.")
         # création du workflow pour l'action de suppression
         d_action = {
             "type": "delete-entity",
@@ -435,7 +435,7 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def annexe(self) -> None:
         """Gestion des annexes"""
-        Config.om.warning("Le téléversement d'annexes' via la commande 'annexe' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement d'annexes' via la commande 'annexe' est déprécié, merci d'utiliser 'delivery' à la place.")
         if self.o_args.file is not None:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_annexe_from_descriptor_file(self.o_args.file, self.o_args.datastore)
@@ -477,7 +477,7 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def static(self) -> None:
         """Gestion des fichiers statics"""
-        Config.om.warning("Le téléversement de fichiers statiques via la commande 'static' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement de fichiers statiques via la commande 'static' est déprécié, merci d'utiliser 'delivery' à la place.")
         if self.o_args.file is not None:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_static_from_descriptor_file(self.o_args.file, self.o_args.datastore)
@@ -496,7 +496,7 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def metadata(self) -> None:
         """Gestion des metadata"""
-        Config.om.warning("Le téléversement de métadonnées via la commande 'metadata' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement de métadonnées via la commande 'metadata' est déprécié, merci d'utiliser 'delivery' à la place.")
         if self.o_args.file is not None:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_metadata_from_descriptor_file(self.o_args.file, self.o_args.datastore)
@@ -523,7 +523,7 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def key(self) -> None:
         """Gestion des clefs"""
-        Config.om.warning("La création de clefs via la commande 'key' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("La création de clefs via la commande 'key' est déprécié, merci d'utiliser 'delivery' à la place.")
         if self.o_args.id is not None:
             Config().om.info(f"détail pour la clef {self.o_args.id}", green_colored=True)
             o_key = Key.api_get(self.o_args.id)
