@@ -15,7 +15,8 @@ class ProcessingExecution(CsfInterface, LogsInterface, StoreEntity):
     """
 
     _entity_name = "processing_execution"
-    _entity_title = "exécution d'un traitement"
+    _entity_title = "exécution de traitement"
+    _entity_titles = "exécutions de traitement"
 
     STATUS_CREATED = "CREATED"
     STATUS_WAITING = "WAITING"
