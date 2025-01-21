@@ -5,6 +5,9 @@
 ### [Added]
 
 * Possibilité d'appeler le programme via des executables : `egpf` (ou `entrepot_gpf`)
+* Possibilité d'observer les différentes vérifications sur une livraison
+* Possibilités de supprimer des fichiers lors de la livraison
+* Possibilités de supprimer que les fichiers ayant produit une erreur lors de la livraison
 
 ### [Changed]
 
