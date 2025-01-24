@@ -30,6 +30,8 @@ dependencies = [
     "types-python-dateutil",
     "pyotp",
     "requests_toolbelt",
+    "tabulate",
+    "types-tabulate",
 ]
 
 [project.optional-dependencies]

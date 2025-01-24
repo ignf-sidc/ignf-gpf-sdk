@@ -5,7 +5,7 @@ from tests.GpfTestCase import GpfTestCase
 class MainTestCase(GpfTestCase):
     """Tests Main class.
 
-    cmd : python3 -m unittest -b tests.MainTestCase
+    cmd : python3 -m unittest -b tests.scripts.MainTestCase
     """
 
     def test_parse_args(self) -> None:
@@ -33,12 +33,12 @@ class MainTestCase(GpfTestCase):
         self.assertIsNone(o_args.show)
 
         # Avec tâche="auth" et show="token", c'est ok
-        o_args = Main.parse_args(args=["auth", "--show", "token"])
+        o_args = Main.parse_args(args=["auth", "token"])
         self.assertEqual(o_args.task, "auth")
         self.assertEqual(o_args.show, "token")
 
         # Avec tâche "auth" et show="header", c'est ok
-        o_args = Main.parse_args(args=["auth", "--show", "header"])
+        o_args = Main.parse_args(args=["auth", "header"])
         self.assertEqual(o_args.task, "auth")
         self.assertEqual(o_args.show, "header")
 
@@ -59,21 +59,21 @@ class MainTestCase(GpfTestCase):
         self.assertIsNone(o_args.option)
 
         # Avec tâche "config", file="toto.ini" et section="store_authentification", c'est ok
-        o_args = Main.parse_args(args=["config", "--file", "toto.ini", "--section", "store_authentification"])
+        o_args = Main.parse_args(args=["config", "--file", "toto.ini", "store_authentification"])
         self.assertEqual(o_args.task, "config")
         self.assertEqual(o_args.file, "toto.ini")
         self.assertEqual(o_args.section, "store_authentification")
         self.assertIsNone(o_args.option)
 
         # Avec tâche "config", section="store_authentification", c'est ok
-        o_args = Main.parse_args(args=["config", "--section", "store_authentification"])
+        o_args = Main.parse_args(args=["config", "store_authentification"])
         self.assertEqual(o_args.task, "config")
         self.assertIsNone(o_args.file)
         self.assertEqual(o_args.section, "store_authentification")
         self.assertIsNone(o_args.option)
 
         # Avec tâche "config", section="store_authentification" et option="password", c'est ok
-        o_args = Main.parse_args(args=["config", "--section", "store_authentification", "--option", "password"])
+        o_args = Main.parse_args(args=["config", "store_authentification", "password"])
         self.assertEqual(o_args.task, "config")
         self.assertIsNone(o_args.file)
         self.assertEqual(o_args.section, "store_authentification")
