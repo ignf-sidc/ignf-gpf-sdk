@@ -1,5 +1,4 @@
 import argparse
-import os
 from typing import List, Optional
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
