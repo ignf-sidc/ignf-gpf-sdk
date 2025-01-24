@@ -36,6 +36,10 @@ class StoreEntityTestCase(GpfTestCase):
         self.assertEqual(o_store_entity.datastore, "datastore_1")
         # Le getter "get_store_properties" est ok
         self.assertDictEqual(o_store_entity.get_store_properties(), d_api_data)
+        # Le getter "get" est ok
+        self.assertEqual(o_store_entity.get("_id"), "123456789")
+        self.assertEqual(o_store_entity.get("name"), "nom")
+        self.assertEqual(o_store_entity.get("tags.tag_key"), "tag_value")
         # Le getter "to_json" est ok
         s_json = o_store_entity.to_json()
         self.assertIsInstance(s_json, str)

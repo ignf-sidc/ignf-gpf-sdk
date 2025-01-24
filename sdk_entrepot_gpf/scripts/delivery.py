@@ -16,19 +16,19 @@ from sdk_entrepot_gpf.store.Metadata import Metadata
 from sdk_entrepot_gpf.store.Static import Static
 from sdk_entrepot_gpf.store.Upload import Upload
 
-from sdk_entrepot_gpf.scripts.utils import monitoring_upload, ctrl_c_upload
+from sdk_entrepot_gpf.scripts.utils import Utils
 
 
 class Delivery:
     """Classe pour manipuler les entités en cas d'utilisation cli."""
 
-    def __init__(self, datastore: Optional[str], file: Optional[Path], behavior: str, args: argparse.Namespace) -> None:
+    def __init__(self, datastore: Optional[str], file: Path, behavior: str, args: argparse.Namespace) -> None:
         """Si un id est précisé, on récupère l'entité et on fait d'éventuelles actions.
         Sinon on liste les entités avec éventuellement des filtres.
 
         Args:
             datastore (Optional[str], optional): datastore à considérer
-            file (Optional[Path]): chemin du fichier descriptif à traiter
+            file (Path): chemin du fichier descriptif à traiter
             behavior (str): comportement de gestion des conflits
             args (argparse.Namespace): reste des paramètres
         """
@@ -132,12 +132,12 @@ class Delivery:
         l_check_ok = []
         for o_upload in l_uploads:
             Config().om.info(f"{Color.BLUE} * {o_upload}{Color.END}")
-            b_res = monitoring_upload(
+            b_res = Utils.monitoring_upload(
                 o_upload,
                 "Livraison {upload} créée avec succès.",
                 "Livraison {upload} créée en erreur !",
                 print,
-                ctrl_c_upload,
+                Utils.ctrl_c_upload,
                 mode_cartes,
             )
             if b_res:

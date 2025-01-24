@@ -334,8 +334,7 @@ class StoreEntity(ABC):
     def __getitem__(self, key: str) -> Any:
         # La classe se comporte comme un dictionnaire
         # et permet de récupérer les info de _store_api_dict
-        # On peut aussi récupérer les valeurs en mode JS.
-        return DictHelper.get(self._store_api_dict, key)
+        return self._store_api_dict[key]
 
     def get(self, key: str) -> Any:
         """Récupération de la clef indiquée si elle existe, None sinon.

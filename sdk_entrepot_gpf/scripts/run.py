@@ -19,7 +19,7 @@ from sdk_entrepot_gpf.helper.PrintLogHelper import PrintLogHelper
 from sdk_entrepot_gpf.io.Errors import ConflictError, NotFoundError
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.io.Config import Config
-from sdk_entrepot_gpf.scripts.utils import ctrl_c_action
+from sdk_entrepot_gpf.scripts.utils import Utils
 from sdk_entrepot_gpf.workflow.Workflow import Workflow
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
@@ -28,13 +28,7 @@ from sdk_entrepot_gpf.workflow.resolver.DictResolver import DictResolver
 from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
 from sdk_entrepot_gpf.workflow.resolver.StoreEntityResolver import StoreEntityResolver
 from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
-from sdk_entrepot_gpf.store.Annexe import Annexe
 from sdk_entrepot_gpf.store.Datastore import Datastore
-from sdk_entrepot_gpf.store.Key import Key
-from sdk_entrepot_gpf.store.Metadata import Metadata
-from sdk_entrepot_gpf.store.Static import Static
-from sdk_entrepot_gpf.store.Upload import Upload
-from sdk_entrepot_gpf.store.StoreEntity import StoreEntity
 from sdk_entrepot_gpf.store.ProcessingExecution import ProcessingExecution
 from sdk_entrepot_gpf.workflow.resolver.UserResolver import UserResolver
 from sdk_entrepot_gpf.scripts.entities import Entities
@@ -83,11 +77,11 @@ class Main:
         elif self.o_args.task == "dataset":
             self.dataset()
         elif self.o_args.task == "delete":
-            Config.om.warning("La commande 'delete est dépréciée, merci d'utiliser la commande liée au type de l'entité.")
+            Config().om.warning("La commande 'delete est dépréciée, merci d'utiliser la commande liée au type de l'entité.")
             self.delete()
         else:
             if getattr(self.o_args, "file", None) is not None:
-                Config.om.warning("L'argument --file dans ce contexte est déprécié, merci d'utiliser la commande 'delivery'.")
+                Config().om.warning("L'argument --file dans ce contexte est déprécié, merci d'utiliser la commande 'delivery'.")
                 if self.o_args.task == "upload":
                     self.upload()
                 elif self.o_args.task == "annexe":
@@ -296,7 +290,7 @@ class Main:
         Si un id est précisé, on affiche la livraison.
         Sinon on liste les Livraisons avec éventuellement des filtres.
         """
-        Config.om.warning("Le téléversement de données via la commande 'upload' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement de données via la commande 'upload' est déprécié, merci d'utiliser 'delivery' à la place.")
         # on livre les données selon le fichier descripteur donné
         d_res = Delivery.upload_from_descriptor_file(self.o_args.file, self.o_args.behavior, self.o_args.datastore, self.o_args.check_before_close, self.o_args.mode_cartes)
         # Affichage du bilan
@@ -317,7 +311,7 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def dataset(self) -> None:
         """Liste les jeux de données d'exemple proposés et, si demandé par l'utilisateur, en export un."""
-        Config.om.warning("La commande 'dataset' est dépréciée, merci d'utiliser 'example' à la place.")
+        Config().om.warning("La commande 'dataset' est dépréciée, merci d'utiliser 'example' à la place.")
         p_root = Config.data_dir_path / "datasets"
         if self.o_args.name is not None:
             s_dataset = str(self.o_args.name)
@@ -408,7 +402,15 @@ class Main:
 
                 # on lance le monitoring de l'étape en précisant la gestion du ctrl-C
                 d_tags = {l_el[0]: l_el[1] for l_el in self.o_args.tag}
-                o_workflow.run_step(self.o_args.step, callback_run_step, ctrl_c_action, behavior=s_behavior, datastore=self.datastore, comments=self.o_args.comment, tags=d_tags)
+                o_workflow.run_step(
+                    self.o_args.step,
+                    callback_run_step,
+                    Utils.ctrl_c_action,
+                    behavior=s_behavior,
+                    datastore=self.datastore,
+                    comments=self.o_args.comment,
+                    tags=d_tags,
+                )
 
         else:
             l_children: List[str] = []
@@ -420,7 +422,7 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def delete(self) -> None:
         """suppression d'une entité par son type et son id"""
-        Config.om.warning("La commande 'delete' est dépréciée, merci d'utiliser la commande liée au type de l'entité à supprimer.")
+        Config().om.warning("La commande 'delete' est dépréciée, merci d'utiliser la commande liée au type de l'entité à supprimer.")
         # création du workflow pour l'action de suppression
         d_action = {
             "type": "delete-entity",
@@ -435,112 +437,39 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def annexe(self) -> None:
         """Gestion des annexes"""
-        Config.om.warning("Le téléversement d'annexes' via la commande 'annexe' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement d'annexes via la commande 'annexe' est déprécié, merci d'utiliser 'delivery' à la place.")
         if self.o_args.file is not None:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_annexe_from_descriptor_file(self.o_args.file, self.o_args.datastore)
             Delivery.display_bilan_upload_file(d_res)
-        elif self.o_args.id is not None:
-            o_annexe = Annexe.api_get(self.o_args.id, datastore=self.datastore)
-            if self.o_args.publish:
-                if o_annexe["published"]:
-                    Config().om.info(f"L'annexe ({o_annexe}) est déjà publiée.")
-                    return
-                # modification de la publication
-                o_annexe.api_partial_edit({"published": str(True)})
-                Config().om.info(f"L'annexe ({o_annexe}) viens d'être publiée.")
-            elif self.o_args.unpublish:
-                if not o_annexe["published"]:
-                    Config().om.info(f"L'annexe ({o_annexe}) est déjà dépubliée.")
-                    return
-                # modification de la publication
-                o_annexe.api_partial_edit({"published": str(False)})
-                Config().om.info(f"L'annexe ({o_annexe}) viens d'être dépubliée.")
-            else:
-                # affichage
-                Config().om.info(o_annexe.to_json(indent=3))
-        elif self.o_args.publish_by_label is not None:
-            l_labels = self.o_args.publish_by_label.split(",")
-            i_nb = Annexe.publish_by_label(l_labels, datastore=self.datastore)
-            Config().om.info(f"{i_nb} annexe(s) viennent d'être publié.")
-        elif self.o_args.unpublish_by_label is not None:
-            l_labels = self.o_args.unpublish_by_label.split(",")
-            i_nb = Annexe.unpublish_by_label(l_labels, datastore=self.datastore)
-            Config().om.info(f"{i_nb} annexe(s) viennent d'être dépubliée(s).")
-        else:
-            # on liste toutes les annexes selon les filtres
-            d_infos_filter = StoreEntity.filter_dict_from_str(self.o_args.infos)
-            l_annexes = Annexe.api_list(infos_filter=d_infos_filter, datastore=self.datastore)
-            for o_annexe in l_annexes:
-                Config().om.info(f"{o_annexe}")
 
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def static(self) -> None:
         """Gestion des fichiers statics"""
-        Config.om.warning("Le téléversement de fichiers statiques via la commande 'static' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement de fichiers statiques via la commande 'static' est déprécié, merci d'utiliser 'delivery' à la place.")
         if self.o_args.file is not None:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_static_from_descriptor_file(self.o_args.file, self.o_args.datastore)
             Delivery.display_bilan_upload_file(d_res)
-        elif self.o_args.id is not None:
-            o_static = Static.api_get(self.o_args.id, datastore=self.datastore)
-            # affichage
-            Config().om.info(o_static.to_json(indent=3))
-        else:
-            # on liste toutes les fichiers static selon les filtres
-            d_infos_filter = StoreEntity.filter_dict_from_str(self.o_args.infos)
-            l_statics = Static.api_list(infos_filter=d_infos_filter, datastore=self.datastore)
-            for o_static in l_statics:
-                Config().om.info(f"{o_static}")
 
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def metadata(self) -> None:
         """Gestion des metadata"""
-        Config.om.warning("Le téléversement de métadonnées via la commande 'metadata' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement de métadonnées via la commande 'metadata' est déprécié, merci d'utiliser 'delivery' à la place.")
         if self.o_args.file is not None:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_metadata_from_descriptor_file(self.o_args.file, self.o_args.datastore)
             Delivery.display_bilan_upload_file(d_res)
-        elif self.o_args.id is not None:
-            o_metadata = Metadata.api_get(self.o_args.id, datastore=self.datastore)
-            # affichage
-            Config().om.info(o_metadata.to_json(indent=3))
-        elif (self.o_args.publish or self.o_args.unpublish) and self.o_args.id_endpoint is None:
-            raise GpfSdkError("Pour publier / dépublier les métadonnées il faut définir --id-endpoint")
-        elif self.o_args.publish is not None:
-            Metadata.publish(self.o_args.publish, self.o_args.id_endpoint, self.o_args.datastore)
-            Config().om.info(f"Les métadonnées ont été publiées sur le endpoint {self.o_args.id_endpoint}")
-        elif self.o_args.unpublish is not None:
-            Metadata.unpublish(self.o_args.unpublish, self.o_args.id_endpoint, self.o_args.datastore)
-            Config().om.info(f"Les métadonnées ont été dépubliées sur le endpoint {self.o_args.id_endpoint}")
-        else:
-            # on liste toutes les fichiers métadonnées selon les filtres
-            d_infos_filter = StoreEntity.filter_dict_from_str(self.o_args.infos)
-            l_metadatas = Metadata.api_list(infos_filter=d_infos_filter, datastore=self.datastore)
-            for o_metadata in l_metadatas:
-                Config().om.info(f"{o_metadata}")
 
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def key(self) -> None:
         """Gestion des clefs"""
-        Config.om.warning("La création de clefs via la commande 'key' est déprécié, merci d'utiliser 'delivery' à la place.")
-        if self.o_args.id is not None:
-            Config().om.info(f"détail pour la clef {self.o_args.id}", green_colored=True)
-            o_key = Key.api_get(self.o_args.id)
-            # affichage
-            Config().om.info(o_key.to_json(indent=3))
-        elif self.o_args.file is not None:
+        Config().om.warning("La création de clefs via la commande 'key' est déprécié, merci d'utiliser 'delivery' à la place.")
+        if self.o_args.file is not None:
             Config().om.info("Création de clefs ...", green_colored=True)
             d_res = Delivery.create_key_from_file(self.o_args.file)
             # affichage
             Delivery.display_bilan_creation(d_res)
-        else:
-            Config().om.info("Liste des clefs de l'utilisateur courant...", green_colored=True)
-            l_key = Key.api_list()
-            if l_key:
-                Config().om.info(f"{len(l_key)} clef(s) de l'utilisateur courant :\n" + "\n".join([f" * {o_key['name']} [{o_key['type']}] -- {o_key['_id']}" for o_key in l_key]))
-            else:
-                Config().om.info("Aucune clef.")
 
 
 def main(program_name: Optional[str] = None) -> None:
