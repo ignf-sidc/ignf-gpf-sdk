@@ -13,13 +13,13 @@
                             "inputs": {
                                 "upload": [
                                     // On récupère l'id de la Livraison associée grâce à son nom
-                                    "{store_entity.upload.infos._id [INFOS(name=$votre_chantier_PCRS)]}"
+                                    "{store_entity.upload.infos._id [INFOS(name=chantier_PCRS_{params.producteur})]}"
                                 ]
                             },
                             "output": {
                                 "stored_data": {
-                                    "name": "$votre_chantier_PCRS",
-                                    "datasheet_name": "$votre_chantier_PCRS"
+                                    "name": "chantier_PCRS_{params.producteur}",
+                                    "datasheet_name": "chantier_PCRS_{params.producteur}"
                                 }
                             },
                             "parameters": {
@@ -32,7 +32,7 @@
                         },
                         // Liste des commentaires ajoutés à la Donnée Stockée en sortie de l'exécution du traitement
                         "comments": [
-                            "Création de la pyramide $votre_chantier_PCRS."
+                            "Création de la pyramide chantier_PCRS_{params.producteur}."
                         ],
                         // Liste des tags ajoutés à la Donnée Stockée en sortie de l'exécution du traitement
                         "tags": {
@@ -50,17 +50,17 @@
                         "type": "configuration",
                         "body_parameters": {
                             "type": "WMTS-TMS",
-                            "name": "$votre_chantier_PCRS",
-                            "layer_name": "SANDBOX_$votre_chantier_PCRS",
-                            "datasheet_name": "$votre_chantier_PCRS",
+                            "name": "chantier_PCRS_{params.producteur}",
+                            "layer_name": "SANDBOX_chantier_PCRS_{params.producteur}",
+                            "datasheet_name": "chantier_PCRS_{params.producteur}",
                             "type_infos": {
-                                "title": "$votre_chantier_PCRS",
-                                "abstract": "Chantier PCRS $votre_chantier_PCRS",
+                                "title": "chantier_PCRS_{params.producteur}",
+                                "abstract": "Chantier PCRS chantier_PCRS_{params.producteur}",
                                 "keywords": ["PCRS", "Raster"],
                                 "used_data": [
                                     {
                                         // On récupère l'id de la Donnée Stockée créée à l'étape précédente grâce à son nom, son type et l'un de ses tags
-                                        "stored_data": "{store_entity.stored_data.infos._id [INFOS(name=$votre_chantier_PCRS), TAGS(type=PCRS)]}",
+                                        "stored_data": "{store_entity.stored_data.infos._id [INFOS(name=chantier_PCRS_{params.producteur}), TAGS(type=PCRS)]}",
                                         "bottom_level": "22",
                                         "top_level": "6"
                                     }
@@ -69,7 +69,7 @@
                         },
                         // Liste des commentaires ajoutés à la Configuration
                         "comments": [
-                            "configuration WMTS du chantier PCRS $votre_chantier_PCRS"
+                            "configuration WMTS du chantier PCRS chantier_PCRS_{params.producteur}"
                         ],
                         // Liste des tags ajoutés à la Configuration
                         "tags": {
@@ -81,7 +81,7 @@
                         "type": "offering",
                         "url_parameters": {
                             // On récupère l'id de la Configuration créée à l'étape précédente grâce à son nom et l'un de ses tags
-                            "configuration": "{store_entity.configuration.infos._id [INFOS(name=$votre_chantier_PCRS), TAGS(type=PCRS)]}"
+                            "configuration": "{store_entity.configuration.infos._id [INFOS(name=chantier_PCRS_{params.producteur}), TAGS(type=PCRS)]}"
                         },
                         "body_parameters": {
                             // Endpoint de type WMTS-TMS (id trouvé en récupérant les informations de l'entrepôt)
@@ -95,17 +95,17 @@
                         "type": "configuration",
                         "body_parameters": {
                             "type": "WMS-RASTER",
-                            "name": "$votre_chantier_PCRS",
-                            "layer_name": "SANDBOX_$votre_chantier_PCRS",
-                            "datasheet_name": "$votre_chantier_PCRS",
+                            "name": "chantier_PCRS_{params.producteur}",
+                            "layer_name": "SANDBOX_chantier_PCRS_{params.producteur}",
+                            "datasheet_name": "chantier_PCRS_{params.producteur}",
                             "type_infos": {
-                                "title": "$votre_chantier_PCRS",
-                                "abstract": "Chantier PCRS $votre_chantier_PCRS",
+                                "title": "chantier_PCRS_{params.producteur}",
+                                "abstract": "Chantier PCRS chantier_PCRS_{params.producteur}",
                                 "keywords": ["PCRS", "Raster"],
                                 "used_data": [
                                     {
                                         // On récupère l'id de la Donnée Stockée créée à l'étape précédente grâce à son nom, son type et l'un de ses tags
-                                        "stored_data": "{store_entity.stored_data.infos._id [INFOS(name=$votre_chantier_PCRS), TAGS(type=PCRS)]}",
+                                        "stored_data": "{store_entity.stored_data.infos._id [INFOS(name=chantier_PCRS_{params.producteur}), TAGS(type=PCRS)]}",
                                         "bottom_level": "18",
                                         "top_level": "0"
                                     }
@@ -114,7 +114,7 @@
                         },
                         // Liste des commentaires ajoutés à la Configuration
                         "comments": [
-                            "configuration WMSRaster du chantier PCRS $votre_chantier_PCRS"
+                            "configuration WMSRaster du chantier PCRS chantier_PCRS_{params.producteur}"
                         ],
                         // Liste des tags ajoutés à la Configuration
                         "tags": {
@@ -125,7 +125,7 @@
                         "type": "offering",
                         "url_parameters": {
                             // On récupère l'id de la Configuration créée à l'étape précédente grâce à son nom et l'un de ses tags
-                            "configuration": "{store_entity.configuration.infos._id [INFOS(name=$votre_chantier_PCRS), TAGS(type=PCRS)]}"
+                            "configuration": "{store_entity.configuration.infos._id [INFOS(name=chantier_PCRS_{params.producteur}), TAGS(type=PCRS)]}"
                         },
                         "body_parameters": {
                             // Endpoint de type WMS (id trouvé en récupérant les informations de l'entrepôt)
