@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.io.Config import Config
+from sdk_entrepot_gpf.store.interface.LogsInterface import LogsInterface
 from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
 from sdk_entrepot_gpf.store import TYPE__ENTITY
 from sdk_entrepot_gpf.store.Access import Access
@@ -88,6 +89,10 @@ class Entities:
         if getattr(self.args, "delete_files", None) is not None:
             assert isinstance(o_entity, Upload)
             self.action_upload_delete_files(o_entity, self.args.delete_files)
+            return False
+        if getattr(self.args, "logs", False) is True:
+            assert issubclass(o_entity, LogsInterface)
+            self.action_execution_logs(o_entity, self.args.filters)
             return False
         if getattr(self.args, "delete_failed_files", False) is True:
             assert isinstance(o_entity, Upload)
@@ -181,6 +186,18 @@ class Entities:
             upload.api_delete_data_file(file)
 
     @staticmethod
+    def action_execution_logs(verification: LogsInterface, filters: str):
+        Config().om.info(f"Affichage des logs sur la verification {verification}" )
+        execution = CheckExecution(verification)
+        pattern = r"(\d+)(?::(\d+))?(?:/(\d+))?\|?(\w+)?"
+        match = re.match(pattern, filters)
+        if match:
+            i,j,n,filter = match.groups()
+        lines = execution.api_logs_pages_filter(i,j,n,filter)
+        for line in lines:
+            Config().om.info(line)
+
+    @staticmethod
     def complete_parser_entities(o_sub_parsers) -> None:  # pylint: disable=too-many-statements,too-many-branches
         """Complète le parser avec les sous-parsers pour les entités."""
         # Parsers pour entités
@@ -252,6 +269,7 @@ class Entities:
             if issubclass(o_entity, TagInterface):
                 o_sub_parser.add_argument("--tags", "-t", type=str, default=None, help="Filtrer les livraisons selon les tags")
             # Actions
+
             if o_entity == Annexe:
                 o_sub_parser.add_argument("--publish", action="store_true", help="Publication de l'annexe (uniquement avec --id)")
                 o_sub_parser.add_argument("--unpublish", action="store_true", help="Dépublication de l'annexe (uniquement avec --id)")
@@ -284,3 +302,5 @@ class Entities:
                 )
                 # TODO déprécié
                 o_sub_parser.add_argument("--behavior", "-b", choices=UploadAction.BEHAVIORS, default=None, help="Action à effectuer si la livraison existe déjà (uniquement avec -f)")
+            if issubclass(o_entity, LogsInterface):
+                o_sub_parser.add_argument("--logs", type=str, default=None, help="Affiche les logs demandés d'un traitement d'execution")
