@@ -147,9 +147,15 @@ class Entities:
     def action_upload_checks(upload: Upload) -> None:
         checks = upload.api_list_checks()
         Config().om.info(f"Bilan des vérifications de la livraison {upload} :")
-        [Config().om.info("La vérification " + verification["check"]["name"] + " est bien passé") for verification in checks["passed"]]
-        [Config().om.warning("La vérification " + verification["check"]["name"] + " n'est pas encore effectué ou finis") for verification in checks["asked"] + checks["in_progress"]]
-        [Config().om.error("La verification " + verification["check"]["name"] + " ayant l'id " + verification["_id"] + " n'est pas passé") for verification in checks["failed"]]
+        if(len(checks["passed"]) != 0):
+            Config().om.info(f"\t * {len(checks["passed"])} vérifications passées:")
+            [Config().om.info(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}") for verification in checks["passed"]]
+        if(len(checks["failed"]) != 0):
+            Config().om.warning(f"\t * {len(checks["asked"])} vérifications en cours ou en attente:")
+            [Config().om.warning(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}") for verification in checks["asked"] + checks["in_progress"]]
+        if(len(checks["failed"]) != 0):
+            Config().om.info(f"\t * {len(checks["failed"])} vérifications échouées:")
+            [Config().om.error(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}") for verification in checks["failed"]]
 
     @staticmethod
     def action_upload_delete_files(upload: Upload, delete_files: List[str]) -> None:
