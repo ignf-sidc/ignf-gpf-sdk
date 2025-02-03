@@ -19,6 +19,7 @@ from sdk_entrepot_gpf.helper.PrintLogHelper import PrintLogHelper
 from sdk_entrepot_gpf.io.Errors import ConflictError, NotFoundError
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.io.Config import Config
+from sdk_entrepot_gpf.scripts.example import Example
 from sdk_entrepot_gpf.scripts.utils import Utils
 from sdk_entrepot_gpf.workflow.Workflow import Workflow
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
@@ -70,6 +71,8 @@ class Main:
             self.me_()
         elif self.o_args.task == "config":
             self.config()
+        elif self.o_args.task == "example":
+            Example(self.o_args.type, self.o_args.name, self.o_args.output)
         elif self.o_args.task == "workflow":
             self.workflow()
         elif self.o_args.task == "delivery":
@@ -150,6 +153,23 @@ class Main:
             help="Commentaire à ajouter aux actions (plusieurs commentaires possible, mettre le commentaire entre guillemets)",
         )
         o_sub_parser.add_argument("--params", "-p", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Paramètres supplémentaires à passer au workflow à résoudre.")
+
+        # Parser pour example
+        s_epilog_example = """Types de lancement :
+        * lister les exemples de datasets disponibles : `example dataset`
+        * récupérer un exemple de dataset disponible : `example dataset 1_dataset_vecteur`
+        * récupérer un exemple de dataset disponible dans un dossier précis : `example dataset 1_dataset_vecteur mon/dossier/precis`
+        * mêmes fonctions avec les workflows : `example workflow`
+        """
+        o_sub_parser = o_sub_parsers.add_parser(
+            "example",
+            help="Téléversement (livraisons, statiques, métadonnées et/ou clefs)",
+            epilog=s_epilog_example,
+            formatter_class=argparse.RawTextHelpFormatter,
+        )
+        o_sub_parser.add_argument("type", type=str, choices=Example.TYPES, help="Type d'example à considérer")
+        o_sub_parser.add_argument("name", nargs="?", default=None, help="Nom de l'exemple à récupérer (liste les exemples possibles si non indiqué)")
+        o_sub_parser.add_argument("output", nargs="?", type=Path, default=Path("."), help="Dossier où enregistrer l'exemple")
 
         # Parser pour delivery
         s_epilog_delivery = """Types de lancement :
@@ -339,6 +359,7 @@ class Main:
         p_root = Config.data_dir_path / "workflows"
         # Si demandé, on exporte un workflow d'exemple
         if self.o_args.name is not None:
+            Config().om.warning("La commande 'workflow' pour récupérer un exemple de workflow est dépréciée, merci d'utiliser 'example' à la place.")
             s_workflow = str(self.o_args.name)
             print(f"Exportation du workflow '{s_workflow}'...")
             p_from = p_root / s_workflow
