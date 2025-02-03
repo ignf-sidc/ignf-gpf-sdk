@@ -1,3 +1,4 @@
+from typing import Dict, Any
 from sdk_entrepot_gpf.helper.DictHelper import DictHelper
 from tests.GpfTestCase import GpfTestCase
 
@@ -10,7 +11,7 @@ class DictHelperTestCase(GpfTestCase):
 
     def test_get(self) -> None:
         """Vérification du bon fonctionnement de la fonction get."""
-        d_dict = {
+        d_dict: Dict[str, Any] = {
             "key1": {
                 "key2": {
                     "key3": "value",
