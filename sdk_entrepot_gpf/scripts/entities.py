@@ -149,15 +149,15 @@ class Entities:
         checks = upload.api_list_checks()
         Config().om.info(f"Bilan des vérifications de la livraison {upload} :")
         if(len(checks["passed"]) != 0):
-            Config().om.info(f"\t * {len(checks["passed"])} vérifications passées:")
-            [Config().om.info(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}") for verification in checks["passed"]]
+            Config().om.info(f"\t * {len(checks['passed'])} vérifications passées:")
+            [Config().om.info(f"\t\t {verification['check']['name']}") for verification in checks["passed"]]
+        if(len(checks["asked"]) != 0):
+            Config().om.warning(f" * {len(checks['asked'])} vérifications en cours ou en attente:")
+            [Config().om.warning(f"\t {verification['check']['name']}") for verification in checks["asked"] + checks["in_progress"]]
         if(len(checks["failed"]) != 0):
-            Config().om.warning(f"\t * {len(checks["asked"])} vérifications en cours ou en attente:")
-            [Config().om.warning(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}") for verification in checks["asked"] + checks["in_progress"]]
-        if(len(checks["failed"]) != 0):
-            Config().om.info(f"\t * {len(checks["failed"])} vérifications échouées:")
+            Config().om.info(f"\t * {len(checks['failed'])} vérifications échouées:")
             for verification in checks["failed"]:
-                Config().om.error(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}")
+                Config().om.error(f"\t {verification['check']['name']} ")
                 check = CheckExecution(verification)
                 lines = check.api_logs_filter("ERROR")
                 for line in lines:
