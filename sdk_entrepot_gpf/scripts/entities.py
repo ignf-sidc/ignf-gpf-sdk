@@ -1,4 +1,5 @@
 import argparse
+import re
 from typing import List, Optional
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -155,7 +156,12 @@ class Entities:
             [Config().om.warning(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}") for verification in checks["asked"] + checks["in_progress"]]
         if(len(checks["failed"]) != 0):
             Config().om.info(f"\t * {len(checks["failed"])} vérifications échouées:")
-            [Config().om.error(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}") for verification in checks["failed"]]
+            for verification in checks["failed"]:
+                Config().om.error(f"\t\t {verification["check"]["name"]} {verification["check"]["id"]}")
+                check = CheckExecution(verification)
+                lines = check.api_logs_filter("ERROR")
+                for line in lines:
+                    Config().om.info(line)
 
     @staticmethod
     def action_upload_delete_files(upload: Upload, delete_files: List[str]) -> None:
