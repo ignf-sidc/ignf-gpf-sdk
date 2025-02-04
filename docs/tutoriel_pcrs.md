@@ -6,8 +6,8 @@ Pour cela, vous devez téléverser des dalles « PCRS » qui permettront de cré
 
 Voici les prérequis pour suivre ce tutoriel :
 
-* vous devez disposer d'un compte Géoplateforme (création [ici](https://geoplateforme.github.io/tutoriels/production/controle-des-acces/entrepot/creation_compte/))
-* vous devez disposer d'un datastore (vous pouvez contacter geoplateforme@ign.fr pour sa création en précisant le résultat de la requête https://data.geopf.fr/api/users/me, en indiquant votre établissement et votre projet)
+* vous devez disposer d'un compte Géoplateforme (création en suivant ce [tuto](https://geoplateforme.github.io/tutoriels/production/controle-des-acces/entrepot/creation_compte/) ou sur [cartes.gouv](https://cartes.gouv.fr/))
+* vous devez disposer d'un datastore (vous pouvez contacter geoplateforme@ign.fr pour sa création en précisant votre idenditifiant utilisateur que vous trouver sur votre [espace](https://cartes.gouv.fr/mon-compte), votre établissement et votre projet)
 * vous devez avoir installé python et le module [SDK](index.md)
 
 Vous allez avoir besoin de 3 fichiers pour réaliser le tutoriel dont le contenu va être détaillé :
