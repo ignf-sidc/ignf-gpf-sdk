@@ -9,7 +9,7 @@
                         "type": "processing-execution",
                         "body_parameters": {
                             // On récupère l'id du traitement nommé "Calcul de pyramide raster"
-                            "processing": "6036de52-48ff-4a50-9363-cd8f458c1cfc",
+                            "processing": "{store_entity.processing.infos._id [INFOS(name=Calcul ou mise à jour de pyramide raster]}",
                             "inputs": {
                                 "upload": [
                                     // On récupère l'id de la Livraison associée grâce à son nom
@@ -20,16 +20,13 @@
                                 "stored_data": {
                                     "name": "{params.producteur}"
                                 }
-                                //"stored_data": {
-                                //    "id":"{store_entity.stored_data.infos._id [INFOS(name={params.producteur})]}"
-                                //}
                             },
                             "parameters": {
                                 "tms": "2154_5cm",
                                 "compression": "jpg",
                                 "interpolation": "bicubic",
                                 "mask": true,
-                                "parallelization": 4
+                                "parallelization": 8
                             }
                         },
                         // Liste des commentaires ajoutés à la Donnée Stockée en sortie de l'exécution du traitement
