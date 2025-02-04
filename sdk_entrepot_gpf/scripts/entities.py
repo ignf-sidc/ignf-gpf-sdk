@@ -154,12 +154,13 @@ class Entities:
         """
         Config().om.info(f"Suppression de {len(delete_files)} fichiers téléversés sur la livraison {upload} :")
         upload.api_open()
-        for file in delete_files:
-            if(file.__contains__(".md5")):
-                upload.api_delete_md5_file(file)
+        for s_file in delete_files:
+            if s_file.endswith(".md5"):
+                Config().om.info("Suppression du fichier de donnée " + s_file)
+                upload.api_delete_md5_file(s_file)
             else:
-                upload.api_delete_data_file(file)
-        upload.api_close()
+                Config().om.info("Suppression du fichier de clefs " + s_file)
+                upload.api_delete_data_file(s_file)
 
     @staticmethod
     def action_upload_delete_failed_files(upload: Upload) -> None:
