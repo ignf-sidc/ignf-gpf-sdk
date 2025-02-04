@@ -4,15 +4,21 @@ La Géoplateforme permet d'héberger et diffuser vos données PCRS raster/image 
 
 Pour cela, vous devez téléverser des dalles « PCRS » qui permettront de créer une pyramide image qui sera diffusée en flux.
 
-Vous allez avoir besoin de 3 fichiers :
+Voici les prérequis pour suivre ce tutoriel :
 
-* un fichier de configuration pour définir vos paramètres
+* vous devez disposer d'un compte Géoplateforme (création [ici](https://geoplateforme.github.io/tutoriels/production/controle-des-acces/entrepot/creation_compte/))
+* vous devez disposer d'un datastore (vous pouvez contacter geoplateforme@ign.fr pour sa création en précisant le résultat de la requête https://data.geopf.fr/api/users/me, en indiquant votre établissement et votre projet)
+* vous devez avoir installé python et le module [SDK](index.md)
+
+Vous allez avoir besoin de 3 fichiers pour réaliser le tutoriel dont le contenu va être détaillé :
+
+* un fichier de configuration pour définir vos paramètres SDK
 * un fichier descripteur qui détaille votre livraison
 * un fichier de workflow en plusieurs étapes qui effectuera les traitements
 
 ## Définition de la configuration
 
-Vous allez devoir déposer à la racine de votre projet un fichier `config.ini` contenant les informations suivantes :
+Vous allez devoir déposer à la racine du dossier de votre projet un fichier `config.ini` contenant les informations suivantes :
 
 ```text
 # Informations pour l'authentification
@@ -31,7 +37,7 @@ password=********
 datastore=********
 ```
 
-Il faut compléter le fichier avec votre login/mot de passe et l'identifiant du datastore qui vous a été aloué à la création de votre compte.
+Il faut compléter le fichier avec votre login/mot de passe et l'identifiant du datastore qui vous a été aloué.
 
 Vous pouvez tester la validité de votre fichier avec la commande suivante :
 
@@ -39,11 +45,28 @@ Vous pouvez tester la validité de votre fichier avec la commande suivante :
 python3 -m sdk_entrepot_gpf me
 ```
 
-Il peut être nécessaire de rajouter certains paramètres pour que cela fonctionne comme le proxy. Vous pouvez suivre la page [configuration](configuration.md) pour compléter votre fichier si nécessaire.
+Cela devrait renvoyer :
+
+```text
+Vos informations :
+  * email : ********
+  * nom : ********
+  * votre id : ********
+
+Vous êtes membre de 1 communauté(s) :
+
+  * communauté « ******** » :
+      - id de la communauté : ********
+      - id du datastore : ********
+      - nom technique : ********
+      - droits : community, uploads, processings, datastore, stored_data, broadcast
+```
+
+Il peut être nécessaire de rajouter certains paramètres pour que cela fonctionne comme le proxy si vous en utilisez un. Vous pouvez suivre la page [configuration](configuration.md) pour compléter votre fichier si nécessaire.
 
 ## Fichier descripteur de livraison
 
-Vous allez devoir créer un fichier `PCRS_descriptor.json` avec les inforamtions suivantes :
+Vous allez devoir créer un fichier `PCRS_descriptor.json` à la racine de votre projet avec les inforamtions suivantes :
 
 ```text
 {
@@ -70,9 +93,9 @@ Vous allez devoir créer un fichier `PCRS_descriptor.json` avec les inforamtions
 }
 ```
 
-Il faut compléter le fichier avec `$votre_chantier_PCRS` (qui vous permettra de retrouver votre fiche de données sur cartes.gouv.fr), une description et éventuellement un commentaire.
+Il faut remplacer 3 fois dans le fichier `$votre_chantier_PCRS` par une valeur sous la forme `PCRS_chantier_********` (ex: PCRS_chantier_HDF_A_2022). Cette valeur vous permettra de retrouver votre fiche de données sur cartes.gouv.fr. Vous pouvez également compléter le fichier avec une description et éventuellement un commentaire.
 
-Vous déposerez vos données dans un répertoire `$votre_chantier_PCRS` comme suit :
+Vous déposerez vos données dans un répertoire du même nom `$votre_chantier_PCRS` à la racine de votre projet comme suit :
 
 ```text
 $votre_chantier_PCRS/
@@ -80,13 +103,14 @@ $votre_chantier_PCRS/
 ├── dalle_2.tif
 └── ...
 ```
-Vous pouvez maintenant effectuer la livraison en indiquant le chemin du fichier descripteur au programme :
+
+Vous pouvez maintenant effectuer la livraison en lançant la commande depuis la racine de votre projet ou en indiquant le chemin du fichier descripteur au programme :
 
 ```sh
-python -m sdk_entrepot_gpf upload -f /chemin/PCRS_descriptor.jsonc
+python -m sdk_entrepot_gpf upload -f ./PCRS_descriptor.jsonc
 ```
 
-Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérification côté API avant de conclure que tout est bon (cela peut être long selon la taille de la livraison et la qualité de votre connexion).
+Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérification côté API avant de conclure que tout est bon `INFO - BILAN : les 1 livraisons se sont bien passées` (cela peut être long selon la taille de la livraison et la qualité de votre connexion, ne fermez pas votre terminal pendant ce temps).
 
 ## Workflow
 
@@ -113,6 +137,8 @@ python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s pyramide --param 
 python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication --param producteur=$votre_chantier_PCRS
 ```
 
-La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés.
+La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés et se terminer par `INFO - Exécution de l'action 'pyramide-0' : terminée`
 
-Avec la deuxième commande, vous pourrez récupérer les liens de vos fluxs.
+Avec la deuxième commande, deux offres (une WMTS et une WMSRaster) devraient être créées `INFO - Offre créée : Offering(id=********, layer_name=$votre_chantier_PCRS)`
+
+Vous pouvez maintenant retrouver vos données dans cartes.gouv (https://cartes.gouv.fr/entrepot/$id_datastore/donnees/$votre_chantier_PCRS?activeTab=dataset) ou les visionner dans un SIG comme QGIS en renseignant les GetCapabilities des services (https://data.geopf.fr/wmts?service=WMTS&request=GetCapabilities & https://data.geopf.fr/wms-r?).
