@@ -7,7 +7,7 @@ Pour cela, vous devez téléverser des dalles « PCRS » qui permettront de cré
 Voici les prérequis pour suivre ce tutoriel :
 
 * vous devez disposer d'un compte Géoplateforme (création en suivant ce [tuto](https://geoplateforme.github.io/tutoriels/production/controle-des-acces/entrepot/creation_compte/) ou sur [cartes.gouv](https://cartes.gouv.fr/))
-* vous devez disposer d'un datastore (vous pouvez contacter geoplateforme@ign.fr pour sa création en précisant votre idenditifiant utilisateur que vous trouver sur votre [espace](https://cartes.gouv.fr/mon-compte), votre établissement et votre projet)
+* vous devez disposer d'un datastore (pour sa création, vous pouvez contacter geoplateforme@ign.fr ou faire une demande [ici](https://cartes.gouv.fr/entrepot/demande-de-creation) en précisant votre établissement, qu'il s'agit d'une diffusion partenaire PCRS et votre idenditifiant utilisateur que vous trouver sur votre [espace](https://cartes.gouv.fr/mon-compte))
 * vous devez avoir installé python et le module [SDK](index.md)
 
 Vous allez avoir besoin de 3 fichiers pour réaliser le tutoriel dont le contenu va être détaillé :
@@ -107,7 +107,7 @@ $votre_chantier_PCRS/
 Vous pouvez maintenant effectuer la livraison en lançant la commande depuis la racine de votre projet ou en indiquant le chemin du fichier descripteur au programme :
 
 ```sh
-python -m sdk_entrepot_gpf upload -f ./PCRS_descriptor.jsonc
+python3 -m sdk_entrepot_gpf upload -f ./PCRS_descriptor.jsonc
 ```
 
 Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérification côté API avant de conclure que tout est bon `INFO - BILAN : les 1 livraisons se sont bien passées` (cela peut être long selon la taille de la livraison et la qualité de votre connexion, ne fermez pas votre terminal pendant ce temps).
@@ -121,7 +121,7 @@ Ces étapes sont décrites grâces à un workflow.
 Vous pouvez récupérer le template du workflow grâce à la commande suivante :
 
 ```sh
-python -m sdk_entrepot_gpf workflow -n PCRS.jsonc
+python3 -m sdk_entrepot_gpf workflow -n PCRS.jsonc
 ```
 
 Pour plus de détails, consultez la [documentation sur les workflows](workflow.md).
@@ -132,13 +132,13 @@ Les commandes à lancer sont les suivantes :
 
 ```sh
 # partie génération de la pyramide
-python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s pyramide --param producteur=$votre_chantier_PCRS
+python3 -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s pyramide --param producteur=$votre_chantier_PCRS
 # partie publication
-python -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication --param producteur=$votre_chantier_PCRS
+python3 -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication --param producteur=$votre_chantier_PCRS
 ```
 
 La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés et se terminer par `INFO - Exécution de l'action 'pyramide-0' : terminée`
 
 Avec la deuxième commande, deux offres (une WMTS et une WMSRaster) devraient être créées `INFO - Offre créée : Offering(id=********, layer_name=$votre_chantier_PCRS)`
 
-Vous pouvez maintenant retrouver vos données dans cartes.gouv (https://cartes.gouv.fr/entrepot/$id_datastore/donnees/$votre_chantier_PCRS?activeTab=dataset) ou les visionner dans un SIG comme QGIS en renseignant les GetCapabilities des services (https://data.geopf.fr/wmts?service=WMTS&request=GetCapabilities & https://data.geopf.fr/wms-r?).
+Vous pouvez maintenant retrouver vos données dans cartes.gouv (https://cartes.gouv.fr/entrepot/$id_datastore/donnees/$votre_chantier_PCRS) ou les visionner dans un SIG comme QGIS en renseignant les urls des GetCapabilities des services ([WMTS](https://data.geopf.fr/wmts?service=WMTS&request=GetCapabilities) et [WMSRaster](https://data.geopf.fr/wms-r?)).
