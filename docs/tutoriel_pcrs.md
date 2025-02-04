@@ -137,8 +137,16 @@ python3 -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s pyramide --param
 python3 -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication --param producteur=$votre_chantier_PCRS
 ```
 
-La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés et se terminer par `INFO - Exécution de l'action 'pyramide-0' : terminée`
+La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés et se terminer par :
 
-Avec la deuxième commande, deux offres (une WMTS et une WMSRaster) devraient être créées `INFO - Offre créée : Offering(id=********, layer_name=$votre_chantier_PCRS)`
+```text
+INFO - Exécution de l'action 'pyramide-0' : terminée
+```
+
+Avec la deuxième commande, deux offres (une WMTS et une WMSRaster) devraient être créées :
+
+```text
+INFO - Offre créée : Offering(id=********, layer_name=$votre_chantier_PCRS)
+```
 
 Vous pouvez maintenant retrouver vos données dans cartes.gouv (https://cartes.gouv.fr/entrepot/$id_datastore/donnees/$votre_chantier_PCRS) ou les visionner dans un SIG comme QGIS en renseignant les urls des GetCapabilities des services ([WMTS](https://data.geopf.fr/wmts?service=WMTS&request=GetCapabilities) et [WMSRaster](https://data.geopf.fr/wms-r?)).
