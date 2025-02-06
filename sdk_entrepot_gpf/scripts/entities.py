@@ -155,16 +155,16 @@ class Entities:
         if len(d_checks["passed"]) != 0:
             Config().om.info(f"\t * {len(d_checks['passed'])} vérifications passées:")
             for d_verification in d_checks["passed"]:
-                Config().om.info(f"\t\t {d_verification['check']['name']}")
+                Config().om.info(f"\t\t {d_verification['check']['name']} {d_verification['check']['_id']}")
         if len(d_checks["asked"] + d_checks["in_progress"]) != 0:
             Config().om.warning("* " + str(len(d_checks["asked"]) + len(d_checks["in_progress"])) + " vérifications en cours ou en attente:")
             for d_verification in d_checks["asked"] + d_checks["in_progress"]:
                 s_name = "asked" if d_verification in d_checks["asked"] else "in_progress"
-                Config().om.warning(f"\t {s_name} {d_verification['check']['name']}")
+                Config().om.warning(f"\t {s_name} {d_verification['check']['name']} {d_verification['check']['_id']}")
         if len(d_checks["failed"]) != 0:
             Config().om.error(f"* {len(d_checks['failed'])} vérifications échouées:")
             for d_verification in d_checks["failed"]:
-                Config().om.error(f"\t {d_verification['check']['name']} ")
+                Config().om.error(f"\t {d_verification['check']['name']} {d_verification['check']['_id']}")
                 o_check = CheckExecution(d_verification, datastore=upload.datastore)
                 l_lines = o_check.api_logs_filter("ERROR")
                 for s_line in l_lines:
