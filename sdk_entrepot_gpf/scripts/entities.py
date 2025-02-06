@@ -1,5 +1,4 @@
 import argparse
-import os
 import re
 from typing import List, Optional
 
@@ -210,21 +209,27 @@ class Entities:
 
     @staticmethod
     def action_execution_logs(verification: LogsInterface, filters: str):
+        """
+        Applique les filtres au logs de la verfication
+        Args:
+            verification: LA verification ou vont être appliqué les filtres
+            filters: Les différents filtres qui seront appliqués sur la verification
+        """
         Config().om.info(f"Affichage des logs sur la verification {verification}")
-        execution = CheckExecution(verification)
+        o_execution = CheckExecution(verification)
 
-        pattern = r"(\-?\d+)(?::(\-?\d+))?(?:/(\-?\d+))?\|?(\w*)?"
-        match = re.match(pattern, filters)
-        i, j, n, filter = match.groups()
-        if(j == None):
-            j = 0
-        if(n == None):
-            n = 1000
-        if(filter == None):
-            filter = ""
-        lines = execution.api_logs_pages_filter(int(i), int(j), int(n), filter)
-        for line in lines:
-            Config().om.info(line)
+        o_pattern = r"(\-?\d+)(?::(\-?\d+))?(?:/(\-?\d+))?\|?(\w*)?"
+        o_match = re.match(o_pattern, filters)
+        i_firstpage, i_lastpage, i_lineperpage, s_filter = o_match.groups()
+        if i_lastpage is None:
+            i_lastpage = 0
+        if i_lineperpage is None:
+            i_lineperpage = 1000
+        if s_filter is None:
+            s_filter = ""
+        l_lines = o_execution.api_logs_pages_filter(int(i_firstpage), int(i_lastpage), int(i_lineperpage), s_filter)
+        for s_line in l_lines:
+            Config().om.info(s_line)
 
     @staticmethod
     def complete_parser_entities(o_sub_parsers) -> None:  # pylint: disable=too-many-statements,too-many-branches
