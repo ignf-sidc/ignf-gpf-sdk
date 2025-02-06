@@ -90,9 +90,9 @@ class Entities:
             assert isinstance(o_entity, Upload)
             self.action_upload_delete_files(o_entity, self.args.delete_files)
             return False
-        if getattr(self.args, "logs", False) is True:
-            assert issubclass(o_entity, LogsInterface)
-            self.action_execution_logs(o_entity, self.args.filters)
+        if getattr(self.args, "logs", None) is not None:
+            assert issubclass(o_entity.__class__, LogsInterface)
+            self.action_execution_logs(o_entity, self.args.logs)
             return False
         if getattr(self.args, "delete_failed_files", False) is True:
             assert isinstance(o_entity, Upload)
@@ -152,7 +152,30 @@ class Entities:
 
     @staticmethod
     def action_upload_checks(upload: Upload) -> None:
+        """
+        Affiche les infos sur une livraison
+        Args:
+            upload (Upload): livraison à vérifier
+        """
+        d_checks = upload.api_list_checks()
         Config().om.info(f"Bilan des vérifications de la livraison {upload} :")
+        if len(d_checks["passed"]) != 0:
+            Config().om.info(f"\t * {len(d_checks['passed'])} vérifications passées:")
+            for d_verification in d_checks["passed"]:
+                Config().om.info(f"\t\t {d_verification['check']['name']} {d_verification['_id']}")
+        if len(d_checks["asked"] + d_checks["in_progress"]) != 0:
+            Config().om.warning("* " + str(len(d_checks["asked"]) + len(d_checks["in_progress"])) + " vérifications en cours ou en attente:")
+            for d_verification in d_checks["asked"] + d_checks["in_progress"]:
+                s_name = "asked" if d_verification in d_checks["asked"] else "in_progress"
+                Config().om.warning(f"\t {s_name} {d_verification['check']['name']} {d_verification['check']['_id']}")
+        if len(d_checks["failed"]) != 0:
+            Config().om.error(f"* {len(d_checks['failed'])} vérifications échouées:")
+            for d_verification in d_checks["failed"]:
+                Config().om.error(f"\t {d_verification['check']['name']} {d_verification['check']['_id']}")
+                o_check = CheckExecution(d_verification, datastore=upload.datastore)
+                l_lines = o_check.api_logs_filter("ERROR")
+                for s_line in l_lines:
+                    Config().om.error(s_line)
 
     @staticmethod
     def action_upload_delete_files(upload: Upload, delete_files: List[str]) -> None:
@@ -163,7 +186,7 @@ class Entities:
         Config().om.info(f"Suppression de {len(delete_files)} fichiers téléversés sur la livraison {upload} :")
         upload.api_open()
         for file in delete_files:
-            if(file.__contains__(".md5")):
+            if file.__contains__(".md5"):
                 upload.api_delete_md5_file(file)
             else:
                 upload.api_delete_data_file(file)
@@ -177,7 +200,7 @@ class Entities:
             check = CheckExecution(verification)
             lines = check.api_logs_filter("ERROR")
             for line in lines:
-                correspondance = re.search(r'\((.*?)\)', line)
+                correspondance = re.search(r"\((.*?)\)", line)
                 if correspondance:
                     Config().om.warning(correspondance.group(1))
                     files.append(correspondance.group(1))
@@ -187,13 +210,19 @@ class Entities:
 
     @staticmethod
     def action_execution_logs(verification: LogsInterface, filters: str):
-        Config().om.info(f"Affichage des logs sur la verification {verification}" )
+        Config().om.info(f"Affichage des logs sur la verification {verification}")
         execution = CheckExecution(verification)
-        pattern = r"(\d+)(?::(\d+))?(?:/(\d+))?\|?(\w+)?"
+
+        pattern = r"(\-?\d+)(?::(\-?\d+))?(?:/(\-?\d+))?\|?(\w*)?"
         match = re.match(pattern, filters)
-        if match:
-            i,j,n,filter = match.groups()
-        lines = execution.api_logs_pages_filter(i,j,n,filter)
+        i, j, n, filter = match.groups()
+        if(j == None):
+            j = 0
+        if(n == None):
+            n = 1000
+        if(filter == None):
+            filter = ""
+        lines = execution.api_logs_pages_filter(int(i), int(j), int(n), filter)
         for line in lines:
             Config().om.info(line)
 

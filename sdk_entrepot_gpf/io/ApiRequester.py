@@ -368,4 +368,4 @@ class ApiRequester(metaclass=Singleton):
             # Si le parsing a raté, on met un warning en on s'arrête là niveau requête
             Config().om.warning(f"Impossible d'analyser le nombre d'éléments à requêter. Contactez le support. (Content-Range : {content_range})")
             return 0
-        return math.ceil(int(o_result.group("len")) // limit)
+        return math.ceil(int(o_result.group("len")) / limit)
