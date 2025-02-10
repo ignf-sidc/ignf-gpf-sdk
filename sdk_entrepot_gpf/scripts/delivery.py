@@ -15,6 +15,7 @@ from sdk_entrepot_gpf.store.Key import Key
 from sdk_entrepot_gpf.store.Metadata import Metadata
 from sdk_entrepot_gpf.store.Static import Static
 from sdk_entrepot_gpf.store.Upload import Upload
+from sdk_entrepot_gpf.Errors import GpfSdkError
 
 from sdk_entrepot_gpf.scripts.utils import Utils
 
@@ -53,12 +54,10 @@ class Delivery:
                     Config().om.error(f"{len(d_res['upload_fail'])} livraisons échoués :\n" + "\n".join([f" * {s_nom} : {e_error}" for s_nom, e_error in d_res["upload_fail"].items()]))
                 if d_res["check_fail"]:
                     Config().om.error(f"{len(d_res['check_fail'])} vérifications de livraisons échoués :\n" + "\n".join([f" * {o_upload}" for o_upload in d_res["check_fail"]]))
-                Config().om.error(
-                    f"BILAN : {len(d_res['ok'])} livraisons effectué sans erreur, {len(d_res['upload_fail'])} livraisons échouées, {len(d_res['check_fail'])} vérifications de livraisons échouées"
+                raise GpfSdkError(
+                    f"BILAN : {len(d_res['ok'])} livraisons effectuées sans erreur, {len(d_res['upload_fail'])} livraisons échouées, {len(d_res['check_fail'])} vérifications de livraisons échouées"
                 )
-                sys.exit(1)
-            else:
-                Config().om.info(f"BILAN : les {len(d_res['ok'])} livraisons se sont bien passées", green_colored=True)
+            Config().om.info(f"BILAN : les {len(d_res['ok'])} livraisons se sont bien passées", green_colored=True)
 
         if "annexe" in self.data:
             Config().om.info("Téléversement de fichiers annexes...", green_colored=True)
@@ -88,11 +87,11 @@ class Delivery:
         check_before_close: bool = False,
         mode_cartes: Optional[bool] = None,
     ) -> Dict[str, Any]:
-        """réalisation des livraisons décrites par le fichier indiqué
+        """réalisation des livraisons (upload) décrites par le fichier indiqué
 
         Args:
             file (Union[Path, str]): chemin du fichier descripteur de livraison
-            behavior (Optional[str]): comportement dans le cas où une livraison de même nom existe, comportment par défaut su None
+            behavior (Optional[str]): comportement dans le cas où une livraison de même nom existe, comportment par défaut si None
             datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
             check_before_close (bool): Vérification de l'arborescence de la livraison avant fermeture.
             mode_cartes (Optional[bool]): Si le mode carte est activé
