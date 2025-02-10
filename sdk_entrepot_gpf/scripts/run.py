@@ -517,7 +517,9 @@ def main(program_name: Optional[str] = None) -> None:
         # gestion "globale" des timeout
         Config().om.debug(traceback.format_exc())
         Config().om.critical(f"Requête trop longe, timeout. URL : {str(e_error.request.method)+' ' +str(e_error.request.url) if e_error.request else ''}.")
-
+    except NotImplementedError as e_error:
+        Config().om.debug(traceback.format_exc())
+        Config().om.critical(f"Fonctionnalité non implémentée : {e_error.args[0]}.")
     except Exception as e_exception:
         print(e_exception)
         Config().om.critical("Erreur non spécifiée :")

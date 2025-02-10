@@ -195,8 +195,8 @@ class Entities:
 
     @staticmethod
     def action_upload_checks(upload: Upload) -> None:
-        """
-        Affiche les infos sur une livraison
+        """Affiche les infos sur une livraison
+
         Args:
             upload (Upload): livraison à vérifier
         """
@@ -222,11 +222,13 @@ class Entities:
 
     @staticmethod
     def action_upload_delete_files(upload: Upload, delete_files: List[str]) -> None:
-        Config().om.info(f"Suppression de {len(delete_files)} fichiers téléversés sur la livraison {upload} :")
+        # Config().om.info(f"Suppression de {len(delete_files)} fichiers téléversés sur la livraison {upload} :")
+        raise NotImplementedError("Cette fonctionnalité n'est pas encore implémentée.")
 
     @staticmethod
     def action_upload_delete_failed_files(upload: Upload) -> None:
-        Config().om.info(f"Suppression des fichiers mal téléversés sur la livraison {upload} :")
+        # Config().om.info(f"Suppression des fichiers mal téléversés sur la livraison {upload} :")
+        raise NotImplementedError("Cette fonctionnalité n'est pas encore implémentée.")
 
     @staticmethod
     def action_annexe_publish(annexe: Annexe) -> None:
