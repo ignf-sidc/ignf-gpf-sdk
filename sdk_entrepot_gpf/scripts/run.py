@@ -14,26 +14,17 @@ import toml
 import sdk_entrepot_gpf
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.auth.Authentifier import Authentifier
-from sdk_entrepot_gpf.helper.JsonHelper import JsonHelper
-from sdk_entrepot_gpf.helper.PrintLogHelper import PrintLogHelper
 from sdk_entrepot_gpf.io.Errors import ConflictError, NotFoundError
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.io.Config import Config
 from sdk_entrepot_gpf.scripts.example import Example
-from sdk_entrepot_gpf.scripts.utils import Utils
-from sdk_entrepot_gpf.workflow.Workflow import Workflow
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
-from sdk_entrepot_gpf.workflow.resolver.DateResolver import DateResolver
-from sdk_entrepot_gpf.workflow.resolver.DictResolver import DictResolver
-from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
-from sdk_entrepot_gpf.workflow.resolver.StoreEntityResolver import StoreEntityResolver
 from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
 from sdk_entrepot_gpf.store.Datastore import Datastore
-from sdk_entrepot_gpf.store.ProcessingExecution import ProcessingExecution
-from sdk_entrepot_gpf.workflow.resolver.UserResolver import UserResolver
 from sdk_entrepot_gpf.scripts.entities import Entities
 from sdk_entrepot_gpf.scripts.delivery import Delivery
+from sdk_entrepot_gpf.scripts.workflow import WorkflowCli
 
 
 class Main:
@@ -74,7 +65,21 @@ class Main:
         elif self.o_args.task == "example":
             Example(self.o_args.type, self.o_args.name, self.o_args.output)
         elif self.o_args.task == "workflow":
-            self.workflow()
+            # TODO : retirer le if et ne garder que le début
+            if self.o_args.name is None and self.o_args.file is not None:
+                d_params = {x[0]: x[1] for x in self.o_args.params}
+                d_tags = {l_el[0]: l_el[1] for l_el in self.o_args.tags}
+                WorkflowCli(
+                    self.o_args.datastore,
+                    self.o_args.file,
+                    self.o_args.behavior,
+                    self.o_args.step,
+                    d_params,
+                    d_tags,
+                    self.o_args.comments,
+                )
+            else:  # TODO à retirer
+                self.workflow()
         elif self.o_args.task == "delivery":
             Delivery(self.datastore, self.o_args.task, self.o_args.id, self.o_args.check_before_close, self.o_args.mode_cartes)
         elif self.o_args.task == "dataset":
@@ -132,25 +137,29 @@ class Main:
 
         # Parser pour workflow
         s_epilog_workflow = """quatre types de lancement :
-        * liste des exemples de workflow disponibles : `` (aucun arguments)
-        * Récupération d'un workflow exemple : `--name NAME`
+        * liste des exemples de workflow disponibles (déprécié) : `` (aucun arguments)
+        * Récupération d'un workflow exemple (déprécié) : `--name NAME`
         * Vérification de la structure du fichier workflow et affichage des étapes : `--file FILE`
-        * Lancement l'une étape d'un workflow: `--file FILE --step STEP [--behavior BEHAVIOR]`
+        * Lancement l'une étape d'un workflow : `--file FILE --step STEP [--behavior BEHAVIOR]`
+          Il est alors possible de :
+            - préciser des paramètres pour la résolution du workflow : `-p param1_clef param1_valeur -p "param2 clef" "param2 valeur"`
+            - préciser des tags à ajouter : `-t clef1 valeur1 -t clef2 valeur2`
+            - préciser des commentaires à ajouter : `-c "commentaire 1" -c "commentaire 2"`
         """
         o_sub_parser = o_sub_parsers.add_parser("workflow", help="Workflow (lancement, vérification)", epilog=s_epilog_workflow, formatter_class=argparse.RawTextHelpFormatter)
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin du fichier à utiliser OU chemin où extraire le dataset")
         o_sub_parser.add_argument("--name", "-n", type=str, default=None, help="Nom du workflow à extraire")
         o_sub_parser.add_argument("--step", "-s", type=str, default=None, help="Étape du workflow à lancer")
         o_sub_parser.add_argument("--behavior", "-b", choices=ProcessingExecutionAction.BEHAVIORS, default=None, help="Action à effectuer si l'exécution de traitement existe déjà")
-        o_sub_parser.add_argument("--tag", "-t", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Tag à ajouter aux actions (plusieurs tags possible)")
+        o_sub_parser.add_argument("--tags", "-t", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Tags à ajouter aux actions (plusieurs tags possibles)")
         o_sub_parser.add_argument(
-            "--comment",
+            "--comments",
             "-c",
             type=str,
             default=[],
             action="append",
             metavar='"Le commentaire"',
-            help="Commentaire à ajouter aux actions (plusieurs commentaires possible, mettre le commentaire entre guillemets)",
+            help="Commentaire(s) à ajouter aux actions (plusieurs commentaires possibles, mettre le commentaire entre guillemets)",
         )
         o_sub_parser.add_argument("--params", "-p", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Paramètres supplémentaires à passer au workflow à résoudre.")
 
@@ -352,6 +361,7 @@ class Main:
                     l_children.append(p_child.name)
             print("Jeux de données disponibles :\n   * {}".format("\n   * ".join(l_children)))
 
+    # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def workflow(self) -> None:
         """Vérifie ou exécute un workflow."""
         p_root = Config.data_dir_path / "workflows"
@@ -371,66 +381,6 @@ class Main:
                 print("Exportation terminée.")
             else:
                 raise GpfSdkError(f"Workflow '{s_workflow}' introuvable.")
-        elif self.o_args.file is not None:
-            # Ouverture du fichier
-            p_workflow = Path(self.o_args.file).absolute()
-            Config().om.info(f"Ouverture du workflow {p_workflow}...")
-            o_workflow = Workflow(p_workflow.stem, JsonHelper.load(p_workflow))
-            # Y'a-t-il une étape d'indiquée
-            if self.o_args.step is None:
-                # Si pas d'étape indiquée, on valide le workflow
-                Config().om.info("Validation du workflow...")
-                l_errors = o_workflow.validate()
-                if l_errors:
-                    s_errors = "\n   * ".join(l_errors)
-                    Config().om.error(f"{len(l_errors)} erreurs ont été trouvées dans le workflow.")
-                    Config().om.info(f"Liste des erreurs :\n   * {s_errors}")
-                    raise GpfSdkError("Workflow invalide.")
-                Config().om.info("Le workflow est valide.", green_colored=True)
-
-                # Affichage des étapes disponibles et des parents
-                Config().om.info("Liste des étapes disponibles et de leurs parents :", green_colored=True)
-                l_steps = o_workflow.get_all_steps()
-                for s_step in l_steps:
-                    Config().om.info(f"   * {s_step}")
-
-            else:
-                # Sinon, on définit des résolveurs
-                GlobalResolver().add_resolver(StoreEntityResolver("store_entity"))
-                GlobalResolver().add_resolver(UserResolver("user"))
-                GlobalResolver().add_resolver(DateResolver("datetime"))
-                # Résolveur params qui permet d'accéder aux paramètres supplémentaires passés par l'utilisateur
-                GlobalResolver().add_resolver(DictResolver("params", {x[0]: x[1] for x in self.o_args.params}))
-
-                # le comportement
-                s_behavior = str(self.o_args.behavior).upper() if self.o_args.behavior is not None else None
-                # on reset l'afficheur de log
-                PrintLogHelper.reset()
-
-                # et on lance l'étape en précisant l'afficheur de log et le comportement
-                def callback_run_step(processing_execution: ProcessingExecution) -> None:
-                    """fonction callback pour l'affichage des logs lors du suivi d'un traitement
-
-                    Args:
-                        processing_execution (ProcessingExecution): processing exécution en cours
-                    """
-                    try:
-                        PrintLogHelper.print(processing_execution.api_logs())
-                    except Exception:
-                        PrintLogHelper.print("Logs indisponibles pour le moment...")
-
-                # on lance le monitoring de l'étape en précisant la gestion du ctrl-C
-                d_tags = {l_el[0]: l_el[1] for l_el in self.o_args.tag}
-                o_workflow.run_step(
-                    self.o_args.step,
-                    callback_run_step,
-                    Utils.ctrl_c_action,
-                    behavior=s_behavior,
-                    datastore=self.datastore,
-                    comments=self.o_args.comment,
-                    tags=d_tags,
-                )
-
         else:
             l_children: List[str] = []
             for p_child in p_root.iterdir():
