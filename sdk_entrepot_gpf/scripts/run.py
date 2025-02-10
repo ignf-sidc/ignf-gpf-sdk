@@ -76,7 +76,7 @@ class Main:
         elif self.o_args.task == "workflow":
             self.workflow()
         elif self.o_args.task == "delivery":
-            Delivery(self.datastore, self.o_args.task, self.o_args.id, self.o_args)
+            Delivery(self.datastore, self.o_args.task, self.o_args.id, self.o_args.check_before_close, self.o_args.mode_cartes)
         elif self.o_args.task == "dataset":
             self.dataset()
         elif self.o_args.task == "delete":

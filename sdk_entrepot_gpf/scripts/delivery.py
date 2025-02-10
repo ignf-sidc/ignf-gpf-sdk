@@ -1,4 +1,3 @@
-import argparse
 import sys
 import traceback
 from pathlib import Path
@@ -23,7 +22,7 @@ from sdk_entrepot_gpf.scripts.utils import Utils
 class Delivery:
     """Classe pour manipuler les entités en cas d'utilisation cli."""
 
-    def __init__(self, datastore: Optional[str], file: Path, behavior: str, args: argparse.Namespace) -> None:
+    def __init__(self, datastore: Optional[str], file: Path, behavior: str, check_before_close: bool, mode_cartes: bool) -> None:
         """Si un id est précisé, on récupère l'entité et on fait d'éventuelles actions.
         Sinon on liste les entités avec éventuellement des filtres.
 
@@ -31,12 +30,14 @@ class Delivery:
             datastore (Optional[str], optional): datastore à considérer
             file (Path): chemin du fichier descriptif à traiter
             behavior (str): comportement de gestion des conflits
-            args (argparse.Namespace): reste des paramètres
+            check_before_close (bool): si on doit revérifier la livraison avant sa fermeture
+            mode_cartes (bool): activation du mode cartes.gouv
         """
         self.datastore = datastore
         self.file = file
         self.behavior = behavior
-        self.args = args
+        self.check_before_close = check_before_close
+        self.mode_cartes = mode_cartes
         # On ouvre le fichier indiqué
         self.data = JsonHelper.load(self.file)
 
@@ -45,7 +46,7 @@ class Delivery:
         if "datasets" in self.data:
             Config().om.info("Téléversement de données...", green_colored=True)
             # on livre les données selon le fichier descripteur donné
-            d_res = self.upload_from_descriptor_file(self.args.file, self.args.behavior, self.args.datastore, self.args.check_before_close, self.args.mode_cartes)
+            d_res = self.upload_from_descriptor_file(self.file, self.behavior, self.datastore, self.check_before_close, self.mode_cartes)
             # Affichage du bilan
             Config().om.info("-" * 100)
             if d_res["upload_fail"] or d_res["check_fail"]:
@@ -61,22 +62,22 @@ class Delivery:
 
         if "annexe" in self.data:
             Config().om.info("Téléversement de fichiers annexes...", green_colored=True)
-            d_res = self.upload_annexe_from_descriptor_file(self.args.file, self.args.datastore)
+            d_res = self.upload_annexe_from_descriptor_file(self.file, self.datastore)
             self.display_bilan_upload_file(d_res)
 
         if "static" in self.data:
             Config().om.info("Téléversement de fichiers statiques...", green_colored=True)
-            d_res = self.upload_static_from_descriptor_file(self.args.file, self.args.datastore)
+            d_res = self.upload_static_from_descriptor_file(self.file, self.datastore)
             self.display_bilan_upload_file(d_res)
 
         if "metadata" in self.data:
             Config().om.info("Téléversement de métadonnées...", green_colored=True)
-            d_res = self.upload_metadata_from_descriptor_file(self.args.file, self.args.datastore)
+            d_res = self.upload_metadata_from_descriptor_file(self.file, self.datastore)
             self.display_bilan_upload_file(d_res)
 
         if "key" in self.data:
             Config().om.info("Création de clefs...", green_colored=True)
-            d_res = self.create_key_from_file(self.args.file)
+            d_res = self.create_key_from_file(self.file)
             self.display_bilan_creation(d_res)
 
     @staticmethod
