@@ -5,8 +5,14 @@
 ### [Added]
 
 * Possibilité d'appeler le programme via des executables : `egpf` (ou `entrepot_gpf`)
+* StoreEntity : nomenclatures des entités au pluriel (`entity_titles`)
+* StoreEntity : liste des champs à récupérer en mode liste pour chaque entités (`_entity_fields`)
 
 ### [Changed]
+
+* UploadAction : correction message fichier distant non trouvé en local
+* Couverture des tests : on masque les fichiers couverts à 100%
+* Réorganisation des appels du cli.
 
 ### [Fixed]
 

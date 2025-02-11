@@ -6,3 +6,4 @@ class Processing(StoreEntity):
 
     _entity_name = "processing"
     _entity_title = "traitement"
+    _entity_titles = "traitements"

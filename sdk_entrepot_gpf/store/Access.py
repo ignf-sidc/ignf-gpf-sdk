@@ -10,6 +10,7 @@ class Access(StoreEntity):
 
     _entity_name = "access"
     _entity_title = "accès"
+    _entity_titles = "accès"
 
     # On doit redéfinir la fonction car l'API ne renvoie rien... A retirer quand ça sera bon.
     @classmethod
