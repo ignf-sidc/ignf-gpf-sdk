@@ -20,7 +20,7 @@
     
     
       
-        <title>Utilisation comme module Python - Documentation SDK Entrepôt</title>
+        <title>Comme module - Documentation SDK Entrepôt</title>
       
     
     
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Utilisation comme module Python
+              Comme module
             
           </span>
         </div>
@@ -251,7 +251,7 @@
         
   
   <span class="md-ellipsis">
-    SDK Python
+    Home
   </span>
   
 
@@ -289,7 +289,7 @@
         
   
   <span class="md-ellipsis">
-    La configuration en détails
+    Configuration details
   </span>
   
 
@@ -308,7 +308,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme exécutable
+    Comme executable
   </span>
   
 
@@ -336,7 +336,7 @@
           
   
   <span class="md-ellipsis">
-    Utilisation comme module Python
+    Comme module
   </span>
   
 
@@ -347,7 +347,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme module Python
+    Comme module
   </span>
   
 
@@ -452,7 +452,7 @@
         
   
   <span class="md-ellipsis">
-    Fichier descripteur de livraison
+    Upload descriptor
   </span>
   
 
@@ -471,7 +471,7 @@
         
   
   <span class="md-ellipsis">
-    Workflows
+    Workflow
   </span>
   
 
@@ -490,7 +490,7 @@
         
   
   <span class="md-ellipsis">
-    Développement
+    Development
   </span>
   
 
@@ -509,7 +509,7 @@
         
   
   <span class="md-ellipsis">
-    Résolveur
+    Resolveurs
   </span>
   
 
@@ -605,6 +605,26 @@
   
   <span class="md-ellipsis">
     Tutoriel 3 : publier un flux raster
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutoriel_pcrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutoriel PCRS
   </span>
   
 
@@ -891,6 +911,15 @@
                   
 
 
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/comme-module/
+-->
+
 <h1 id="utilisation-comme-module-python">Utilisation comme module Python<a class="headerlink" href="#utilisation-comme-module-python" title="Permanent link">#</a></h1>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>
 <p>Afin d'utiliser cette librairie comme module, vous devrez <a href="../configuration/">écrire un fichier de configuration</a> comme pour les autres utilisations.</p>
@@ -920,8 +949,8 @@ Cela sera plus simple d'un point de vue Python mais moins modulaire.</p>
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="c1"># On ferme la livraison et on monitore les exécutions de vérification</span>
 <a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">b_status</span> <span class="o">=</span> <span class="n">UploadAction</span><span class="o">.</span><span class="n">monitor_until_end</span><span class="p">(</span><span class="n">o_upload</span><span class="p">,</span> <span class="n">Livraison</span><span class="o">.</span><span class="n">callback_check</span><span class="p">)</span>
 </code></pre></div>
-<p><strong><img alt="ℹ" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@14.1.2/assets/svg/2139.svg" title=":information_source:" /> Utiliser un datastore spécifique</strong>
-Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui indiqué en configuration :</p>
+<p>???+ note "Utiliser un datastore spécifique**
+    Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui indiqué en configuration :</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># On crée la livraison en précisant un datastore spécifique</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">o_upload</span> <span class="o">=</span> <span class="n">o_upload_action</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">datastore</span><span class="o">=</span><span class="s1">&#39;id-datastore-spécifique&#39;</span><span class="p">)</span>
 </code></pre></div>
@@ -962,8 +991,8 @@ Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui 
 <a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a><span class="c1"># Fermeture de la livraison</span>
 <a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a><span class="n">upload</span><span class="o">.</span><span class="n">api_close</span><span class="p">()</span>
 </code></pre></div>
-<p><strong><img alt="ℹ" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@14.1.2/assets/svg/2139.svg" title=":information_source:" /> Utiliser un datastore spécifique</strong>
-Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui indiqué en configuration :</p>
+<p>???+ note "Utiliser un datastore spécifique**
+    Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui indiqué en configuration :</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Création d&#39;une livraison en précisant un datastore spécifique</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">upload</span> <span class="o">=</span> <span class="n">Upload</span><span class="o">.</span><span class="n">api_create</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="s1">&#39;id-datastore-spécifique&#39;</span><span class="p">)</span>
 </code></pre></div>
@@ -1028,7 +1057,7 @@ Vous pouvez préciser l'id d'un autre datastore s'il ne faut pas utiliser celui 
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.code.copy"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
     
     
       <script src="../assets/javascripts/bundle.6c14ae12.min.js"></script>

@@ -251,7 +251,7 @@
         
   
   <span class="md-ellipsis">
-    SDK Python
+    Home
   </span>
   
 
@@ -289,7 +289,7 @@
         
   
   <span class="md-ellipsis">
-    La configuration en détails
+    Configuration details
   </span>
   
 
@@ -308,7 +308,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme exécutable
+    Comme executable
   </span>
   
 
@@ -327,7 +327,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme module Python
+    Comme module
   </span>
   
 
@@ -346,7 +346,7 @@
         
   
   <span class="md-ellipsis">
-    Fichier descripteur de livraison
+    Upload descriptor
   </span>
   
 
@@ -365,7 +365,7 @@
         
   
   <span class="md-ellipsis">
-    Workflows
+    Workflow
   </span>
   
 
@@ -384,7 +384,7 @@
         
   
   <span class="md-ellipsis">
-    Développement
+    Development
   </span>
   
 
@@ -403,7 +403,7 @@
         
   
   <span class="md-ellipsis">
-    Résolveur
+    Resolveurs
   </span>
   
 
@@ -499,6 +499,26 @@
   
   <span class="md-ellipsis">
     Tutoriel 3 : publier un flux raster
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutoriel_pcrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutoriel PCRS
   </span>
   
 
@@ -704,6 +724,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sdk_entrepot_gpf.io.Config.Config.get_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_config()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sdk_entrepot_gpf.io.Config.Config.get_float" class="md-nav__link">
     <span class="md-ellipsis">
       get_float()
@@ -722,15 +751,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sdk_entrepot_gpf.io.Config.Config.get_parser" class="md-nav__link">
-    <span class="md-ellipsis">
-      get_parser()
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#sdk_entrepot_gpf.io.Config.Config.get_str" class="md-nav__link">
     <span class="md-ellipsis">
       get_str()
@@ -743,6 +763,15 @@
   <a href="#sdk_entrepot_gpf.io.Config.Config.get_temp" class="md-nav__link">
     <span class="md-ellipsis">
       get_temp()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sdk_entrepot_gpf.io.Config.Config.merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      merge()
     </span>
   </a>
   
@@ -1198,6 +1227,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sdk_entrepot_gpf.io.Config.Config.get_config" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_config()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sdk_entrepot_gpf.io.Config.Config.get_float" class="md-nav__link">
     <span class="md-ellipsis">
       get_float()
@@ -1216,15 +1254,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sdk_entrepot_gpf.io.Config.Config.get_parser" class="md-nav__link">
-    <span class="md-ellipsis">
-      get_parser()
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#sdk_entrepot_gpf.io.Config.Config.get_str" class="md-nav__link">
     <span class="md-ellipsis">
       get_str()
@@ -1237,6 +1266,15 @@
   <a href="#sdk_entrepot_gpf.io.Config.Config.get_temp" class="md-nav__link">
     <span class="md-ellipsis">
       get_temp()
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sdk_entrepot_gpf.io.Config.Config.merge" class="md-nav__link">
+    <span class="md-ellipsis">
+      merge()
     </span>
   </a>
   
@@ -1655,7 +1693,7 @@ faut faire d'autres requêtes ou si tout est déjà récupéré.</p>
 
 
 <h3 id="sdk_entrepot_gpf.io.ApiRequester.ApiRequester.route_request" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">route_request</span><span class="p">(</span><span class="n">route_name</span><span class="p">,</span> <span class="n">route_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">route_request</span><span class="p">(</span><span class="n">route_name</span><span class="p">,</span> <span class="n">route_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=-</span><span class="mi">1000</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.io.ApiRequester.ApiRequester.route_request" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1759,6 +1797,20 @@ faut faire d'autres requêtes ou si tout est déjà récupéré.</p>
           </td>
           <td>
                 <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>timeout</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>timeout en seconde ou None pour désactiver le timeout.</p>
+            </div>
+          </td>
+          <td>
+                <code>-1000</code>
           </td>
         </tr>
     </tbody>
@@ -1873,7 +1925,7 @@ faut faire d'autres requêtes ou si tout est déjà récupéré.</p>
 
 
 <h3 id="sdk_entrepot_gpf.io.ApiRequester.ApiRequester.route_upload_file" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">route_upload_file</span><span class="p">(</span><span class="n">route_name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">file_key</span><span class="p">,</span> <span class="n">route_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">route_upload_file</span><span class="p">(</span><span class="n">route_name</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">file_key</span><span class="p">,</span> <span class="n">route_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;POST&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=-</span><span class="mi">1000</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.io.ApiRequester.ApiRequester.route_upload_file" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -2031,7 +2083,7 @@ faut faire d'autres requêtes ou si tout est déjà récupéré.</p>
 
 
 <h3 id="sdk_entrepot_gpf.io.ApiRequester.ApiRequester.url_request" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">url_request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="p">{})</span></code>
+          <code class="highlight language-python"><span class="n">url_request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=-</span><span class="mi">1000</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.io.ApiRequester.ApiRequester.url_request" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -2137,6 +2189,20 @@ faut faire d'autres requêtes ou si tout est déjà récupéré.</p>
                 <code>{}</code>
           </td>
         </tr>
+        <tr>
+          <td><code>timeout</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>timeout en seconde ou None pour désactiver le timeout.</p>
+            </div>
+          </td>
+          <td>
+                <code>-1000</code>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -2217,10 +2283,9 @@ faut faire d'autres requêtes ou si tout est déjà récupéré.</p>
   <div class="doc doc-contents ">
 
   
-      <p>Lit le fichier de configuration (classe Singleton).
+      <p>Lit et compile les fichiers de configuration (classe Singleton).
 Attributes:
-    __config_parser (configparser): ConfigParser
-    __ini_file_path (string): Chemin vers le fichier de configuration BaGI</p>
+    __config (dict[str, Any]): configuration entière sous forme de dictionnaire (sections) de dictionnaires</p>
   
       <p>A l'instanciation, le fichier par défaut est lu.</p>
 <p>Il faudra ensuite surcharger les paramètres en lisant d'autres fichiers via la méthode <code>read</code>.</p>
@@ -2378,7 +2443,7 @@ Attributes:
 
   <div class="doc doc-contents ">
   
-      <p>Récupère la valeur associée au paramètre demandé, convertie en <code>bool</code>.</p>
+      <p>Récupère la valeur associée au paramètre demandé, convertie en <code>bool</code>. Si la valeur est None, une exception est levée.</p>
 
 
 
@@ -2444,6 +2509,50 @@ Attributes:
   <table>
     <thead>
       <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>bool</code></td>          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>la valeur du paramètre</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="sdk_entrepot_gpf.io.Config.Config.get_config" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_config</span><span class="p">()</span></code>
+
+<a href="#sdk_entrepot_gpf.io.Config.Config.get_config" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Retourne la config entière.</p>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
         <th>Type</th>
         <th>Description</th>
       </tr>
@@ -2451,11 +2560,11 @@ Attributes:
     <tbody>
         <tr>
           <td>
-                <code>bool</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>la valeur du paramètre</p>
+              <p>Dict[str, Dict[str, Any]]: la full config</p>
             </div>
           </td>
         </tr>
@@ -2480,7 +2589,7 @@ Attributes:
 
   <div class="doc doc-contents ">
   
-      <p>Récupère la valeur associée au paramètre demandé, convertie en <code>float</code>.</p>
+      <p>Récupère la valeur associée au paramètre demandé, convertie en <code>float</code>. Si la valeur est None, une exception est levée.</p>
 
 
 
@@ -2546,13 +2655,13 @@ Attributes:
   <table>
     <thead>
       <tr>
-        <th>Type</th>
+<th>Name</th>        <th>Type</th>
         <th>Description</th>
       </tr>
     </thead>
     <tbody>
         <tr>
-          <td>
+<td><code>float</code></td>          <td>
                 <code>float</code>
           </td>
           <td>
@@ -2582,7 +2691,7 @@ Attributes:
 
   <div class="doc doc-contents ">
   
-      <p>Récupère la valeur associée au paramètre demandé, convertie en <code>int</code>.</p>
+      <p>Récupère la valeur associée au paramètre demandé, convertie en <code>int</code>. Si la valeur est None, une exception est levée.</p>
 
 
 
@@ -2648,62 +2757,18 @@ Attributes:
   <table>
     <thead>
       <tr>
-        <th>Type</th>
+<th>Name</th>        <th>Type</th>
         <th>Description</th>
       </tr>
     </thead>
     <tbody>
         <tr>
-          <td>
+<td><code>int</code></td>          <td>
                 <code>int</code>
           </td>
           <td>
             <div class="doc-md-description">
               <p>la valeur du paramètre</p>
-            </div>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-
-<div class="doc doc-object doc-function">
-
-
-
-
-<h3 id="sdk_entrepot_gpf.io.Config.Config.get_parser" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">get_parser</span><span class="p">()</span></code>
-
-<a href="#sdk_entrepot_gpf.io.Config.Config.get_parser" class="headerlink" title="Permanent link">#</a></h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Retourne le config_parser.</p>
-
-
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="configparser.ConfigParser">ConfigParser</span></code>
-          </td>
-          <td>
-            <div class="doc-md-description">
-              <p>le config parser</p>
             </div>
           </td>
         </tr>
@@ -2728,7 +2793,7 @@ Attributes:
 
   <div class="doc doc-contents ">
   
-      <p>Récupère la valeur du paramètre demandé.</p>
+      <p>Récupère la valeur du paramètre demandé. Si la valeur est None, une exception est levée.</p>
 
 
 
@@ -2794,18 +2859,18 @@ Attributes:
   <table>
     <thead>
       <tr>
-        <th>Type</th>
+<th>Name</th>        <th>Type</th>
         <th>Description</th>
       </tr>
     </thead>
     <tbody>
         <tr>
-          <td>
+<td><code>str</code></td>          <td>
                 <code>str</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Optional[str]: la valeur du paramètre</p>
+              <p>la valeur du paramètre</p>
             </div>
           </td>
         </tr>
@@ -2850,6 +2915,98 @@ Attributes:
           <td>
             <div class="doc-md-description">
               <p>chemin racine du dossier temporaire à utiliser</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h3 id="sdk_entrepot_gpf.io.Config.Config.merge" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">merge</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#sdk_entrepot_gpf.io.Config.Config.merge" class="headerlink" title="Permanent link">#</a></h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Fusionne récursivement new dans old avec une priorité sur new.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>old</code></td>
+          <td>
+                <code><span title="typing.Any">Any</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>old object</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>new</code></td>
+          <td>
+                <code><span title="typing.Any">Any</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>new object</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>Any</code></td>          <td>
+                <code><span title="typing.Any">Any</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>old surchargé par new</p>
             </div>
           </td>
         </tr>
@@ -2925,7 +3082,7 @@ La fonction retourne la liste des fichiers lus.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>liste des fichiers trouvés et lus</p>
+              <p>List[str]: liste des fichiers trouvés et lus</p>
             </div>
           </td>
         </tr>
@@ -3333,7 +3490,8 @@ La fonction retourne la liste des fichiers lus.</p>
 
   
       <p>Classe de conversion des objects python en json. Le but est de convertir
-les objets qui ne sont pas nativement gérés par Python comme les dates.</p>
+les objets qui ne sont pas nativement gérés par Python comme les dates mais
+aussi de permettre de corriger les erreurs en loguant ce qui pose problème.</p>
   
       <p>initialisation : liste des routes et adresse site</p>
 
@@ -3619,7 +3777,7 @@ On utilise un "converter" spécialisé.</p>
 
 
 <h3 id="sdk_entrepot_gpf.io.OutputManager.OutputManager.critical" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">critical</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">red_colored</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">critical</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">red_colored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_flush</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.io.OutputManager.OutputManager.critical" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -3629,7 +3787,8 @@ On utilise un "converter" spécialisé.</p>
       <p>Ajout d'un message de type critique (apparaît en rouge dans la console)
 Args:
     message (str): message de type critique à journaliser
-    red_colored (bool, optional): indique si le message doit être écrit en rouge (par défaut True)</p>
+    red_colored (bool, optional): indique si le message doit être écrit en rouge (par défaut True)
+    force_flush (bool, optional): forcer la remonté des logs. Defaults to False.</p>
 
   </div>
 
@@ -3642,16 +3801,58 @@ Args:
 
 
 <h3 id="sdk_entrepot_gpf.io.OutputManager.OutputManager.debug" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">debug</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">debug</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">force_flush</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.io.OutputManager.OutputManager.debug" class="headerlink" title="Permanent link">#</a></h3>
 
 
   <div class="doc doc-contents ">
   
-      <p>Ajout d'un message de type debug
-Args:
-    message (str): message de type debug à journaliser</p>
+      <p>Ajout d'un message de type debug</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>message</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>message de type debug à journaliser</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>force_flush</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>forcer la remonté des logs. Defaults to False.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
@@ -3664,7 +3865,7 @@ Args:
 
 
 <h3 id="sdk_entrepot_gpf.io.OutputManager.OutputManager.error" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">error</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">red_colored</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">error</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">red_colored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_flush</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.io.OutputManager.OutputManager.error" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -3674,7 +3875,8 @@ Args:
       <p>Ajout d'un message de type erreur
 Args:
     message (str): message de type erreur à journaliser
-    red_colored (bool, optional): indique si le message doit être écrit en rouge (par défaut False)</p>
+    red_colored (bool, optional): indique si le message doit être écrit en rouge (par défaut False)
+    force_flush (bool, optional): forcer la remonté des logs. Defaults to False.</p>
 
   </div>
 
@@ -3687,7 +3889,7 @@ Args:
 
 
 <h3 id="sdk_entrepot_gpf.io.OutputManager.OutputManager.info" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">green_colored</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">green_colored</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_flush</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.io.OutputManager.OutputManager.info" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -3731,6 +3933,20 @@ Args:
           <td>
             <div class="doc-md-description">
               <p>indique si le message doit être écrit en vert (par défaut False)</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>force_flush</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>forcer la remonté des logs. Defaults to False.</p>
             </div>
           </td>
           <td>
@@ -3801,7 +4017,7 @@ Args:
 
 
 <h3 id="sdk_entrepot_gpf.io.OutputManager.OutputManager.warning" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">warning</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">yellow_colored</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">warning</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">yellow_colored</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force_flush</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.io.OutputManager.OutputManager.warning" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -3811,7 +4027,8 @@ Args:
       <p>Ajout d'un message de type warning
 Args:
     message (str): message de type warning à journaliser
-    yellow_colored (bool, optional): indique si le message doit être écrit en jaune (par défaut True)</p>
+    yellow_colored (bool, optional): indique si le message doit être écrit en jaune (par défaut True)
+    force_flush (bool, optional): forcer la remonté des logs. Defaults to False.</p>
 
   </div>
 
@@ -4951,7 +5168,7 @@ Args:
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.6c14ae12.min.js"></script>

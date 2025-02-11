@@ -251,7 +251,7 @@
         
   
   <span class="md-ellipsis">
-    SDK Python
+    Home
   </span>
   
 
@@ -289,7 +289,7 @@
         
   
   <span class="md-ellipsis">
-    La configuration en détails
+    Configuration details
   </span>
   
 
@@ -308,7 +308,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme exécutable
+    Comme executable
   </span>
   
 
@@ -327,7 +327,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme module Python
+    Comme module
   </span>
   
 
@@ -346,7 +346,7 @@
         
   
   <span class="md-ellipsis">
-    Fichier descripteur de livraison
+    Upload descriptor
   </span>
   
 
@@ -365,7 +365,7 @@
         
   
   <span class="md-ellipsis">
-    Workflows
+    Workflow
   </span>
   
 
@@ -384,7 +384,7 @@
         
   
   <span class="md-ellipsis">
-    Développement
+    Development
   </span>
   
 
@@ -403,7 +403,7 @@
         
   
   <span class="md-ellipsis">
-    Résolveur
+    Resolveurs
   </span>
   
 
@@ -604,6 +604,26 @@
   
   <span class="md-ellipsis">
     Tutoriel 3 : publier un flux raster
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutoriel_pcrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutoriel PCRS
   </span>
   
 
@@ -887,6 +907,15 @@
                   
 
 
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/tutoriel_2_flux_vecteur/
+-->
+
 <h1 id="tutoriel-2-publier-un-flux-vecteur">Tutoriel 2 : publier un flux vecteur<a class="headerlink" href="#tutoriel-2-publier-un-flux-vecteur" title="Permanent link">#</a></h1>
 <p>La Géoplateforme permet d'héberger des flux vecteur pour permettre à vos utilisateurs de les télécharger/utiliser.</p>
 <p>Pour cela, vous devez téléverser des données « vecteur » sur lesquelles la Géoplateforme va effectuer des traitements.</p>
@@ -896,7 +925,7 @@
 <h2 id="recuperation-du-jeu-de-donnees">Récupération du jeu de données<a class="headerlink" href="#recuperation-du-jeu-de-donnees" title="Permanent link">#</a></h2>
 <p>Le jeu de données « 1_dataset_vector » contient des données vecteur à téléverser.</p>
 <p>Récupérez les données en lançant la commande :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>dataset<span class="w"> </span>-n<span class="w"> </span>1_dataset_vector
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>python<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>example<span class="w"> </span>dataset<span class="w"> </span>1_dataset_vector
 </code></pre></div>
 <p>Observez la structure des données :</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>1_dataset_vector
@@ -924,14 +953,14 @@ Le fichier <code>test.md5</code> permettra de valider les données téléversée
 </ul>
 <h2 id="livraison-des-donnees">Livraison des données<a class="headerlink" href="#livraison-des-donnees" title="Permanent link">#</a></h2>
 <p>Livrer les données en indiquant le chemin du fichier descripteur au programme :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>upload<span class="w"> </span>-f<span class="w"> </span>1_dataset_vector/upload_descriptor.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>delivery<span class="w"> </span>1_dataset_vector/upload_descriptor.json
 </code></pre></div>
 <p>Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérifications côté API avant de conclure que tout est bon.</p>
 <h2 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">#</a></h2>
 <p>Une fois les données livrées, il faut traiter les données avant de les publier (c'est à dire effectuer un (ou plusieurs) géo-traitement(s), puis configurer un géo-service et le rendre accessible).</p>
 <p>Ces étapes sont décrites grâce à un workflow.</p>
 <p>Vous pouvez récupérer un workflow d'exemple grâce à la commande suivante :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-n<span class="w"> </span>generic_vecteur.jsonc
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>example<span class="w"> </span>workflow<span class="w"> </span>generic_vecteur.jsonc
 </code></pre></div>
 <p>Ouvrez le fichier. Vous trouverez plus de détails dans la <a href="../workflow/">documentation sur les workflows</a>, mais vous pouvez dès à présent voir que le workflow est composé de 4 étapes. Il faudra lancer une commande pour chacune d'elles.</p>
 <pre class="mermaid"><code>---
@@ -1024,7 +1053,7 @@ Si vous modifiez le nom du fichier de style il faut modifier dans le workflow la
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.code.copy"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
     
     
       <script src="../assets/javascripts/bundle.6c14ae12.min.js"></script>

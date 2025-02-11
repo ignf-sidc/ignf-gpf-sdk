@@ -251,7 +251,7 @@
         
   
   <span class="md-ellipsis">
-    SDK Python
+    Home
   </span>
   
 
@@ -413,7 +413,7 @@
         
   
   <span class="md-ellipsis">
-    La configuration en détails
+    Configuration details
   </span>
   
 
@@ -432,7 +432,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme exécutable
+    Comme executable
   </span>
   
 
@@ -451,7 +451,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme module Python
+    Comme module
   </span>
   
 
@@ -470,7 +470,7 @@
         
   
   <span class="md-ellipsis">
-    Fichier descripteur de livraison
+    Upload descriptor
   </span>
   
 
@@ -489,7 +489,7 @@
         
   
   <span class="md-ellipsis">
-    Workflows
+    Workflow
   </span>
   
 
@@ -508,7 +508,7 @@
         
   
   <span class="md-ellipsis">
-    Développement
+    Development
   </span>
   
 
@@ -527,7 +527,7 @@
         
   
   <span class="md-ellipsis">
-    Résolveur
+    Resolveurs
   </span>
   
 
@@ -623,6 +623,26 @@
   
   <span class="md-ellipsis">
     Tutoriel 3 : publier un flux raster
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutoriel_pcrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutoriel PCRS
   </span>
   
 
@@ -927,9 +947,18 @@
                   
 
 
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/configuration/
+-->
+
 <h1 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h1>
 <p>Ce module Python vient avec une configuration par défaut vous permettant de définir un minimum de paramètres.
-Vous pouvez cependant écraser chaque paramètre par défaut en redéfinissant sa valeur dans un nouveau fichier de configuration.</p>
+Vous pouvez cependant surcharger chaque paramètre par défaut en redéfinissant sa valeur dans un nouveau fichier de configuration.</p>
 <p>Certains paramètres (comme vos identifiants d'API) <strong>doivent</strong> être redéfinis.</p>
 <p>La configuration est composée de sections elles-même composées d'options.</p>
 <p>Voici un exemple reprenant la structure d'un fichier de configuration :</p>
@@ -944,7 +973,7 @@ Vous pouvez cependant écraser chaque paramètre par défaut en redéfinissant s
 </code></pre></div>
 <p>Nous pouvons faire référence à la <code>valeur_1_1</code> par l'intitulé <code>section_1.option_1</code>.</p>
 <h2 id="votre-fichier-de-configuration">Votre fichier de configuration<a class="headerlink" href="#votre-fichier-de-configuration" title="Permanent link">#</a></h2>
-<p>Créez un fichier <code>config.ini</code> à la racine du projet.</p>
+<p>Créez un fichier <code>config.ini</code> à la racine du projet ou dans votre dossier de travail.</p>
 <p>Il faudra à minima renseigner vos identifiants API (section <code>store_authentification</code>) et éventuellement l'entrepôt principal (<em>datastore</em>) sur lequel vous allez travailler (section <code>store_api</code>).</p>
 <p>Voici un exemple de ce que cela peut donner :</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Informations pour l&#39;authentification</span>
@@ -992,8 +1021,10 @@ Vous pouvez cependant écraser chaque paramètre par défaut en redéfinissant s
 <a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>      - droits : community, uploads, processings, datastore, stored_data, broadcast
 </code></pre></div>
 <p>Dans cet exemple, l'identifiant du datastore à utiliser est <code>33333333333333333333</code>.</p>
-<p><strong><img alt="⚠" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@14.1.2/assets/svg/26a0.svg" title=":warning:" /> Attention !</strong>
-Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.</p>
+<details class="warning" open="open">
+<summary>Attention</summary>
+<p>Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.</p>
+</details>
 <h2 id="utilisations">Utilisations<a class="headerlink" href="#utilisations" title="Permanent link">#</a></h2>
 <h3 id="utilisation-via-lexecutable">Utilisation via l'exécutable<a class="headerlink" href="#utilisation-via-lexecutable" title="Permanent link">#</a></h3>
 <p>Ce module Python est utilisable comme exécutable. Dans ce cas vous avez deux manières d'indiquer au programme votre fichier de configuration :</p>
@@ -1101,7 +1132,7 @@ Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de pa
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.code.copy"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
     
     
       <script src="../assets/javascripts/bundle.6c14ae12.min.js"></script>

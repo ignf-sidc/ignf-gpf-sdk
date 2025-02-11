@@ -251,7 +251,7 @@
         
   
   <span class="md-ellipsis">
-    SDK Python
+    Home
   </span>
   
 
@@ -289,7 +289,7 @@
         
   
   <span class="md-ellipsis">
-    La configuration en détails
+    Configuration details
   </span>
   
 
@@ -308,7 +308,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme exécutable
+    Comme executable
   </span>
   
 
@@ -327,7 +327,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme module Python
+    Comme module
   </span>
   
 
@@ -346,7 +346,7 @@
         
   
   <span class="md-ellipsis">
-    Fichier descripteur de livraison
+    Upload descriptor
   </span>
   
 
@@ -365,7 +365,7 @@
         
   
   <span class="md-ellipsis">
-    Workflows
+    Workflow
   </span>
   
 
@@ -384,7 +384,7 @@
         
   
   <span class="md-ellipsis">
-    Développement
+    Development
   </span>
   
 
@@ -403,7 +403,7 @@
         
   
   <span class="md-ellipsis">
-    Résolveur
+    Resolveurs
   </span>
   
 
@@ -499,6 +499,26 @@
   
   <span class="md-ellipsis">
     Tutoriel 3 : publier un flux raster
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutoriel_pcrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutoriel PCRS
   </span>
   
 
@@ -1080,7 +1100,7 @@ via la Géoplateforme.</p>
 
 
 <h3 id="sdk_entrepot_gpf.workflow.Workflow.Workflow.generate" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">generate</span><span class="p">(</span><span class="n">workflow_context</span><span class="p">,</span> <span class="n">definition_dict</span><span class="p">,</span> <span class="n">parent_action</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">behavior</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+          <code class="highlight language-python"><span class="n">generate</span><span class="p">(</span><span class="n">workflow_context</span><span class="p">,</span> <span class="n">definition_dict</span><span class="p">,</span> <span class="n">parent_action</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">behavior</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compatibility_cartes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
@@ -1156,6 +1176,20 @@ via la Géoplateforme.</p>
           <td>
             <div class="doc-md-description">
               <p>comportement à adopter si l'entité créée par l'action existe déjà sur l'entrepôt. Defaults to None.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>compatibility_cartes</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[bool]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>ajout des tags pour compatibilité avec cartes.gouv.fr.</p>
             </div>
           </td>
           <td>
@@ -1542,7 +1576,7 @@ via la Géoplateforme.</p>
 
 
 <h3 id="sdk_entrepot_gpf.workflow.Workflow.Workflow.run_step" class="doc doc-heading">
-          <code class="highlight language-python"><span class="n">run_step</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_c_action</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">behavior</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comments</span><span class="o">=</span><span class="p">[],</span> <span class="n">tags</span><span class="o">=</span><span class="p">{})</span></code>
+          <code class="highlight language-python"><span class="n">run_step</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ctrl_c_action</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">behavior</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">datastore</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comments</span><span class="o">=</span><span class="p">[],</span> <span class="n">tags</span><span class="o">=</span><span class="p">{},</span> <span class="n">compatibility_cartes</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#sdk_entrepot_gpf.workflow.Workflow.Workflow.run_step" class="headerlink" title="Permanent link">#</a></h3>
 
@@ -1641,7 +1675,7 @@ via la Géoplateforme.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>liste des commentaires à rajouter à toute les actions de l'étape (les cas de doublons sont gérés).</p>
+              <p>liste des commentaire à rajouter à toutes les actions de l'étape (les cas de doublons sont gérés).</p>
             </div>
           </td>
           <td>
@@ -1655,11 +1689,25 @@ via la Géoplateforme.</p>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>dictionnaire des tags à rajouter pour toutes les actions de l'étape. Écrasé par ceux du workflow, de l'étape et de l'action si les clefs sont les mêmes.</p>
+              <p>dictionnaire des tags à rajouter pour toutes les action de l'étape. Écrasé par ceux du workflow, de l'étape et de l'action si les clef sont les mêmes.</p>
             </div>
           </td>
           <td>
                 <code>{}</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>compatibility_cartes</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[bool]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>ajout des tags pour compatibilité avec cartes.gouv.fr.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -1815,7 +1863,7 @@ via la Géoplateforme.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.annotate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.6c14ae12.min.js"></script>

@@ -20,7 +20,7 @@
     
     
       
-        <title>La configuration en détails - Documentation SDK Entrepôt</title>
+        <title>Configuration details - Documentation SDK Entrepôt</title>
       
     
     
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              La configuration en détails
+              Configuration details
             
           </span>
         </div>
@@ -251,7 +251,7 @@
         
   
   <span class="md-ellipsis">
-    SDK Python
+    Home
   </span>
   
 
@@ -298,7 +298,7 @@
           
   
   <span class="md-ellipsis">
-    La configuration en détails
+    Configuration details
   </span>
   
 
@@ -309,7 +309,7 @@
         
   
   <span class="md-ellipsis">
-    La configuration en détails
+    Configuration details
   </span>
   
 
@@ -525,7 +525,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme exécutable
+    Comme executable
   </span>
   
 
@@ -544,7 +544,7 @@
         
   
   <span class="md-ellipsis">
-    Utilisation comme module Python
+    Comme module
   </span>
   
 
@@ -563,7 +563,7 @@
         
   
   <span class="md-ellipsis">
-    Fichier descripteur de livraison
+    Upload descriptor
   </span>
   
 
@@ -582,7 +582,7 @@
         
   
   <span class="md-ellipsis">
-    Workflows
+    Workflow
   </span>
   
 
@@ -601,7 +601,7 @@
         
   
   <span class="md-ellipsis">
-    Développement
+    Development
   </span>
   
 
@@ -620,7 +620,7 @@
         
   
   <span class="md-ellipsis">
-    Résolveur
+    Resolveurs
   </span>
   
 
@@ -716,6 +716,26 @@
   
   <span class="md-ellipsis">
     Tutoriel 3 : publier un flux raster
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutoriel_pcrs/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutoriel PCRS
   </span>
   
 
@@ -1112,6 +1132,15 @@
                 
                   
 
+
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/configuration_details/
+-->
 
 <h1 id="la-configuration-en-details">La configuration en détails<a class="headerlink" href="#la-configuration-en-details" title="Permanent link">#</a></h1>
 <p>Comme indiqué dans la page précédente, la majorité de la configuration est déjà définie et n'a pas besoin d'être modifiée à priori.</p>
@@ -1899,12 +1928,32 @@
 <td><code>{routing:annexe_list}/unpublication</code></td>
 <td>Dépublication des annexes par labels</td>
 </tr>
+<tr>
+<td colspan="4"><strong>Routes concernant l'entité Tms</strong></td>
+<td class="dn">&#8288;</td>
+<td class="dn">&#8288;</td>
+<td class="dn">&#8288;</td>
+</tr>
+<tr>
+<td><code>tms_list</code></td>
+<td>str</td>
+<td><code>{store_api:root_url}/statics/tms</code></td>
+<td>Liste des TMS disponibles pour tout la GPF</td>
+</tr>
+<tr>
+<td><code>tms_get</code></td>
+<td>str</td>
+<td><code>{routing:tms_list}/{tms}</code></td>
+<td>Détails d'un TMS</td>
+</tr>
+<tr>
+<td><code>tms_download</code></td>
+<td>str</td>
+<td><code>{routing:tms_get}/file</code></td>
+<td>Téléchargement du fichier d'un TMS</td>
+</tr>
 </tbody>
 </table>
-<p>| <strong>Routes concernant l'entité Tms</strong> {: colspan=4 } | &#8288; {: .dn }| &#8288; {: .dn }| &#8288; {: .dn } |
-| <code>tms_list</code>                              | str  | <code>{store_api:root_url}/statics/tms</code>                    | Liste des TMS disponibles pour tout la GPF |
-| <code>tms_get</code>                               | str  | <code>{routing:tms_list}/{tms}</code>                            | Détails d'un TMS |
-| <code>tms_download</code>                          | str  | <code>{routing:tms_get}/file</code>                              | Téléchargement du fichier d'un TMS |</p>
 <h2 id="section-upload">Section <code>upload</code><a class="headerlink" href="#section-upload" title="Permanent link">#</a></h2>
 <p>Cette section concerne les paramètres de gestion des livraisons (<code>upload</code>).</p>
 <table>
@@ -2267,7 +2316,7 @@ par les regex configurées dans les options <code>filter_infos</code> et <code>f
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.annotate", "content.code.copy"], "search": "../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}}</script>
     
     
       <script src="../assets/javascripts/bundle.6c14ae12.min.js"></script>
