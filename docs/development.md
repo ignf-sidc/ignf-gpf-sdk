@@ -50,7 +50,9 @@ source env/bin/activate
 Installez les dépendances de développement :
 
 ```sh
-python3 -m pip install --upgrade pip setuptools flit
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade setuptools
+python3 -m pip install --upgrade flit
 python3 -m flit install --extras all
 ```
 

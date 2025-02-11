@@ -15,11 +15,12 @@ Les résolveurs sont des outils permettant de compléter les workflows en rempla
 
 Le nom d'un résolveur est donné à son initialisation. Il est possible d'avoir plusieurs résolveurs d'un même type.
 
-A l'utilisation du SDK comme un exécutable, il y a 3 résolveurs d’instanciés :
+A l'utilisation du SDK comme un exécutable, il y a 4 résolveurs d’instanciés :
 
 * `user` : un [UserResolver](#userresolver)
 * `store_entity` : un [StoreEntityResolver](#storeentityresolver)
 * `datetime`: un [DateResolver](#dateresolver)
+* `params`: un [DictResolver](#dictresolver) avec les valeurs passées en `--params`
 
 A l'utilisation comme module, il n'y a aucun résolveur d’instancié. Il faut instancier des résolveurs dans le programme et les ajouter au `GlobalResolver`.
 

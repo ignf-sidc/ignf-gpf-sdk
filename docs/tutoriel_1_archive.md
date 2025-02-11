@@ -26,7 +26,7 @@ Le jeu de données « 2_dataset_archive » contient des données de type archive
 Récupérez les données en lançant la commande :
 
 ```sh
-python -m sdk_entrepot_gpf dataset -n 2_dataset_archive
+python -m sdk_entrepot_gpf example dataset 2_dataset_archive
 ```
 
 Observez la structure du jeu de données :
@@ -62,7 +62,7 @@ La documentation du fichier descripteur est disponible [ici](upload_descriptor.m
 Livrer les données en indiquant le chemin du fichier descripteur au programme :
 
 ```sh
-python -m sdk_entrepot_gpf upload -f 2_dataset_archive/upload_descriptor.json
+python -m sdk_entrepot_gpf delivery 2_dataset_archive/upload_descriptor.json
 ```
 
 Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérifications côté API avant de conclure que tout est bon.
@@ -76,7 +76,7 @@ Ces étapes sont décrites grâce à un workflow.
 Vous pouvez récupérer un workflow d'exemple grâce à la commande suivante :
 
 ```sh
-python -m sdk_entrepot_gpf workflow -n generic_archive.jsonc
+python -m sdk_entrepot_gpf exemple workflow generic_archive.jsonc
 ```
 
 Ouvrez le fichier. Vous trouverez plus de détails dans la [documentation sur les workflows](workflow.md), mais vous pouvez dès à présent voir que le workflow est composé de 3 étapes. Il faudra lancer une commande pour chacune d'elles.
@@ -137,11 +137,11 @@ curl -X 'GET' https://data.geopf.fr/telechargement/capabilities -H "Accept: appl
 
 ```sh
 # récupération des données d'exemple
-python -m sdk_entrepot_gpf dataset -n 2_dataset_archive
+python -m sdk_entrepot_gpf example dataset 2_dataset_archive
 # livraison des données sur la Géoplateforme
-python -m sdk_entrepot_gpf upload -f 2_dataset_archive/upload_descriptor.json
+python -m sdk_entrepot_gpf delivery 2_dataset_archive/upload_descriptor.json
 # récupération du workflow de traitement et publication d'une archive
-python -m sdk_entrepot_gpf workflow -n generic_archive.jsonc
+python -m sdk_entrepot_gpf example workflow generic_archive.jsonc
 # exécution des 4 étapes pour le traitement et la publication de l'archive
 python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s intégration-archive-livrée
 python -m sdk_entrepot_gpf workflow -f generic_archive.jsonc -s patch-donnée-stockée

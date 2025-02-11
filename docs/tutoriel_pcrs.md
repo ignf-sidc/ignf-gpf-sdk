@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/tutoriel_pcrs/
+-->
+
 # Tutoriel : publier un flux PCRS
 
 La Géoplateforme permet d'héberger et diffuser vos données PCRS raster/image (Plan Corps de Rue Simplifié).

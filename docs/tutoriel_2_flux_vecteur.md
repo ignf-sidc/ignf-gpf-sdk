@@ -26,7 +26,7 @@ Le jeu de données « 1_dataset_vector » contient des données vecteur à tél�
 Récupérez les données en lançant la commande :
 
 ```sh
-python -m sdk_entrepot_gpf dataset -n 1_dataset_vector
+python -m sdk_entrepot_gpf example dataset 1_dataset_vector
 ```
 
 Observez la structure des données :
@@ -66,7 +66,7 @@ Chaque dataset contient :
 Livrer les données en indiquant le chemin du fichier descripteur au programme :
 
 ```sh
-python -m sdk_entrepot_gpf upload -f 1_dataset_vector/upload_descriptor.json
+python -m sdk_entrepot_gpf delivery 1_dataset_vector/upload_descriptor.json
 ```
 
 Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérifications côté API avant de conclure que tout est bon.
@@ -80,7 +80,7 @@ Ces étapes sont décrites grâce à un workflow.
 Vous pouvez récupérer un workflow d'exemple grâce à la commande suivante :
 
 ```sh
-python -m sdk_entrepot_gpf workflow -n generic_vecteur.jsonc
+python -m sdk_entrepot_gpf example workflow generic_vecteur.jsonc
 ```
 
 Ouvrez le fichier. Vous trouverez plus de détails dans la [documentation sur les workflows](workflow.md), mais vous pouvez dès à présent voir que le workflow est composé de 4 étapes. Il faudra lancer une commande pour chacune d'elles.

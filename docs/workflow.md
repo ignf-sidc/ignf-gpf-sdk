@@ -366,7 +366,12 @@ Possibilité de supprimer des entités de type : `upload`, `stored_data`, `confi
 }
 ```
 
-***ATTENTION** ici la valeur **`{uuid}` doit être une uuid en dur et non une uuid récupérée par le résolveur `store_entity`**(StoreEntityResolver) pour que l'option `"not_found_ok": true,`(valeur par défaut) fonctionne. **S'il y a besoin d'utiliser le résolveur `store_entity` il faut utiliser la solution suivante**. Avec l'utilisation du résolveur `store_entity` si l'entité n'existe pas une erreur sera levée pendant la résolution de l'action et les résolveurs gardant en mémoire les valeurs déjà trouvées la réutilisation du résolveur avec les même filtre pointera vers l'entité supprimée.*
+???+ warning "Attention !!!"
+    Ici la valeur **`{uuid}` doit être une uuid en dur et non une uuid récupérée par le résolveur `store_entity`** (StoreEntityResolver) pour que l'option `"not_found_ok": true,`(valeur par défaut) fonctionne.
+
+    **S'il y a besoin d'utiliser le résolveur `store_entity` il faut utiliser la "suppression par filtre sur la liste" présentée ci-dessous**.
+
+    Avec l'utilisation du résolveur `store_entity`, les résolveurs gardant en mémoire, les valeurs déjà trouvées la réutilisation du résolveur avec les mêmes filtres pointera vers l'entité supprimée.
 
 * suppression par filtre sur la liste :
 
