@@ -272,6 +272,12 @@ class Entities:
 
     @staticmethod
     def action_upload_delete_failed_files(upload: Upload, datastore: Optional[str]) -> None:
+        """Liste et propose de supprimer les fichiers indiqués comme invalides par les vérifications.
+
+        Args:
+            upload (Upload): livraison concernée
+            datastore (Optional[str]): datastore concerné
+        """
         Config().om.info(f"Suppression des fichiers mal téléversés sur la livraison {upload['name']} :")
         Config().om.info("Listing des fichiers à supprimer...")
         o_regex = re.compile(r"\((.*?)\)")
