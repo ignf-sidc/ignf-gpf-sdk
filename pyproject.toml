@@ -30,6 +30,8 @@ dependencies = [
     "types-python-dateutil",
     "pyotp",
     "requests_toolbelt",
+    "tabulate",
+    "types-tabulate",
 ]
 
 [project.optional-dependencies]
@@ -50,7 +52,8 @@ Source = "https://github.com/Geoplateforme/sdk_entrepot"
 Documentation = "https://geoplateforme.github.io/sdk-entrepot/"
 
 [project.scripts]
-realpython = "sdk_entrepot_gpf.__main__:main"
+entrepot_gpf = "sdk_entrepot_gpf.scripts.main:main"
+egpf = "sdk_entrepot_gpf.scripts.main:main"
 
 [tool.black]
 line-length = 200

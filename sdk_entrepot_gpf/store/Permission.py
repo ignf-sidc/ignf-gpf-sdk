@@ -10,6 +10,7 @@ class Permission(PartialEditInterface, StoreEntity):
 
     _entity_name = "permission"
     _entity_title = "permission"
+    _entity_titles = "permissions"
 
     @classmethod
     def api_create(cls: Type[T], data: Optional[Dict[str, Any]], route_params: Optional[Dict[str, Any]] = None) -> T:

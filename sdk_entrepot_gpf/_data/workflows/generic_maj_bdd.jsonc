@@ -96,8 +96,8 @@
                             "configuration": "{store_entity.configuration.infos._id [INFOS(name={user.last_name} maj BDD)]}"
                         },
                         "body_parameters": {
-                            // Endpoint de type WMS
-                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=WMS-VECTOR)]}",
+                            // Endpoint de type WMS-V
+                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(technical_name=gpf-geoserver-wms-v)]}",
                             "visibility": "PRIVATE",
                             "open": true
                         }

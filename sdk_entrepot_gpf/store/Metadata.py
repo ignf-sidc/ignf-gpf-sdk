@@ -17,6 +17,7 @@ class Metadata(CreatedByUploadFileInterface, DownloadInterface, PartialEditInter
 
     _entity_name = "metadata"
     _entity_title = "métadonnée"
+    _entity_titles = "métadonnées"
 
     @staticmethod
     def publish(file_identifiers: List[str], endpoint_id: str, datastore: Optional[str] = None) -> None:
