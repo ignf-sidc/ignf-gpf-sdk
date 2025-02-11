@@ -1,7 +1,7 @@
 import sys
 import traceback
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from sdk_entrepot_gpf.helper.JsonHelper import JsonHelper
 from sdk_entrepot_gpf.io.Color import Color
@@ -87,6 +87,8 @@ class Delivery:
         datastore: Optional[str] = None,
         check_before_close: bool = False,
         mode_cartes: Optional[bool] = None,
+        callback: Optional[Callable[[str], None]] = print,
+        ctrl_c_action: Optional[Callable[[], bool]] = Utils.ctrl_c_upload,
     ) -> Dict[str, Any]:
         """réalisation des livraisons (upload) décrites par le fichier indiqué
 
@@ -96,6 +98,8 @@ class Delivery:
             datastore (Optional[str]): datastore à utilisé, datastore par défaut si None
             check_before_close (bool): Vérification de l'arborescence de la livraison avant fermeture.
             mode_cartes (Optional[bool]): Si le mode carte est activé
+            callback (Optional[Callable[[str], None]]): fonction de callback à exécuter avec le message de suivi.
+            ctrl_c_action (Optional[Callable[[], bool]]): gestion du ctrl-C
 
         Returns:
             Dict[str, Any]: dictionnaire avec le résultat des livraisons :
@@ -136,8 +140,8 @@ class Delivery:
                 o_upload,
                 "Livraison {upload} créée avec succès.",
                 "Livraison {upload} créée en erreur !",
-                print,
-                Utils.ctrl_c_upload,
+                callback,
+                ctrl_c_action,
                 mode_cartes,
             )
             if b_res:
