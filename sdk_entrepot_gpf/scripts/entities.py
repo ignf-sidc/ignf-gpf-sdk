@@ -214,8 +214,32 @@ class Entities:
 
     @staticmethod
     def action_upload_checks(upload: Upload) -> None:
-        # Config().om.info(f"Bilan des vérifications de la livraison {upload} :")
-        raise NotImplementedError("Cette fonctionnalité n'est pas encore implémentée.")
+        """Affiche les infos sur une livraison
+
+        Args:
+            upload (Upload): livraison à vérifier
+        """
+        d_checks = upload.api_list_checks()
+        Config().om.info(f"Bilan des vérifications de la livraison {upload} :")
+        if len(d_checks["passed"]) != 0:
+            Config().om.info(f"\t * {len(d_checks['passed'])} vérifications passées avec succès :")
+            for d_verification in d_checks["passed"]:
+                Config().om.info(f"\t\t - {d_verification['check']['name']} ({d_verification['check']['_id']})")
+        if len(d_checks["asked"] + d_checks["in_progress"]) != 0:
+            Config().om.warning(f"* {len(d_checks['asked']) + len(d_checks['in_progress'])} vérifications en cours ou en attente :", yellow_colored=True)
+            for d_verification in d_checks["asked"] + d_checks["in_progress"]:
+                s_name = "asked" if d_verification in d_checks["asked"] else "in_progress"
+                Config().om.info(f"\t\t - {s_name} {d_verification['check']['name']} ({d_verification['check']['_id']})")
+        if len(d_checks["failed"]) != 0:
+            Config().om.warning(f"* {len(d_checks['failed'])} vérifications échouées :", yellow_colored=True)
+            for d_verification in d_checks["failed"]:
+                o_check = CheckExecution(d_verification, datastore=upload.datastore)
+                l_logs = o_check.api_logs_filter("ERROR")
+                if l_logs:
+                    s_logs = "\n" + "\n".join(l_logs)
+                else:
+                    s_logs = "\nPas de log contenant 'ERROR', regardez le détail des logs avec la commande 'logs'."
+                Config().om.info(f"\t\t - {d_verification['check']['name']} ({d_verification['check']['_id']}) - extrait des logs :{s_logs}")
 
     @staticmethod
     def action_upload_delete_files(upload: Upload, delete_files: List[str]) -> None:
