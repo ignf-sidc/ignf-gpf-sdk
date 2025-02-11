@@ -72,9 +72,9 @@ class Entities:
         if self.idu is not None:
             o_entity = self.entity_class.api_get(self.idu, datastore=self.datastore)
             # On fait les actions
-            if self.action(o_entity):
+            if self.action(o_entity):  # si ça retourne True
+                # On affiche l'entité
                 Config().om.info(f"Affichage de l'entité {o_entity}", green_colored=True)
-                # Si on est là c'est qu'on doit afficher l'entité
                 Config().om.info(o_entity.to_json(indent=3))
         elif getattr(self.args, "publish_by_label", False) is True:
             Entities.action_annexe_publish_by_labels(self.args.publish_by_label.split(","), datastore=self.datastore)
@@ -100,43 +100,50 @@ class Entities:
         Returns:
             bool: true si on doit afficher l'entité
         """
+        b_return = True
         # Gestion des actions liées aux Livraisons
         if getattr(self.args, "open", False) is True:
             assert isinstance(o_entity, Upload)
             Entities.action_upload_open(o_entity)
-        elif getattr(self.args, "close", False) is True:
-            assert isinstance(o_entity, Upload)
-            Entities.action_upload_close(o_entity, self.args.mode_cartes)
-        elif getattr(self.args, "checks", False) is True:
+            b_return = False
+        if getattr(self.args, "checks", False) is True:
             assert isinstance(o_entity, Upload)
             Entities.action_upload_checks(o_entity)
-        elif getattr(self.args, "delete_files", None) is None:
+            b_return = False
+        if getattr(self.args, "delete_files", None) is not None:
             assert isinstance(o_entity, Upload)
             Entities.action_upload_delete_files(o_entity, self.args.delete_files)
-        elif getattr(self.args, "delete_failed_files", False) is True:
+            b_return = False
+        if getattr(self.args, "delete_failed_files", False) is True:
             assert isinstance(o_entity, Upload)
             Entities.action_upload_delete_failed_files(o_entity)
+            b_return = False
+        if getattr(self.args, "close", False) is True:
+            assert isinstance(o_entity, Upload)
+            Entities.action_upload_close(o_entity, self.args.mode_cartes)
+            b_return = False
 
         # Gestion des actions liées aux Annexes
-        elif getattr(self.args, "publish", False) is True:
+        if getattr(self.args, "publish", False) is True:
             assert isinstance(o_entity, Annexe)
             Entities.action_annexe_publish(o_entity)
-        elif getattr(self.args, "unpublish", False) is True:
+            b_return = False
+        if getattr(self.args, "unpublish", False) is True:
             assert isinstance(o_entity, Annexe)
             Entities.action_annexe_unpublish(o_entity)
+            b_return = False
 
         # Gestion des actions liées aux Points d'accès
-        elif getattr(self.args, "publish_metadata", None) is not None:
+        if getattr(self.args, "publish_metadata", None) is not None:
             assert isinstance(o_entity, Endpoint)
             Entities.action_endpoint_publish_metadata(o_entity, self.args.publish_metadata, self.args.datastore)
-        elif getattr(self.args, "unpublish_metadata", None) is not None:
+            b_return = False
+        if getattr(self.args, "unpublish_metadata", None) is not None:
             assert isinstance(o_entity, Endpoint)
             Entities.action_endpoint_unpublish_metadata(o_entity, self.args.unpublish_metadata, self.args.datastore)
+            b_return = False
 
-        else:
-            return True
-
-        return False
+        return b_return
 
     @staticmethod
     def action_endpoint_publish_metadata(endpoint: Endpoint, l_metadata: List[str], datastore: Optional[str]) -> None:
@@ -163,7 +170,7 @@ class Entities:
             return
         if upload["status"] in [Upload.STATUS_CLOSED, Upload.STATUS_UNSTABLE]:
             upload.api_open()
-            Config().om.info(f"La livraison {upload} viens d'être rouverte.", green_colored=True)
+            Config().om.info(f"La livraison {upload} vient d'être rouverte.", green_colored=True)
             return
         raise GpfSdkError(f"La livraison {upload} n'est pas dans un état permettant de d'ouvrir la livraison ({upload['status']}).")
 
@@ -182,7 +189,7 @@ class Entities:
         if upload.is_open():
             # fermeture de l'upload
             upload.api_close()
-            Config().om.info(f"La livraison {upload} viens d'être fermée.", green_colored=True)
+            Config().om.info(f"La livraison {upload} vient d'être fermée.", green_colored=True)
             # monitoring des tests :
             Utils.monitoring_upload(
                 upload,
@@ -243,16 +250,24 @@ class Entities:
 
     @staticmethod
     def action_upload_delete_files(upload: Upload, delete_files: List[str]) -> None:
-        """Ouvre la livraison puis supprime les fichiers et referme la livraison."""
-        Config().om.info(f"Suppression de {len(delete_files)} fichiers téléversés sur la livraison {upload} :")
-        upload.api_open()
+        """Supprime les fichiers distants indiqués. La livraison n'est ni ouverte ni fermée,
+        mais l'utilisateur peut combiner les actions si besoin.
+
+        Args:
+            upload (Upload): livraison à considérer
+            delete_files (List[str]): liste des fichiers distants à supprimer.
+        """
+        if not upload.is_open():
+            raise GpfSdkError("La livraison est actuellement fermée, ajoutez '--open' à la commande si vous souhaitez qu'elle soit rouverte.")
+        Config().om.info(f"Suppression de {len(delete_files)} fichiers téléversés sur la livraison {upload['name']} :")
         for s_file in delete_files:
             if s_file.endswith(".md5"):
-                Config().om.info("Suppression du fichier de donnée " + s_file)
-                upload.api_delete_md5_file(s_file)
-            else:
-                Config().om.info("Suppression du fichier de clefs " + s_file)
+                Config().om.info(f"\t - suppression du fichier de clefs '{s_file}'")
                 upload.api_delete_data_file(s_file)
+            else:
+                Config().om.info(f"\t - suppression du fichier de données '{s_file}'")
+                upload.api_delete_md5_file(s_file)
+        Config().om.info(f"Suppression de {len(delete_files)} fichiers effectuée avec succès.", green_colored=True)
 
     @staticmethod
     def action_upload_delete_failed_files(upload: Upload) -> None:
@@ -355,7 +370,7 @@ class Entities:
                 l_epilog.append(f"""        - synthèse des vérifications : {o_entity.entity_name()} ID --checks""")
                 o_sub_parser.add_argument("--checks", action="store_true", default=False, help="Affiche le bilan des vérifications d'une livraison")
                 l_epilog.append(f"""        - suppression de fichiers téléversés : {o_entity.entity_name()} ID --delete-files FILE [FILE]""")
-                o_sub_parser.add_argument("--delete-files", type=str, default=False, help="Supprime les fichiers téléversés indiqués d'une livraison.")
+                o_sub_parser.add_argument("--delete-files", type=str, nargs="+", default=None, help="Supprime les fichiers distants indiqués d'une livraison.")
                 l_epilog.append(f"""        - suppression auto des fichiers mal téléversés {o_entity.entity_name()} ID --delete-failed-files""")
                 o_sub_parser.add_argument("--delete-failed-files", action="store_true", default=False, help="Supprime les fichiers mal téléversés d'une livraison vérifiées et en erreur.")
                 l_epilog.append(f"""    * créer / mettre à jour une livraison (déprécié) : {o_entity.entity_name()} --file FILE [--behavior BEHAVIOR] [--check-before-close]""")
