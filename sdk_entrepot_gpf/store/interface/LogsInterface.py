@@ -42,7 +42,15 @@ class LogsInterface(StoreEntity):
         # Les logs sont une liste de string, on concatène tout
         return "\n".join(l_logs)
 
-    def api_logs_filter(self, substring : str) -> List[str]:
+    def api_logs_filter(self, substring: str) -> List[str]:
+        """Récupère les logs de cette entité en renvoyant les lignes contenant la substring passée en paramètre.
+
+        Args:
+            substring: filtres sur les lignes de logs
+
+        Return:
+            List[str]: listes des lignes renvoyées
+        """
         s_route = f"{self._entity_name}_logs"
 
         # Numéro de la page
@@ -68,8 +76,4 @@ class LogsInterface(StoreEntity):
             b_next_page = ApiRequester.range_next_page(o_response.headers.get("Content-Range"), len(l_logs))
             # On passe à la page suivante
             i_page += 1
-        result : List[str] = []
-        for line in l_logs:
-            if(line.__contains__(substring)):
-                result.append(line)
-        return result
+        return [s_line for s_line in l_logs if substring in s_line]

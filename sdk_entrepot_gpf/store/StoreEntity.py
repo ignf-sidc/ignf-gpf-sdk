@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
 from datetime import datetime
 from dateutil import parser
 
+from sdk_entrepot_gpf.helper.DictHelper import DictHelper
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.io.Config import Config
 from sdk_entrepot_gpf.store.Errors import StoreEntityError
@@ -24,6 +25,10 @@ class StoreEntity(ABC):
     _entity_name: str = "store_entity"
     # (*) Nom "utilisateur" de l'entité (pour afficher une message par exemple)
     _entity_title: str = "Entité Abstraite"
+    # (*) Nom "utilisateur" de l'entités au pluriel.
+    _entity_titles: str = "Entités Abstraites"
+    # (*) Champs supplémentaires à requêter quand on demande la liste
+    _entity_fields: Optional[str] = None
 
     def __init__(self, store_api_dict: Dict[str, Any], datastore: Optional[str] = None) -> None:
         """Classe instanciée à partir de la représentation envoyée par l'API d'une entité."""
@@ -52,12 +57,19 @@ class StoreEntity(ABC):
         """
         return self._datastore
 
-    def get_store_properties(self) -> Dict[str, Any]:
-        """Renvoie les propriétés de l'entité' telles que renvoyées par l'API.
+    def get_store_properties(self, keeps: List[str] = []) -> Dict[str, Any]:
+        """Renvoie les propriétés de l'entité telles que renvoyées par l'API.
+
+        Args:
+            keeps (List[str]): Liste des propriétés à conserver. Si vide, toutes les propriétés sont renvoyées.
 
         Returns:
             Propriétés de l'entité (sous la même forme que celle renvoyée par l'API)
         """
+        # Si keeps est défini, on retourne seulement les propriétés demandées en gérant les erreurs
+        if keeps:
+            return {k: self.get(k) for k in keeps}
+        # Sinon, on retourne toutes les propriétés
         return self._store_api_dict
 
     @classmethod
@@ -67,6 +79,10 @@ class StoreEntity(ABC):
     @classmethod
     def entity_title(cls) -> str:
         return cls._entity_title
+
+    @classmethod
+    def entity_titles(cls) -> str:
+        return cls._entity_titles
 
     ##############################################################
     # Fonction d'interface avec l'API
@@ -143,6 +159,10 @@ class StoreEntity(ABC):
 
         # Fusion des filtres sur les attributs et les tags
         d_params: Dict[str, Any] = {**infos_filter, **{f"tags[{k}]": v for k, v in tags_filter.items()}}
+
+        # Ajout des champs supplémentaires si nécessaires
+        if cls._entity_fields is not None:
+            d_params["fields"] = cls._entity_fields.split(",")
 
         # Génération du nom de la route
         s_route = f"{cls._entity_name}_list"
@@ -315,6 +335,17 @@ class StoreEntity(ABC):
         # La classe se comporte comme un dictionnaire
         # et permet de récupérer les info de _store_api_dict
         return self._store_api_dict[key]
+
+    def get(self, key: str) -> Any:
+        """Récupération de la clef indiquée si elle existe, None sinon.
+
+        Args:
+            key (str): clef à récupérer. Mode JS possible.
+
+        Returns:
+            Any: valeur demandée ou None si non trouvée.
+        """
+        return DictHelper.get(self._store_api_dict, key, raise_error=False)
 
     ##############################################################
     # Fonction test d'égalité

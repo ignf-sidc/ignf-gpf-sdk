@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.store.Datastore import Datastore
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from tests.GpfTestCase import GpfTestCase
@@ -76,6 +77,7 @@ class DatastoreTestCase(GpfTestCase):
     def test_get_id(self) -> None:
         """test de get_id"""
 
+        # datastore existant :
         s_uuid = "d2773f66-6b49-4e6d-bf14-cbe6f5ccd46d"
         s_nom_datastore = "nom"
         l_datastore = [MagicMock(id=s_uuid)]
@@ -89,3 +91,10 @@ class DatastoreTestCase(GpfTestCase):
             s_res = Datastore.get_id(s_nom_datastore)
             self.assertEqual(s_uuid, s_res)
             o_api_list.assert_called_once_with(infos_filter={"name": s_nom_datastore})
+
+        # datastore non existant :
+        with patch.object(Datastore, "api_list", return_value=[]) as o_api_list:
+            with self.assertRaises(GpfSdkError) as o_arc:
+                Datastore.get_id("non existant")
+            self.assertEqual(o_arc.exception.message, "Le datastore demandé 'non existant' n'a pas été trouvé. Vérifier le nom indiqué.")
+            o_api_list.assert_called_once_with(infos_filter={"name": "non existant"})

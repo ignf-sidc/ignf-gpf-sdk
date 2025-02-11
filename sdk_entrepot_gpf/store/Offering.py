@@ -11,6 +11,7 @@ class Offering(PartialEditInterface, StoreEntity):
 
     _entity_name = "offering"
     _entity_title = "offre"
+    _entity_titles = "offres"
 
     STATUS_PUBLISHING = "PUBLISHING"
     STATUS_MODIFYING = "MODIFYING"

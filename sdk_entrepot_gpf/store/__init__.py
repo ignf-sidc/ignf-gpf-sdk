@@ -6,6 +6,7 @@ from sdk_entrepot_gpf.store.CheckExecution import CheckExecution
 from sdk_entrepot_gpf.store.Configuration import Configuration
 from sdk_entrepot_gpf.store.Datastore import Datastore
 from sdk_entrepot_gpf.store.Endpoint import Endpoint
+from sdk_entrepot_gpf.store.Metadata import Metadata
 from sdk_entrepot_gpf.store.Offering import Offering
 from sdk_entrepot_gpf.store.Processing import Processing
 from sdk_entrepot_gpf.store.ProcessingExecution import ProcessingExecution
@@ -25,6 +26,7 @@ TYPE__ENTITY = {
     CheckExecution.entity_name(): CheckExecution,
     Configuration.entity_name(): Configuration,
     Datastore.entity_name(): Datastore,
+    Metadata.entity_name(): Metadata,
     Endpoint.entity_name(): Endpoint,
     Offering.entity_name(): Offering,
     Processing.entity_name(): Processing,

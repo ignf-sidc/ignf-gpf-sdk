@@ -14,6 +14,7 @@ class Static(CreatedByUploadFileInterface, DownloadInterface, PartialEditInterfa
 
     _entity_name = "static"
     _entity_title = "fichier statique"
+    _entity_titles = "fichiers statiques"
 
     TYPE_GEOSERVER_FTL = "GEOSERVER-FTL"
     TYPE_GEOSERVER_STYLE = "GEOSERVER-STYLE"

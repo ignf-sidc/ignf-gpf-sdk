@@ -14,31 +14,17 @@ import toml
 import sdk_entrepot_gpf
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.auth.Authentifier import Authentifier
-from sdk_entrepot_gpf.helper.JsonHelper import JsonHelper
-from sdk_entrepot_gpf.helper.PrintLogHelper import PrintLogHelper
 from sdk_entrepot_gpf.io.Errors import ConflictError, NotFoundError
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.io.Config import Config
-from sdk_entrepot_gpf.scripts.utils import ctrl_c_action
-from sdk_entrepot_gpf.workflow.Workflow import Workflow
+from sdk_entrepot_gpf.scripts.example import Example
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
-from sdk_entrepot_gpf.workflow.resolver.DateResolver import DateResolver
-from sdk_entrepot_gpf.workflow.resolver.DictResolver import DictResolver
-from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
-from sdk_entrepot_gpf.workflow.resolver.StoreEntityResolver import StoreEntityResolver
 from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
-from sdk_entrepot_gpf.store.Annexe import Annexe
 from sdk_entrepot_gpf.store.Datastore import Datastore
-from sdk_entrepot_gpf.store.Key import Key
-from sdk_entrepot_gpf.store.Metadata import Metadata
-from sdk_entrepot_gpf.store.Static import Static
-from sdk_entrepot_gpf.store.Upload import Upload
-from sdk_entrepot_gpf.store.StoreEntity import StoreEntity
-from sdk_entrepot_gpf.store.ProcessingExecution import ProcessingExecution
-from sdk_entrepot_gpf.workflow.resolver.UserResolver import UserResolver
 from sdk_entrepot_gpf.scripts.entities import Entities
 from sdk_entrepot_gpf.scripts.delivery import Delivery
+from sdk_entrepot_gpf.scripts.workflow import WorkflowCli
 
 
 class Main:
@@ -76,10 +62,26 @@ class Main:
             self.me_()
         elif self.o_args.task == "config":
             self.config()
+        elif self.o_args.task == "example":
+            Example(self.o_args.type, self.o_args.name, self.o_args.output)
         elif self.o_args.task == "workflow":
-            self.workflow()
+            # TODO : retirer le if et ne garder que le début
+            if self.o_args.name is None and self.o_args.file is not None:
+                d_params = {x[0]: x[1] for x in self.o_args.params}
+                d_tags = {l_el[0]: l_el[1] for l_el in self.o_args.tags}
+                WorkflowCli(
+                    self.o_args.datastore,
+                    self.o_args.file,
+                    self.o_args.behavior,
+                    self.o_args.step,
+                    d_params,
+                    d_tags,
+                    self.o_args.comments,
+                )
+            else:  # TODO à retirer
+                self.workflow()
         elif self.o_args.task == "delivery":
-            Delivery(self.datastore, self.o_args.task, self.o_args.id, self.o_args)
+            Delivery(self.datastore, self.o_args.file, self.o_args.behavior, self.o_args.check_before_close, self.o_args.mode_cartes)
         elif self.o_args.task == "dataset":
             self.dataset()
         elif self.o_args.task == "delete":
@@ -135,27 +137,48 @@ class Main:
 
         # Parser pour workflow
         s_epilog_workflow = """quatre types de lancement :
-        * liste des exemples de workflow disponibles : `` (aucun arguments)
-        * Récupération d'un workflow exemple : `--name NAME`
+        * liste des exemples de workflow disponibles (déprécié) : `` (aucun arguments)
+        * Récupération d'un workflow exemple (déprécié) : `--name NAME`
         * Vérification de la structure du fichier workflow et affichage des étapes : `--file FILE`
-        * Lancement l'une étape d'un workflow: `--file FILE --step STEP [--behavior BEHAVIOR]`
+        * Lancement l'une étape d'un workflow : `--file FILE --step STEP [--behavior BEHAVIOR]`
+          Il est alors possible de :
+            - préciser des paramètres pour la résolution du workflow : `-p param1_clef param1_valeur -p "param2 clef" "param2 valeur"`
+            - préciser des tags à ajouter : `-t clef1 valeur1 -t clef2 valeur2`
+            - préciser des commentaires à ajouter : `-c "commentaire 1" -c "commentaire 2"`
         """
         o_sub_parser = o_sub_parsers.add_parser("workflow", help="Workflow (lancement, vérification)", epilog=s_epilog_workflow, formatter_class=argparse.RawTextHelpFormatter)
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin du fichier à utiliser OU chemin où extraire le dataset")
         o_sub_parser.add_argument("--name", "-n", type=str, default=None, help="Nom du workflow à extraire")
         o_sub_parser.add_argument("--step", "-s", type=str, default=None, help="Étape du workflow à lancer")
         o_sub_parser.add_argument("--behavior", "-b", choices=ProcessingExecutionAction.BEHAVIORS, default=None, help="Action à effectuer si l'exécution de traitement existe déjà")
-        o_sub_parser.add_argument("--tag", "-t", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Tag à ajouter aux actions (plusieurs tags possible)")
+        o_sub_parser.add_argument("--tags", "-t", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Tags à ajouter aux actions (plusieurs tags possibles)")
         o_sub_parser.add_argument(
-            "--comment",
+            "--comments",
             "-c",
             type=str,
             default=[],
             action="append",
             metavar='"Le commentaire"',
-            help="Commentaire à ajouter aux actions (plusieurs commentaires possible, mettre le commentaire entre guillemets)",
+            help="Commentaire(s) à ajouter aux actions (plusieurs commentaires possibles, mettre le commentaire entre guillemets)",
         )
         o_sub_parser.add_argument("--params", "-p", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Paramètres supplémentaires à passer au workflow à résoudre.")
+
+        # Parser pour example
+        s_epilog_example = """Types de lancement :
+        * lister les exemples de datasets disponibles : `example dataset`
+        * récupérer un exemple de dataset disponible : `example dataset 1_dataset_vecteur`
+        * récupérer un exemple de dataset disponible dans un dossier précis : `example dataset 1_dataset_vecteur mon/dossier/precis`
+        * mêmes fonctions avec les workflows : `example workflow`
+        """
+        o_sub_parser = o_sub_parsers.add_parser(
+            "example",
+            help="Téléversement (livraisons, statiques, métadonnées et/ou clefs)",
+            epilog=s_epilog_example,
+            formatter_class=argparse.RawTextHelpFormatter,
+        )
+        o_sub_parser.add_argument("type", type=str, choices=Example.TYPES, help="Type d'example à considérer")
+        o_sub_parser.add_argument("name", nargs="?", default=None, help="Nom de l'exemple à récupérer (liste les exemples possibles si non indiqué)")
+        o_sub_parser.add_argument("output", nargs="?", type=Path, default=Path("."), help="Dossier où enregistrer l'exemple")
 
         # Parser pour delivery
         s_epilog_delivery = """Types de lancement :
@@ -307,12 +330,10 @@ class Main:
                 Config().om.error(f"{len(d_res['upload_fail'])} livraisons échoués :\n" + "\n".join([f" * {s_nom} : {e_error}" for s_nom, e_error in d_res["upload_fail"].items()]))
             if d_res["check_fail"]:
                 Config().om.error(f"{len(d_res['check_fail'])} vérifications de livraisons échoués :\n" + "\n".join([f" * {o_upload}" for o_upload in d_res["check_fail"]]))
-            Config().om.error(
-                f"BILAN : {len(d_res['ok'])} livraisons effectué sans erreur, {len(d_res['upload_fail'])} livraisons échouées, {len(d_res['check_fail'])} vérifications de livraisons échouées"
+            raise GpfSdkError(
+                f"BILAN : {len(d_res['ok'])} livraisons effectuées sans erreur, {len(d_res['upload_fail'])} livraisons échouées, {len(d_res['check_fail'])} vérifications de livraisons échouées"
             )
-            sys.exit(1)
-        else:
-            Config().om.info(f"BILAN : les {len(d_res['ok'])} livraisons se sont bien passées", green_colored=True)
+        Config().om.info(f"BILAN : les {len(d_res['ok'])} livraisons se sont bien passées", green_colored=True)
 
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def dataset(self) -> None:
@@ -340,11 +361,13 @@ class Main:
                     l_children.append(p_child.name)
             print("Jeux de données disponibles :\n   * {}".format("\n   * ".join(l_children)))
 
+    # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def workflow(self) -> None:
         """Vérifie ou exécute un workflow."""
         p_root = Config.data_dir_path / "workflows"
         # Si demandé, on exporte un workflow d'exemple
         if self.o_args.name is not None:
+            Config().om.warning("La commande 'workflow' pour récupérer un exemple de workflow est dépréciée, merci d'utiliser 'example' à la place.")
             s_workflow = str(self.o_args.name)
             print(f"Exportation du workflow '{s_workflow}'...")
             p_from = p_root / s_workflow
@@ -358,58 +381,6 @@ class Main:
                 print("Exportation terminée.")
             else:
                 raise GpfSdkError(f"Workflow '{s_workflow}' introuvable.")
-        elif self.o_args.file is not None:
-            # Ouverture du fichier
-            p_workflow = Path(self.o_args.file).absolute()
-            Config().om.info(f"Ouverture du workflow {p_workflow}...")
-            o_workflow = Workflow(p_workflow.stem, JsonHelper.load(p_workflow))
-            # Y'a-t-il une étape d'indiquée
-            if self.o_args.step is None:
-                # Si pas d'étape indiquée, on valide le workflow
-                Config().om.info("Validation du workflow...")
-                l_errors = o_workflow.validate()
-                if l_errors:
-                    s_errors = "\n   * ".join(l_errors)
-                    Config().om.error(f"{len(l_errors)} erreurs ont été trouvées dans le workflow.")
-                    Config().om.info(f"Liste des erreurs :\n   * {s_errors}")
-                    raise GpfSdkError("Workflow invalide.")
-                Config().om.info("Le workflow est valide.", green_colored=True)
-
-                # Affichage des étapes disponibles et des parents
-                Config().om.info("Liste des étapes disponibles et de leurs parents :", green_colored=True)
-                l_steps = o_workflow.get_all_steps()
-                for s_step in l_steps:
-                    Config().om.info(f"   * {s_step}")
-
-            else:
-                # Sinon, on définit des résolveurs
-                GlobalResolver().add_resolver(StoreEntityResolver("store_entity"))
-                GlobalResolver().add_resolver(UserResolver("user"))
-                GlobalResolver().add_resolver(DateResolver("datetime"))
-                # Résolveur params qui permet d'accéder aux paramètres supplémentaires passés par l'utilisateur
-                GlobalResolver().add_resolver(DictResolver("params", {x[0]: x[1] for x in self.o_args.params}))
-
-                # le comportement
-                s_behavior = str(self.o_args.behavior).upper() if self.o_args.behavior is not None else None
-                # on reset l'afficheur de log
-                PrintLogHelper.reset()
-
-                # et on lance l'étape en précisant l'afficheur de log et le comportement
-                def callback_run_step(processing_execution: ProcessingExecution) -> None:
-                    """fonction callback pour l'affichage des logs lors du suivi d'un traitement
-
-                    Args:
-                        processing_execution (ProcessingExecution): processing exécution en cours
-                    """
-                    try:
-                        PrintLogHelper.print(processing_execution.api_logs())
-                    except Exception:
-                        PrintLogHelper.print("Logs indisponibles pour le moment...")
-
-                # on lance le monitoring de l'étape en précisant la gestion du ctrl-C
-                d_tags = {l_el[0]: l_el[1] for l_el in self.o_args.tag}
-                o_workflow.run_step(self.o_args.step, callback_run_step, ctrl_c_action, behavior=s_behavior, datastore=self.datastore, comments=self.o_args.comment, tags=d_tags)
-
         else:
             l_children: List[str] = []
             for p_child in p_root.iterdir():
@@ -435,44 +406,11 @@ class Main:
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def annexe(self) -> None:
         """Gestion des annexes"""
-        Config().om.warning("Le téléversement d'annexes' via la commande 'annexe' est déprécié, merci d'utiliser 'delivery' à la place.")
+        Config().om.warning("Le téléversement d'annexes via la commande 'annexe' est déprécié, merci d'utiliser 'delivery' à la place.")
         if self.o_args.file is not None:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_annexe_from_descriptor_file(self.o_args.file, self.o_args.datastore)
             Delivery.display_bilan_upload_file(d_res)
-        elif self.o_args.id is not None:
-            o_annexe = Annexe.api_get(self.o_args.id, datastore=self.datastore)
-            if self.o_args.publish:
-                if o_annexe["published"]:
-                    Config().om.info(f"L'annexe ({o_annexe}) est déjà publiée.")
-                    return
-                # modification de la publication
-                o_annexe.api_partial_edit({"published": str(True)})
-                Config().om.info(f"L'annexe ({o_annexe}) viens d'être publiée.")
-            elif self.o_args.unpublish:
-                if not o_annexe["published"]:
-                    Config().om.info(f"L'annexe ({o_annexe}) est déjà dépubliée.")
-                    return
-                # modification de la publication
-                o_annexe.api_partial_edit({"published": str(False)})
-                Config().om.info(f"L'annexe ({o_annexe}) viens d'être dépubliée.")
-            else:
-                # affichage
-                Config().om.info(o_annexe.to_json(indent=3))
-        elif self.o_args.publish_by_label is not None:
-            l_labels = self.o_args.publish_by_label.split(",")
-            i_nb = Annexe.publish_by_label(l_labels, datastore=self.datastore)
-            Config().om.info(f"{i_nb} annexe(s) viennent d'être publié.")
-        elif self.o_args.unpublish_by_label is not None:
-            l_labels = self.o_args.unpublish_by_label.split(",")
-            i_nb = Annexe.unpublish_by_label(l_labels, datastore=self.datastore)
-            Config().om.info(f"{i_nb} annexe(s) viennent d'être dépubliée(s).")
-        else:
-            # on liste toutes les annexes selon les filtres
-            d_infos_filter = StoreEntity.filter_dict_from_str(self.o_args.infos)
-            l_annexes = Annexe.api_list(infos_filter=d_infos_filter, datastore=self.datastore)
-            for o_annexe in l_annexes:
-                Config().om.info(f"{o_annexe}")
 
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def static(self) -> None:
@@ -482,16 +420,6 @@ class Main:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_static_from_descriptor_file(self.o_args.file, self.o_args.datastore)
             Delivery.display_bilan_upload_file(d_res)
-        elif self.o_args.id is not None:
-            o_static = Static.api_get(self.o_args.id, datastore=self.datastore)
-            # affichage
-            Config().om.info(o_static.to_json(indent=3))
-        else:
-            # on liste toutes les fichiers static selon les filtres
-            d_infos_filter = StoreEntity.filter_dict_from_str(self.o_args.infos)
-            l_statics = Static.api_list(infos_filter=d_infos_filter, datastore=self.datastore)
-            for o_static in l_statics:
-                Config().om.info(f"{o_static}")
 
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def metadata(self) -> None:
@@ -501,46 +429,16 @@ class Main:
             # on livre les données selon le fichier descripteur donné
             d_res = Delivery.upload_metadata_from_descriptor_file(self.o_args.file, self.o_args.datastore)
             Delivery.display_bilan_upload_file(d_res)
-        elif self.o_args.id is not None:
-            o_metadata = Metadata.api_get(self.o_args.id, datastore=self.datastore)
-            # affichage
-            Config().om.info(o_metadata.to_json(indent=3))
-        elif (self.o_args.publish or self.o_args.unpublish) and self.o_args.id_endpoint is None:
-            raise GpfSdkError("Pour publier / dépublier les métadonnées il faut définir --id-endpoint")
-        elif self.o_args.publish is not None:
-            Metadata.publish(self.o_args.publish, self.o_args.id_endpoint, self.o_args.datastore)
-            Config().om.info(f"Les métadonnées ont été publiées sur le endpoint {self.o_args.id_endpoint}")
-        elif self.o_args.unpublish is not None:
-            Metadata.unpublish(self.o_args.unpublish, self.o_args.id_endpoint, self.o_args.datastore)
-            Config().om.info(f"Les métadonnées ont été dépubliées sur le endpoint {self.o_args.id_endpoint}")
-        else:
-            # on liste toutes les fichiers métadonnées selon les filtres
-            d_infos_filter = StoreEntity.filter_dict_from_str(self.o_args.infos)
-            l_metadatas = Metadata.api_list(infos_filter=d_infos_filter, datastore=self.datastore)
-            for o_metadata in l_metadatas:
-                Config().om.info(f"{o_metadata}")
 
     # TODO : deprecated (v0.1.35) à retirer (v1.0.0)
     def key(self) -> None:
         """Gestion des clefs"""
         Config().om.warning("La création de clefs via la commande 'key' est déprécié, merci d'utiliser 'delivery' à la place.")
-        if self.o_args.id is not None:
-            Config().om.info(f"détail pour la clef {self.o_args.id}", green_colored=True)
-            o_key = Key.api_get(self.o_args.id)
-            # affichage
-            Config().om.info(o_key.to_json(indent=3))
-        elif self.o_args.file is not None:
+        if self.o_args.file is not None:
             Config().om.info("Création de clefs ...", green_colored=True)
             d_res = Delivery.create_key_from_file(self.o_args.file)
             # affichage
             Delivery.display_bilan_creation(d_res)
-        else:
-            Config().om.info("Liste des clefs de l'utilisateur courant...", green_colored=True)
-            l_key = Key.api_list()
-            if l_key:
-                Config().om.info(f"{len(l_key)} clef(s) de l'utilisateur courant :\n" + "\n".join([f" * {o_key['name']} [{o_key['type']}] -- {o_key['_id']}" for o_key in l_key]))
-            else:
-                Config().om.info("Aucune clef.")
 
 
 def main(program_name: Optional[str] = None) -> None:
@@ -569,7 +467,9 @@ def main(program_name: Optional[str] = None) -> None:
         # gestion "globale" des timeout
         Config().om.debug(traceback.format_exc())
         Config().om.critical(f"Requête trop longe, timeout. URL : {str(e_error.request.method)+' ' +str(e_error.request.url) if e_error.request else ''}.")
-
+    except NotImplementedError as e_error:
+        Config().om.debug(traceback.format_exc())
+        Config().om.critical(f"Fonctionnalité non implémentée : {e_error.args[0]}.")
     except Exception as e_exception:
         print(e_exception)
         Config().om.critical("Erreur non spécifiée :")

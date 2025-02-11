@@ -6,3 +6,4 @@ class Check(StoreEntity):
 
     _entity_name = "check"
     _entity_title = "vérification"
+    _entity_titles = "vérifications"

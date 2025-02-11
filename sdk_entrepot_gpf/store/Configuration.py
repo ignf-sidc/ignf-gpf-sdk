@@ -15,6 +15,7 @@ class Configuration(TagInterface, CommentInterface, EventInterface, FullEditInte
 
     _entity_name = "configuration"
     _entity_title = "configuration"
+    _entity_titles = "configurations"
 
     STATUS_UNPUBLISHED = "UNPUBLISHED"
     STATUS_PUBLISHED = "PUBLISHED"

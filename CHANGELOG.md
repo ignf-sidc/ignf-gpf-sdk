@@ -5,11 +5,17 @@
 ### [Added]
 
 * Possibilité d'appeler le programme via des executables : `egpf` (ou `entrepot_gpf`)
-* Possibilité d'observer les différentes vérifications sur une livraison
-* Possibilités de supprimer des fichiers lors de la livraison
-* Possibilités de supprimer que les fichiers ayant produit une erreur lors de la livraison
+* Possibilité d'observer les différentes vérifications sur une livraison (action `--check`)
+* Possibilités de supprimer des fichiers d'une la livraison (action `--deletes-files FILE [FILE]`)
+* Possibilités de supprimer automatiquement les fichiers ayant produit une erreur lors de la livraison (action `--delete-failed-files`)
+* StoreEntity : nomenclatures des entités au pluriel (`entity_titles`)
+* StoreEntity : liste des champs à récupérer en mode liste pour chaque entités (`_entity_fields`)
 
 ### [Changed]
+
+* UploadAction : correction message fichier distant non trouvé en local
+* Couverture des tests : on masque les fichiers couverts à 100%
+* Réorganisation des appels du cli.
 
 ### [Fixed]
 
