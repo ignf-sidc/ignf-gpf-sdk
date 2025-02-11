@@ -13,6 +13,7 @@ class Key(DownloadInterface, PartialEditInterface, ReUploadFileInterface, StoreE
 
     _entity_name = "key"
     _entity_title = "clef"
+    _entity_titles = "clefs"
 
     TYPE_HASH = "HASH"
     TYPE_HEADER = "HEADER"

@@ -20,7 +20,7 @@ echo
 # Lancement des tests et vérification de la couverture
 coverage run -m unittest discover -b -p *TestCase.py
 code+=$?
-coverage report -m --fail-under=75
+coverage report -m --skip-covered --fail-under=75
 code+=$?
 coverage html
 
