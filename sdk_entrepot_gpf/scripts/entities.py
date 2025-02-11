@@ -117,7 +117,7 @@ class Entities:
             b_return = False
         if getattr(self.args, "delete_failed_files", False) is True:
             assert isinstance(o_entity, Upload)
-            Entities.action_upload_delete_failed_files(o_entity)
+            Entities.action_upload_delete_failed_files(o_entity, self.datastore)
             b_return = False
         if getattr(self.args, "close", False) is True:
             assert isinstance(o_entity, Upload)
@@ -271,21 +271,40 @@ class Entities:
         Config().om.info(f"Suppression de {len(delete_files)} fichiers effectuée avec succès.", green_colored=True)
 
     @staticmethod
-    def action_upload_delete_failed_files(upload: Upload) -> None:
-        Config().om.info(f"Suppression des fichiers mal téléversés sur la livraison {upload} :")
-        files = []
-        checks = upload.api_list_checks()
-        for verification in checks["failed"]:
-            check = CheckExecution(verification)
-            lines = check.api_logs_filter("ERROR")
-            for line in lines:
-                correspondance = re.search(r"\((.*?)\)", line)
-                if correspondance:
-                    Config().om.warning(correspondance.group(1))
-                    files.append(correspondance.group(1))
-        upload.api_open()
-        for file in files:
-            upload.api_delete_data_file(file)
+    def action_upload_delete_failed_files(upload: Upload, datastore: Optional[str]) -> None:
+        Config().om.info(f"Suppression des fichiers mal téléversés sur la livraison {upload['name']} :")
+        Config().om.info("Listing des fichiers à supprimer...")
+        o_regex = re.compile(r"\((.*?)\)")
+        l_accepted_check_names = ["Vérification standard"]
+        l_files = []
+        l_check_execs = upload.api_list_checks()
+        # On cherche des fichiers à supprimer uniquement pour la Vérification standard si elle est 'failed'
+        for d_check_exec in l_check_execs["failed"]:
+            if d_check_exec["check"]["name"] in l_accepted_check_names:
+                o_check_exec = CheckExecution(d_check_exec, datastore=datastore)
+                l_lines = o_check_exec.api_logs_filter("ERROR")
+                for s_line in l_lines:
+                    o_match = o_regex.search(s_line)
+                    if o_match:
+                        s_file = o_match.group(1)
+                        l_files.append(s_file)
+        if not l_files:
+            Config().om.warning("Aucun fichier incorrect à supprimer.")
+        else:
+            s_files = "\n    * " + "\n    * ".join(l_files)
+            Config().om.info(f"{len(l_files)} fichiers incorrects à supprimer :{s_files}")
+            Config().om.warning("Voulez-vous effectuer la suppression ? (oui/NON)")
+            s_rep = input()
+            # si la réponse ne correspond pas à oui on sort
+            if s_rep.lower() not in ["oui", "o", "yes", "y"]:
+                Config().om.info("Suppression annulée.", green_colored=True)
+                return
+            # ouverture de la livraison
+            upload.api_open()
+            # Suppression des fichiers
+            for s_file in l_files:
+                upload.api_delete_data_file(s_file)
+            Config().om.info(f"Suppression des {len(l_files)} fichiers effectuées avec succès.", green_colored=True)
 
     @staticmethod
     def action_annexe_publish(annexe: Annexe) -> None:
