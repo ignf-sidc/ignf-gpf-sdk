@@ -4,6 +4,11 @@
 
 ### [Added]
 
+* Ajout d'un jeu de données raster d'exemple (`3_dataset_raster`).
+
+### [Changed]
+
+* Modification du nom du traitement raster dans le workflow exemple.
 * Possibilité d'appeler le programme via des executables : `egpf` (ou `entrepot_gpf`)
 * Possibilité d'observer les différentes vérifications sur une livraison (action `--check`)
 * Possibilités de supprimer des fichiers d'une la livraison (action `--deletes-files FILE [FILE]`)
