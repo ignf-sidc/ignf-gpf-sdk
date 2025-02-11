@@ -23,6 +23,7 @@ Des tutoriels sont disponibles pour voir des cas concrets d'utilisation de A à 
 * [Tutoriel 1 : héberger une archive pour la rendre téléchargeable](tutoriel_1_archive.md)
 * [Tutoriel 2 : téléverser des données vecteur et les publier en flux](tutoriel_2_flux_vecteur.md)
 * [Tutoriel 3 : téléverser des données raster et les publier en flux](tutoriel_3_flux_raster.md)
+* [Tutoriel PCRS : téléverser des PCRS et les publier en flux](tutoriel_pcrs.md)
 
 ## Développement
 
