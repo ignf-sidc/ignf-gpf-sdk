@@ -2,7 +2,7 @@ from __future__ import annotations  # utile pour le typage "argparse._SubParsers
 
 import argparse
 import re
-from typing import List, Optional
+from typing import Callable, List, Optional
 from tabulate import tabulate
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -176,13 +176,19 @@ class Entities:
         raise GpfSdkError(f"La livraison {upload} n'est pas dans un état permettant de d'ouvrir la livraison ({upload['status']}).")
 
     @staticmethod
-    def action_upload_close(upload: Upload, mode_cartes: bool) -> None:
+    def action_upload_close(
+        upload: Upload,
+        mode_cartes: bool,
+        callback: Optional[Callable[[str], None]] = print,
+        ctrl_c_action: Optional[Callable[[], bool]] = Utils.ctrl_c_upload,
+    ) -> None:
         """fermeture d'une livraison
 
         Args:
             upload (Upload): livraison à fermer
             mode_cartes (Optional[bool]): Si le mode carte est activé
-
+            callback (Optional[Callable[[str], None]]): fonction de callback à exécuter avec le message de suivi.
+            ctrl_c_action (Optional[Callable[[], bool]]): gestion du ctrl-C
         Raises:
             GpfSdkError: impossible de fermer la livraison
         """
@@ -196,8 +202,8 @@ class Entities:
                 upload,
                 "Livraison {upload} fermée avec succès.",
                 "Livraison {upload} fermée en erreur !",
-                print,
-                Utils.ctrl_c_upload,
+                callback,
+                ctrl_c_action,
                 mode_cartes,
             )
             return
@@ -208,8 +214,8 @@ class Entities:
                 upload,
                 "Livraison {upload} fermée avec succès.",
                 "Livraison {upload} fermée en erreur !",
-                print,
-                Utils.ctrl_c_upload,
+                callback,
+                ctrl_c_action,
                 mode_cartes,
             )
             return
