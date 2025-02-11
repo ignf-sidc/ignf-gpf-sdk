@@ -14,6 +14,7 @@ class Datastore(StoreEntity):
 
     _entity_name = "datastore"
     _entity_title = "entrepôt"
+    _entity_titles = "entrepôts"
 
     @classmethod
     def api_list(cls: Type[T], infos_filter: Optional[Dict[str, str]] = None, tags_filter: Optional[Dict[str, str]] = None, page: Optional[int] = None, datastore: Optional[str] = None) -> List[T]:

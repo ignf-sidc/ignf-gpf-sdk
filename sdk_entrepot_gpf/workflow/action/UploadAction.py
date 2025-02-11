@@ -309,7 +309,7 @@ class UploadAction:
                     Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: à re-livrer, problème de taille")
                     l_error.append((p_file_path, s_api_path))
             else:
-                Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: non trouvé dans la liste des fichiers livrés")
+                Config().om.error(f"Livraison {self.__upload['name']} : fichier distant {s_data_api_path}: non trouvé dans la liste des fichiers à livrer")
                 l_error.append((p_file_path, s_api_path))
         return l_error
 
