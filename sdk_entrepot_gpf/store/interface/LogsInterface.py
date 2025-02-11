@@ -43,14 +43,13 @@ class LogsInterface(StoreEntity):
         return "\n".join(l_logs)
 
     def api_logs_filter(self, substring: str) -> List[str]:
-        """
-        Récupère les logs de cette entité en renvoyant les lignes contenant la substring passé en paramètre.
+        """Récupère les logs de cette entité en renvoyant les lignes contenant la substring passée en paramètre.
 
         Args:
             substring: filtres sur les lignes de logs
 
         Return:
-            List[str]: listes des lignes renvoyés
+            List[str]: listes des lignes renvoyées
         """
         s_route = f"{self._entity_name}_logs"
 
