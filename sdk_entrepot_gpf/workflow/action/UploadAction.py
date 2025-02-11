@@ -26,7 +26,8 @@ class UploadAction:
     BEHAVIOR_STOP = "STOP"
     BEHAVIOR_DELETE = "DELETE"
     BEHAVIOR_CONTINUE = "CONTINUE"
-    BEHAVIORS = [BEHAVIOR_STOP, BEHAVIOR_CONTINUE, BEHAVIOR_DELETE]
+    BEHAVIOR_RESUME = "RESUME"
+    BEHAVIORS = [BEHAVIOR_STOP, BEHAVIOR_CONTINUE, BEHAVIOR_DELETE, BEHAVIOR_RESUME]
 
     def __init__(self, dataset: Dataset, behavior: Optional[str] = None, compatibility_cartes: Optional[bool] = None) -> None:
         """initialise le comportement de UploadAction
@@ -119,13 +120,17 @@ class UploadAction:
                 # on en crée une nouvelle (on utilise les champs de "upload_infos" du dataset)
                 self.__upload = Upload.api_create(self.__dataset.upload_infos, route_params={"datastore": datastore})
                 Config().om.warning(f"Livraison {self.__upload} recréée avec succès.")
-            elif self.__behavior == self.BEHAVIOR_CONTINUE:
-                # Sinon on continue avec cet upload pour le compléter (behavior == CONTINUE)
-                # cas livraison fermé : message particulier
-                if not o_upload.is_open():
-                    Config().om.warning(f"Livraison identique {o_upload} trouvée et fermée, cette livraison ne sera pas mise à jour.")
-                else:
+            elif self.__behavior in [self.BEHAVIOR_CONTINUE, self.BEHAVIOR_RESUME]:
+                # Sinon on continue avec cet upload pour le compléter (behavior == CONTINUE ou RESUME)
+                if o_upload.is_open():
                     Config().om.info(f"Livraison identique {o_upload} trouvée, le programme va la reprendre et la compléter.")
+                elif self.__behavior == self.BEHAVIOR_RESUME and len(o_upload.api_list_checks()["failed"]) != 0:
+                    # RESUME : en cas d'erreur sur les vérifications la livraison est rouverte
+                    Config().om.warning(f"Livraison identique {o_upload} trouvée et vérification en erreur, la livraison est rouverte, le programme va la reprendre et la compléter.")
+                    o_upload.api_open()
+                else:
+                    # cas livraison fermé : message particulier,
+                    Config().om.warning(f"Livraison identique {o_upload} trouvée et fermée, cette livraison ne sera pas mise à jour.")
                 self.__upload = o_upload
             else:
                 raise GpfSdkError(f"Le comportement {self.__behavior} n'est pas reconnu ({'|'.join(self.BEHAVIORS)}), l'exécution de traitement est annulée.")
@@ -304,7 +309,7 @@ class UploadAction:
                     Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: à re-livrer, problème de taille")
                     l_error.append((p_file_path, s_api_path))
             else:
-                Config().om.error(f"Livraison {self.__upload['name']} : livraison de {s_data_api_path}: non trouvé dans la liste des fichiers livrés")
+                Config().om.error(f"Livraison {self.__upload['name']} : fichier distant {s_data_api_path}: non trouvé dans la liste des fichiers à livrer")
                 l_error.append((p_file_path, s_api_path))
         return l_error
 

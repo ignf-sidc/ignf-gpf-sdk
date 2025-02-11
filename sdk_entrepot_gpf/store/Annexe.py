@@ -18,6 +18,7 @@ class Annexe(CreatedByUploadFileInterface, DownloadInterface, PartialEditInterfa
 
     _entity_name = "annexe"
     _entity_title = "annexe"
+    _entity_titles = "annexes"
 
     @staticmethod
     def publish_by_label(labels: List[str], datastore: Optional[str] = None) -> int:

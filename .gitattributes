@@ -1,0 +1,6 @@
+# Tous les fichiers doivent avoir un retour à la ligne en mode Linux
+* text eol=lf
+
+# Sauf les fichiers binaires
+*.png binary
+*.jpg binary

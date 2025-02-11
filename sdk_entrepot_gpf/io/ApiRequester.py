@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import re
 import time
+import datetime
 import traceback
 from io import BufferedReader
 from pathlib import Path
@@ -215,7 +216,7 @@ class ApiRequester(metaclass=Singleton):
         Returns:
             réponse si succès
         """
-        Config().om.debug(f"__url_request(url={url}, method={method}, params={params}, data={data}, timeout={timeout})")
+        Config().om.debug(f"__url_request(url={url}, method={method}, params={params}, data={data}, timeout={timeout}, timestamp={datetime.datetime.now()})")
 
         # Définition du header
         d_headers = Authentifier().get_http_header(json_content_type=files is None)
@@ -241,6 +242,7 @@ class ApiRequester(metaclass=Singleton):
 
         # exécution de la requête
         r = requests.request(**d_requests)
+        Config().om.debug(f"__url_request(url={url}, method={method}, params={params}, data={data}, timeout={timeout}, timestamp={datetime.datetime.now()}, status={r.status_code})")
 
         # Vérification du résultat...
         if r.status_code >= 200 and r.status_code < 300:

@@ -1,5 +1,66 @@
 # CHANGE LOG
 
+## v0.1.36
+
+### [Added]
+
+### [Changed]
+
+### [Changed]
+
+### [Fixed]
+
+
+## v0.1.35
+
+### [Added]
+
+* Ajout d'un jeu de données raster d'exemple (`3_dataset_raster`).
+
+### [Changed]
+
+* Modification du nom du traitement raster dans le workflow exemple.
+* Possibilité d'appeler le programme via des executables : `egpf` (ou `entrepot_gpf`)
+* Possibilité d'observer les différentes vérifications sur une livraison (action `--check`)
+* Possibilités de supprimer des fichiers d'une la livraison (action `--deletes-files FILE [FILE]`)
+* Possibilités de supprimer automatiquement les fichiers ayant produit une erreur lors de la livraison (action `--delete-failed-files`)
+* StoreEntity : nomenclatures des entités au pluriel (`entity_titles`)
+* StoreEntity : liste des champs à récupérer en mode liste pour chaque entités (`_entity_fields`)
+
+### [Changed]
+
+* UploadAction : correction message fichier distant non trouvé en local
+* Couverture des tests : on masque les fichiers couverts à 100%
+* Réorganisation des appels du cli.
+
+### [Fixed]
+
+
+## v0.1.34
+
+### [Added]
+
+* Ajout de tests automatiques GitHub sous Windows et MacOS.
+
+### [Changed]
+
+### [Fixed]
+
+* Correction de la génération des fichiers md5 sous Windows.
+
+## v0.1.33
+
+### [Added]
+
+* Upload : ajout du BEHAVIOR_RESUME pour la reprise des livraisons si les vérifications ont échoué (ouverture et comportement comme BEHAVIOR_CONTINUE) [#196](https://github.com/Geoplateforme/sdk-entrepot/issues/196)
+
+### [Changed]
+
+* Resolver : au niveau des erreurs possibilité de détailler la cause de l'erreur [#185](https://github.com/Geoplateforme/sdk-entrepot/issues/185)
+* ApiRequester : ajout de logs niveau debug
+
+### [Fixed]
+
 ## v0.1.32
 
 ### [Added]
@@ -12,6 +73,8 @@
 ### [Fixed]
 
 * upload_descriptor_file.json: plus de restriction dans upload_infos #198
+* Workflows génériques : les storages n'ont plus a être tagués "IGN" #201
+* UserResolver : si la clef `last_name` n'est pas définie, on renvoi `last_name`
 
 
 ## v0.1.31

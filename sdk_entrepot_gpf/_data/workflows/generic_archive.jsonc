@@ -125,7 +125,7 @@
                     "body_parameters": {
                         "visibility": "PRIVATE",
                         // Endpoint de type DOWNLOAD (id trouvé en récupérant les informations de l'entrepôt)
-                        "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=DOWNLOAD)]}"
+                        "endpoint": "{store_entity.endpoint.infos._id [INFOS(technical_name=gpf-download-private)]}"
                     }
                 }
             ],
