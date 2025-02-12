@@ -8,8 +8,8 @@
                         // On crée une exécution de traitement
                         "type": "processing-execution",
                         "body_parameters": {
-                            // On récupère l'id du traitement nommé "Calcul de pyramide raster"
-                            "processing": "{store_entity.processing.infos._id [INFOS(name=Calcul de pyramide raster)]}",
+                            // On récupère l'id du traitement nommé "Calcul ou mise à jour de pyramide raster"
+                            "processing": "{store_entity.processing.infos._id [INFOS(name=Calcul ou mise à jour de pyramide raster)]}",
                             "inputs": {
                                 "upload": [
                                     // On récupère l'id de la Livraison associée grâce à son nom
@@ -18,10 +18,14 @@
                             },
                             "output": {
                                 "stored_data": {
-                                    "name": "{user.last_name}__pyramide"
+                                    "name": "{user.last_name}__pyramide",
+                                    "storage_tags": ["PYRAMIDE"]
                                 }
                             },
                             "parameters": {
+                                "parallelization": 4,
+                                "top": "0",
+                                "bottom": "18",
                                 "tms": "PM",
                                 "compression": "jpg",
                                 "interpolation": "bicubic"
@@ -40,15 +44,15 @@
                 ],
                 "parents": []
             },
-            // Étape n°A.2 : configuration WMST de la pyramide
-            "configuration-WMST":{
+            // Étape n°A.2 : configuration WMTS de la pyramide
+            "configuration-WMTS":{
                 "actions": [
                     {
                         "type": "configuration",
                         "body_parameters": {
                             "type": "WMTS-TMS",
-                            "name": "{user.last_name} raster WMST",
-                            "layer_name": "{user.last_name}__raster_wmst",
+                            "name": "{user.last_name} raster WMTS",
+                            "layer_name": "{user.last_name}__raster_wmts",
                             "metadata": [
                                 {
                                     "format": "application/xml",
@@ -89,28 +93,28 @@
                 ]
 
             },
-            // Étape n°A.3 : Publication WMST de la pyramide
-            "publication-WMST": {
+            // Étape n°A.3 : Publication WMTS de la pyramide
+            "publication-WMTS": {
                 "actions": [
                     {
                         "type": "offering",
                         "url_parameters": {
                             // On récupère l'id de la Configuration créée à l'étape précédente grâce à son nom et l'un de ses tags
-                            "configuration": "{store_entity.configuration.infos._id [INFOS(name={user.last_name} raster WMST), TAGS(tuto=oui)]}"
+                            "configuration": "{store_entity.configuration.infos._id [INFOS(name={user.last_name} raster WMTS), TAGS(tuto=oui)]}"
                         },
                         "body_parameters": {
                             // Endpoint de type WMTS-TMS (id trouvé en récupérant les informations de l'entrepôt)
-                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=WMTS-TMS)]}",
+                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(technical_name=gpf-rok4-server-wmts-tms)]}",
                             "visibility": "PRIVATE",
                             "open": true
                         }
                     }
                 ],
                 "parents": [
-                    "configuration-WMST"
+                    "configuration-WMTS"
                 ]
             },
-            // Étape n°B.2 : configuration WMST de la pyramide
+            // Étape n°B.2 : configuration WMTS de la pyramide
             "configuration-WMS" :{
                 "actions": [
                     {
@@ -159,7 +163,7 @@
                     "pyramide"
                 ]
             },
-            // Étape n°B.3 : Publication WMST de la pyramide
+            // Étape n°B.3 : Publication WMTS de la pyramide
             "publication-WMS": {
                 "actions": [
                     {
@@ -169,8 +173,8 @@
                             "configuration": "{store_entity.configuration.infos._id [INFOS(name={user.last_name} raster WMS), TAGS(tuto=oui)]}"
                         },
                         "body_parameters": {
-                            // Endpoint de type WMS (id trouvé en récupérant les informations de l'entrepôt)
-                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=WMS-RASTER)]}",
+                            // Endpoint de type WMS-R (id trouvé en récupérant les informations de l'entrepôt)
+                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(technical_name=gpf-rok4-server-wms-r)]}",
                             "visibility": "PRIVATE",
                             "open": true
                         }

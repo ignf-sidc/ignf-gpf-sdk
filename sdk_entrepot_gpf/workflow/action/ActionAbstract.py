@@ -88,7 +88,7 @@ class ActionAbstract(ABC):
         """Lancement de l'action.
 
         Args:
-            datastore (Optional[str]): id du datastore à utiliser. Si None, le datastore sera récupérer dans configuration. Defaults to None.
+            datastore (Optional[str]): id du datastore à utiliser. Si None, le datastore sera récupéré dans la configuration. Defaults to None.
         """
 
     @staticmethod

@@ -1,0 +1,21 @@
+{
+    "datasets": [
+        {
+            "data_dirs": [
+                "ain"
+            ],
+            "upload_infos": {
+                "description": "Jeu d'exemple raster Ain",
+                "name": "EXAMPLE_DATASET_RASTER",
+                "srs": "EPSG:2154",
+                "type": "RASTER"
+            },
+            "comments": [
+                "Ceci est un jeu de données d'exemple contenant des données raster"
+            ],
+            "tags": {
+                "tuto": "oui"
+            }
+        }
+    ]
+}

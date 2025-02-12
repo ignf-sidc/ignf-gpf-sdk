@@ -85,7 +85,6 @@ class Main:
         elif self.o_args.task == "dataset":
             self.dataset()
         elif self.o_args.task == "delete":
-            Config().om.warning("La commande 'delete est dépréciée, merci d'utiliser la commande liée au type de l'entité.")
             self.delete()
         else:
             if getattr(self.o_args, "file", None) is not None:

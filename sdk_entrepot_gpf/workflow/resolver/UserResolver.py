@@ -8,7 +8,7 @@ from sdk_entrepot_gpf.workflow.resolver.Errors import ResolveUserError
 class UserResolver(AbstractResolver):
     """Classe permettant de récupérer les informations sur l'utilisateur authentifié.
 
-    La plu-value sur la classe DictRevolver est que les info de l'utilisateur sont
+    La plus-value sur la classe DictRevolver est que les infos de l'utilisateur sont
     directement récupérées par le constructeur de la classe (ça évite de gérer cela).
 
     Attributes :

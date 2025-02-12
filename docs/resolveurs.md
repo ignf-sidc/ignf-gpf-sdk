@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/resolveurs/
+-->
+
 # Résolveur
 
 Les résolveurs sont des outils permettant de compléter les workflows en remplaçant un pattern par la valeur calculée.
@@ -6,13 +15,14 @@ Les résolveurs sont des outils permettant de compléter les workflows en rempla
 
 Le nom d'un résolveur est donné à son initialisation. Il est possible d'avoir plusieurs résolveurs d'un même type.
 
-A l'utilisation du SDK comme un exécutable, il y a 2 résolveurs d’instanciés :
+A l'utilisation du SDK comme un exécutable, il y a 4 résolveurs d’instanciés :
 
-* `user` : un [UserResolver](UserResolver)
-* `store_entity` : un [StoreEntityResolver](StoreEntityResolver)
+* `user` : un [UserResolver](#userresolver)
+* `store_entity` : un [StoreEntityResolver](#storeentityresolver)
 * `datetime`: un [DateResolver](#dateresolver)
+* `params`: un [DictResolver](#dictresolver) avec les valeurs passées en `--params`
 
-A l'utilisation comme module, il n'y a aucun résolveurs d’instancié de base. Il faut instancier des résolveurs dans le programme et les ajouter au `GlobalResolver`.
+A l'utilisation comme module, il n'y a aucun résolveur d’instancié. Il faut instancier des résolveurs dans le programme et les ajouter au `GlobalResolver`.
 
 Dans le fichier de workflow, pour utiliser le résolveur il faut ajouter le pattern permettant d'activer le résolveur selon le type de donnée attendu :
 
@@ -20,14 +30,14 @@ Dans le fichier de workflow, pour utiliser le résolveur il faut ajouter le patt
 * Liste: `["_nom_du_resolveur_", "nom_de_la_clef"]` ou `["_nom_du_resolveur.nom_de_la_clef"]`
 * Dictionnaire : `{"_nom_du_resolveur_": "nom_de_la_clef"}`
 
-## résolveur de base
+## Résolveurs de base
 
 Il y a 4 résolveurs de base :
 
-* [DictResolver](DictResolver): permet d'insérer les valeurs contenues dans un dictionnaire ;
-* [FileResolver](FileResolver): insère les valeurs contenues dans un fichier ;
-* [StoreEntityResolver](StoreEntityResolver): récupère des informations sur les entités depuis la GPF ;
-* [UserResolver](UserResolver): récupère des informations de l'utilisateur courant depuis la GPF ;
+* [DictResolver](#dictresolver): permet d'insérer les valeurs contenues dans un dictionnaire ;
+* [FileResolver](#fileresolver): insère les valeurs contenues dans un fichier ;
+* [StoreEntityResolver](#storeentityresolver): récupère des informations sur les entités depuis la GPF ;
+* [UserResolver](#userresolver): récupère des informations de l'utilisateur courant depuis la GPF ;
 * [DateResolver](#dateresolver): insertion d'une date au format désiré.
 
 ### DictResolver
@@ -127,8 +137,8 @@ avec :
 
 * `entity_type` : type de l'entité à récupérer, une des valeurs suivantes : `upload|stored_data|processing_execution|offering|processing|configuration|endpoint|static|datastore` ;
 * `field_type` : `tags` pour récupérer la valeur d'un tag, `infos` pour récupérer une valeur du dictionnaire décrivant l'entité ;
-* `field`: si `tags` nom du tag dont on veux la valeur, si `infos` clef du dictionnaire dont on veux la valeur ;
-* `INFOS ({key}={val}, ...)` : (optionnel) filtre sur les entités hors tag, voir la doc de la requête de liste des entités pour savoir les clefs possibles ;
+* `field`: si `tags` nom du tag dont on veut la valeur, si `infos` clef du dictionnaire dont on veut la valeur ;
+* `INFOS ({key}={val}, ...)` : (optionnel) filtre sur les entités hors tag, voir la doc de la requête de liste des entités pour connaître la liste des clefs possibles ;
 * `TAGS ({key}={val}, ...)` : (optionnel) filtre sur les tags (s'il y a des tags sur cette entité).
 
 Si on a plusieurs résultats le premier résultat est utilisé.
@@ -169,7 +179,7 @@ print(GlobalResolver().resolve(text))
 
 Permet de résoudre des paramètres avec les informations sur l'utilisateur authentifié. Les informations disponibles sont celles renvoyée par la route [/users/me](https://data.geopf.fr/api/swagger-ui/index.html#/Utilisateurs/get).
 
-Classe dérivée de DictRevolver, la plu-value sur la classe DictRevolver est que les infos de l'utilisateur sont directement récupérées par le constructeur de la classe.
+Classe dérivée de DictRevolver, la plus-value sur la classe DictRevolver est que les infos de l'utilisateur sont directement récupérées par le constructeur de la classe.
 
 ```python
 from sdk_entrepot_gpf.workflow.resolver.UserResolver import UserResolver

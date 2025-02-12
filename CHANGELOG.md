@@ -1,9 +1,28 @@
 # CHANGE LOG
 
+## v0.1.36
+
+### [Added]
+
+### [Changed]
+
+* ci/cd : on teste les exécutables `egpf` et `entrepot_gpf`.
+
+### [Fixed]
+
+* Cli : correction de la suppression via les nouvelles commandes.
+* Cli : correction de l'appel raccourcis.
+
+
 ## v0.1.35
 
 ### [Added]
 
+* Ajout d'un jeu de données raster d'exemple (`3_dataset_raster`).
+
+### [Changed]
+
+* Modification du nom du traitement raster dans le workflow exemple.
 * Possibilité d'appeler le programme via des executables : `egpf` (ou `entrepot_gpf`)
 * Possibilité d'observer les différentes vérifications sur une livraison (action `--check`)
 * Possibilités de supprimer des fichiers d'une la livraison (action `--deletes-files FILE [FILE]`)

@@ -53,7 +53,7 @@ class Configuration(TagInterface, CommentInterface, EventInterface, FullEditInte
         """liste les entités à supprimé lors d'une suppression en cascade de la Configuration en supprimant en cascade les offres liées (et uniquement les offres, pas les données stockées).
 
         Returns:
-            List[StoreEntity]: liste des entités qui seront supprimé
+            List[StoreEntity]: liste des entités qui seront supprimées
         """
         l_entities: List[StoreEntity] = []
         l_offering = self.api_list_offerings()

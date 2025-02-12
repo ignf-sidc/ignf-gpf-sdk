@@ -6,6 +6,8 @@
 
 ::: sdk_entrepot_gpf.workflow.resolver.DictResolver
 
+::: sdk_entrepot_gpf.workflow.resolver.DumbResolver
+
 ::: sdk_entrepot_gpf.workflow.resolver.FileResolver
 
 ::: sdk_entrepot_gpf.workflow.resolver.GlobalResolver

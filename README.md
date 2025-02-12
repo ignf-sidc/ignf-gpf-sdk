@@ -12,4 +12,4 @@ Vous pouvez ensuite l'[utiliser comme exécutable](https://geoplateforme.github.
 
 ## Développement
 
-Si vous souhaitez participer au développement du projet, consultez le [document détaillant comment procéder](https://geoplateforme.github.io/sdk-entrepot/development/).
+Si vous souhaitez participer au développement du projet, consultez le [document détaillant comment procéder](dhttps://geoplateforme.github.io/sdk-entrepot/development/).
