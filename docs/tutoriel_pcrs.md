@@ -141,9 +141,9 @@ Les commandes à lancer sont les suivantes :
 
 ```sh
 # partie génération de la pyramide
-python3 -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s pyramide --param producteur $votre_chantier_PCRS
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s pyramide --param producteur $votre_chantier_PCRS
 # partie publication
-python3 -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication --param producteur $votre_chantier_PCRS
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s publication --param producteur $votre_chantier_PCRS
 ```
 
 La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés et se terminer par :
@@ -159,3 +159,13 @@ INFO - Offre créée : Offering(id=********, layer_name=$votre_chantier_PCRS)
 ```
 
 Vous pouvez maintenant retrouver vos données dans cartes.gouv (https://cartes.gouv.fr/entrepot/$id_datastore/donnees/$votre_chantier_PCRS) ou les visionner dans un SIG comme QGIS en renseignant les urls des GetCapabilities des services ([WMTS](https://data.geopf.fr/wmts?service=WMTS&request=GetCapabilities) et [WMSRaster](https://data.geopf.fr/wms-r?)).
+
+## Suppression de la livraison
+
+Afin de ne pas surcharger l'espace de livraison et de ne pas atteindre vos quotas lors de livraisons ultérieurs, une fois que vous avez validez vos flux, vous pouvez supprimer la livraison avec la commande suivante :
+
+```sh
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s upload_delete --param producteur $votre_chantier_PCRS
+```
+
+Le programme doit vous indiquer que la suppression s'est bien passée `INFO - Suppression effectuée.`.
