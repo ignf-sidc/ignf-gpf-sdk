@@ -75,7 +75,7 @@ Il peut être nécessaire de rajouter certains paramètres pour que cela fonctio
 
 ## Fichier descripteur de livraison
 
-Vous allez devoir créer un fichier `PCRS_descriptor.json` à la racine de votre projet avec les informations suivantes :
+Vous allez devoir créer un fichier `PCRS_descriptor.jsonc` à la racine de votre projet avec les informations suivantes :
 
 ```text
 {

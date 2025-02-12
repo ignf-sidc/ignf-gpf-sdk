@@ -7,6 +7,7 @@ from tabulate import tabulate
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.io.Config import Config
+from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
 from sdk_entrepot_gpf.store import TYPE__ENTITY
 from sdk_entrepot_gpf.store.Annexe import Annexe
@@ -102,6 +103,12 @@ class Entities:
             bool: true si on doit afficher l'entité
         """
         b_return = True
+        # Gestion des actions communes
+        if getattr(self.args, "delete", False) is True:
+            assert isinstance(o_entity, Upload)
+            Entities.action_entity_delete(o_entity, self.args.cascade, self.args.force, self.datastore)
+            b_return = False
+
         # Gestion des actions liées aux Livraisons
         if getattr(self.args, "open", False) is True:
             assert isinstance(o_entity, Upload)
@@ -145,6 +152,27 @@ class Entities:
             b_return = False
 
         return b_return
+
+    @staticmethod
+    def action_entity_delete(entity: StoreEntity, cascade: bool, force: bool, datastore: Optional[str]) -> None:
+        """Suppression de l'entité indiquée, éventuellement en cascade.
+
+        Args:
+            entity (StoreEntity): entité à gérer
+            cascade (bool): est-ce qu'il faut supprimer en cascade
+            force (bool): est-ce qu'il faut demander confirmation
+            datastore (Optional[str]): datastore à considérer
+        """
+        # création du workflow pour l'action de suppression
+        d_action = {
+            "type": "delete-entity",
+            "entity_type": entity.entity_name(),
+            "entity_id": entity.id,
+            "cascade": cascade,
+            "confirm": not force,
+        }
+        o_action_delete = DeleteAction("contexte", d_action)
+        o_action_delete.run(datastore)
 
     @staticmethod
     def action_endpoint_publish_metadata(endpoint: Endpoint, l_metadata: List[str], datastore: Optional[str]) -> None:
@@ -385,12 +413,16 @@ class Entities:
             l_epilog.append(f"""    * afficher le détail d'une entité : {o_entity.entity_name()} ID""")
             l_epilog.append("""    * effectuer une ACTION sur une entité :""")
             l_epilog.append(f"""        - suppression : {o_entity.entity_name()} ID --delete""")
+            o_sub_parser.add_argument("--delete", action="store_true", help="Suppression de l'entité")
+            l_epilog.append(f"""        - suppression en cascade : {o_entity.entity_name()} ID --delete --cascade""")
+            o_sub_parser.add_argument("--cascade", action="store_true", help="Suppression en cascade")
             l_epilog.append(f"""        - suppression sans confirmation : {o_entity.entity_name()} ID --delete --force""")
+            o_sub_parser.add_argument("--force", action="store_true", help="Suppression(s) sans confirmation")
 
             if o_entity == Annexe:
                 l_epilog.append(f"""    * publication / dépublication : `{o_entity.entity_name()} ID [--publish|--unpublish]`""")
-                o_sub_parser.add_argument("--publish", action="store_true", help="Publication de l'annexe (uniquement avec --id)")
-                o_sub_parser.add_argument("--unpublish", action="store_true", help="Dépublication de l'annexe (uniquement avec --id)")
+                o_sub_parser.add_argument("--publish", action="store_true", help="Publication de l'annexe")
+                o_sub_parser.add_argument("--unpublish", action="store_true", help="Dépublication de l'annexe")
                 l_epilog.append(f"""    * publication par label : `{o_entity.entity_name()} --publish-by-label label1,label2`""")
                 o_sub_parser.add_argument("--publish-by-label", type=str, default=None, help="Publication des annexes portant les labels donnés (ex: label1,label2)")
                 l_epilog.append(f"""    * dépublication par label : `{o_entity.entity_name()} --unpublish-by-label label1,label2`""")
