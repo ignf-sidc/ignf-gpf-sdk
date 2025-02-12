@@ -13,7 +13,7 @@ class Dataset:
         __upload_infos (Dict[str, str]): Informations permettant de créer la livraison
         __comments (List[str]): Commentaires à ajouter à la livraison
         __tags (Dict[str, str]): Tags à ajouter à la livraison
-        __data_files (List[Path]): Liste des fichiers de donnée à importer sur l'entrepôt.
+        __data_files (List[Path]): Liste des fichiers de données à importer sur l'entrepôt.
         __md5_files (List[Path]): Liste des fichiers md5 à importer sur l'entrepôt.
         __root_dir (Path): Chemin racine du dataset (absolu ou relatif ?)
     """
@@ -23,7 +23,7 @@ class Dataset:
 
         Args:
             dataset (Dict[Any, Any]): dataset tel que dans le fichier descriptif de livraison
-            p_root_dir (Path): Chemin racine à partir duquel sont défini les data_dirs
+            p_root_dir (Path): Chemin racine à partir duquel sont définis les data_dirs
         """
         # Définition des attributs
         self.__data_dirs: List[Path] = [Path(i) for i in dataset["data_dirs"]]  # Chemins relatifs

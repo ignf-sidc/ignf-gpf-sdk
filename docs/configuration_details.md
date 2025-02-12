@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/configuration_details/
+-->
+
 # La configuration en détails
 
 Comme indiqué dans la page précédente, la majorité de la configuration est déjà définie et n'a pas besoin d'être modifiée à priori.
@@ -49,7 +58,7 @@ La troisième section concerne la connexion à l'entrepôt.
 | `nb_attempts`          | int  | 5              | Nombre de requêtes à tenter en cas d'erreur avant de lever une erreur. |
 | `sec_between_attempt`  | int  | 1              | Délai à attendre entre deux requêtes.                           |
 | `nb_limit`             | int  | 10             | Nombre d'éléments à récupérer lors des requêtes de listing d'entités. |
-| `regex_content_range`  | int  | `(?P<i_min>[0-9]+)-(?P<i_max>[0-9]+)/(?P<len>[0-9]+)` | Regex pour parser la méta-donnée content-range des réponses API. |
+| `regex_content_range`  | int  | `(?P<i_min>[0-9]+)-(?P<i_max>[0-9]+)/(?P<len>[0-9]+)` | Regex pour parser la métadonnée content-range des réponses API. |
 | `regex_entity_id`  | int  | `(?P<id>[0-9a-z]{8}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{12})` | Regex des ids des entités API. |
 
 ## Section `routing`
@@ -63,10 +72,10 @@ Chaque route permet de faire une action via l'API. Tous ces paramètres n'ont à
 | **Routes concernant l'entité User** {: colspan=4 } | &#8288 {: .dn }| &#8288 {: .dn }| &#8288 {: .dn }           |
 | `user_get`                           | str  | `${store_api:root_url}/users/me`                        | Route pour récupérer les informations de l'utilisateur authentifié. |
 | **Routes concernant l'entité Datastore** {: colspan=4 } | &#8288 {: .dn }| &#8288 {: .dn }| &#8288 {: .dn }      |
-| `datastore_get`                      | str  | `${store_api:root_datastore}`                           | Route pour récupérer les information d'un entrepôt (`datastore`). |
+| `datastore_get`                      | str  | `${store_api:root_datastore}`                           | Route pour récupérer les informations d'un entrepôt (`datastore`). |
 | **Routes concernant l'entité Upload** {: colspan=4 } | &#8288 {: .dn }| &#8288 {: .dn }| &#8288 {: .dn }         |
 | `upload_list`                        | str  | `${store_api:root_datastore}/uploads`                   | Route pour lister les livraisons (`uploads`) associées à un entrepôt. |
-| `upload_create`                      | str  | `${routing:upload_list}`                                | Route pour créer une nouvelle livraison associé à un entrepôt. |
+| `upload_create`                      | str  | `${routing:upload_list}`                                | Route pour créer une nouvelle livraison associée à un entrepôt. |
 | `upload_get`                         | str  | `${routing:upload_list}/{upload}`                       | Route pour récupérer le détail d'une livraison. |
 | `upload_delete`                      | str  | `${routing:upload_list}/{upload}`                       | Route pour supprimer une livraison. |
 | `upload_add_tags`                    | str  | `${upload_get}/tags`                                    | Route pour ajouter/modifier les étiquette(s) d'une livraison. |
@@ -141,13 +150,13 @@ Chaque route permet de faire une action via l'API. Tous ces paramètres n'ont à
 | `check_execution_delete`             | str  | `${routing:check_execution_list}/{check_execution}`     | todo |
 | `check_execution_logs`               | str  | `${routing:check_execution_get}/logs`                   | todo |
 | **Routes concernant l'entité Static** {: colspan=4 } | &#8288 {: .dn }| &#8288 {: .dn }| &#8288 {: .dn } |
-| `static_list`                          | str  | `${store_api:root_datastore}/statics`                  | Liste des fichiers statiques |
-| `static_get`                           | str  | `${routing:static_list}/{static}`                      | Détaille d'un fichier static |
-| `static_upload`                        | str  | `${routing:static_list}/{static}`                      | Téléversement d'un fichier static |
-| `static_delete`                        | str  | `${routing:static_list}/{static}`                      | Suppression d'une fichier static |
-| `static_re_upload`                     | str  | `${routing:static_list}/{static}`                      | Remplacement du fichier l'fichier static |
-| `static_partial_edit`                  | str  | `${routing:static_list}/{static}`                      | Édition d'es informations d'un fichier static (hors fichier) |
-| `static_download`                      | str  | `${routing:static_get}/file`                           | Téléchargement d'un fichier static |
+| `static_list`                          | str  | `${store_api:root_datastore}/statics`                  | Liste des Fichiers statiques |
+| `static_get`                           | str  | `${routing:static_list}/{static}`                      | Détail d'un Fichier statique |
+| `static_upload`                        | str  | `${routing:static_list}/{static}`                      | Téléversement d'un Fichier statique |
+| `static_delete`                        | str  | `${routing:static_list}/{static}`                      | Suppression d'un Fichier statique |
+| `static_re_upload`                     | str  | `${routing:static_list}/{static}`                      | Remplacement du fichier d'un Fichier statique |
+| `static_partial_edit`                  | str  | `${routing:static_list}/{static}`                      | Édition des informations d'un Fichier statique (hors fichier) |
+| `static_download`                      | str  | `${routing:static_get}/file`                           | Téléchargement du fichier d'un Fichier statique |
 | **Routes concernant l'entité Annexe** {: colspan=4 } | &#8288 {: .dn }| &#8288 {: .dn }| &#8288 {: .dn } |
 | `annexe_list`                           | str  | `{store_api:root_datastore}/annexes`                  | Liste des annexes |
 | `annexe_get`                            | str  | `{routing:annexe_list}/{annexe}`                      | Détails d'une annexe |
@@ -158,11 +167,10 @@ Chaque route permet de faire une action via l'API. Tous ces paramètres n'ont à
 | `annexe_download`                       | str  | `{routing:annexe_get}/file`                           | Téléchargement d'un fichier d'annexe |
 | `annexe_publish_by_label`               | str  | `{routing:annexe_list}/publication`                   | Publication des annexes par labels |
 | `annexe_unpublish_by_label`             | str  | `{routing:annexe_list}/unpublication`                 | Dépublication des annexes par labels |
-
 | **Routes concernant l'entité Tms** {: colspan=4 } | &#8288 {: .dn }| &#8288 {: .dn }| &#8288 {: .dn } |
-| `tms_list`                              | str  | `{store_api:root_url}/statics/tms`                    | Liste des tms disponible pour tout la GPF |
-| `tms_get`                               | str  | `{routing:tms_list}/{tms}`                            | Détails d'un tms |
-| `tms_download`                          | str  | `{routing:tms_get}/file`                              | Téléchargement d'un tms |
+| `tms_list`                              | str  | `{store_api:root_url}/statics/tms`                    | Liste des TMS disponibles pour tout la GPF |
+| `tms_get`                               | str  | `{routing:tms_list}/{tms}`                            | Détails d'un TMS |
+| `tms_download`                          | str  | `{routing:tms_get}/file`                              | Téléchargement du fichier d'un TMS |
 
 ## Section `upload`
 
@@ -172,14 +180,14 @@ Cette section concerne les paramètres de gestion des livraisons (`upload`).
 | -------------------------------- | ---- | ----------- | --------------------------------------------------------------- |
 | `uniqueness_constraint_infos`    | str  | `name`      | Attributs à considérer pour tester l'unicité d'une livraison.   |
 | `uniqueness_constraint_tags`     | str  | `empty str` | Étiquettes à considérer pour tester l'unicité d'une livraison.  |
-| `behavior_if_exists`             | str  | `STOP`      | Comportement à adopter si la livraison à créer existe déjà (`DELETE` : on la supprime et on la recrée, `CONTINUE` : on reprendre le téléversement, `STOP` : on lève une exception). |
+| `behavior_if_exists`             | str  | `STOP`      | Comportement à adopter si la livraison à créer existe déjà (`DELETE` : on la supprime et on la recrée, `CONTINUE` : on reprend le téléversement, `STOP` : on lève une exception). |
 | `md5_pattern`                    | str  | `{md5_key}  data/{file_path}` | Modèle des fichiers de clés md5 à livrer.     |
 | `push_data_file_key`             | int  | `filename`  | Nom de la clé pour téléverser des fichiers de données.          |
 | `push_md5_file_key`              | int  | `filename`  | Nom de la clé pour téléverser des fichiers de clé md5.          |
 | `nb_sec_between_check_updates`   | int  | 10          | Nombre de secondes entre deux mises à jour du statut de la livraison lors des vérifications. |
 | `check_message_pattern`          | int  | `Vérifications : {nb_asked} en attente, {nb_in_progress} en cours, {nb_failed} en échec, {nb_passed} en succès` | Modèle du message à afficher pendant la vérification d'une livraison. |
-| `open_status`                    | int  | `OPEN`      | Constante représentant le statut ouvert d'une livraison.        |
-| `close_status`                   | int  | `CLOSE`     | Constante représentant le statut fermer d'une livraison.        |
+| `open_status`                    | int  | `OPEN`      | Constante représentant le statut "ouvert" d'une livraison.        |
+| `close_status`                   | int  | `CLOSE`     | Constante représentant le statut "fermé" d'une livraison.        |
 
 ## Section `processing_execution`
 
@@ -260,7 +268,7 @@ par les regex configurées dans les options `filter_infos` et `filter_tags`.
 
 ### Option `store_entity_regex`
 
-Configuration de la regex de résolution une entité.
+Configuration de la regex de résolution d'une entité.
 
 * Type : str
 * Valeur par défaut : `(?P<entity_type>(upload|stored_data|processing_execution|offering|processing|configuration|endpoint))\.(?P<selected_field_type>(tags|infos))\.(?P<selected_field>\w*)${filter}`

@@ -13,7 +13,7 @@ class DownloadInterface(StoreEntity):
 
         Args:
             file_path: chemin local où enregistrer le fichier
-            datastore (Optional[str]): id du datastore à utiliser. Si None, le datastore sera récupéré dans configuration. Defaults to None.
+            datastore (Optional[str]): id du datastore à utiliser. Si None, le datastore sera récupéré dans la configuration. Defaults to None.
         """
         if not datastore:
             datastore = self.datastore

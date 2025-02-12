@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/upload_descriptor/
+-->
+
 # Fichier descripteur de livraison
 
 Le fichier descripteur de livraison est un fichier au format JSON permettant de décrire les données à livrer et les livraisons à créer.
@@ -121,6 +130,6 @@ Voici le fichier descripteur de livraison que l'on pourrait utiliser :
 }
 ```
 
-## Envoie des données
+## Envoi des données
 
 Une fois le fichier descripteur de livraison créé, vous pouvez [envoyer les données](comme-executable.md#envoyer-des-donnees) sur la Géoplateforme.
