@@ -588,6 +588,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#suppression-de-la-livraison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppression de la livraison
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -820,6 +829,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#suppression-de-la-livraison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppression de la livraison
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -920,7 +938,8 @@ Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entr
 <a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>    ]
 <a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>}
 </code></pre></div>
-<p>Il faut remplacer 3 fois dans le fichier <code>$votre_chantier_PCRS</code> par une valeur sous la forme <code>PCRS_chantier_********</code> (ex: PCRS_chantier_HDF_A_2022). Cette valeur vous permettra de retrouver votre fiche de données sur cartes.gouv.fr. Vous pouvez également compléter le fichier avec une description et éventuellement un commentaire.</p>
+<p>Il faut remplacer 3 fois dans le fichier <code>$votre_chantier_PCRS</code> par une valeur sous la forme <code>PCRS_chantier_********</code> (ex: PCRS_chantier_D046_2022). Cette valeur vous permettra de retrouver votre fiche de données sur cartes.gouv.fr. Vous pouvez également compléter le fichier avec une description et éventuellement un commentaire.</p>
+<p><em><strong>ATTENTION</strong> Si vous utilisez le jeu de données test pour l'expérimentation, la valeur <code>$votre_chantier_PCRS</code> est également utilisée pour définir le nom des couches. Comme il y a unicité de nom pour les couches sur les services publics, nous vous encourageons à enrichir cette valeur pour qu'elle soit différente d'un testeur à l'autre (ex: PCRS_chantier_D046_2022_test_PACA).</em></p>
 <p>Vous déposerez vos données dans un répertoire du même nom <code>$votre_chantier_PCRS</code> à la racine de votre projet comme suit :</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>$votre_chantier_PCRS/
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── dalle_1.tif
@@ -941,9 +960,9 @@ Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entr
 <p>Le workflow <code>PCRS.jsonc</code> est composé de 2 étapes (une pour la génération de la pyramide et une pour la publication des flux). Il faudra lancer une commande pour chacune d'elles.</p>
 <p>Les commandes à lancer sont les suivantes :</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># partie génération de la pyramide</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>generic_raster.jsonc<span class="w"> </span>-s<span class="w"> </span>pyramide<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>pyramide<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># partie publication</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>generic_raster.jsonc<span class="w"> </span>-s<span class="w"> </span>publication<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>publication<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
 </code></pre></div>
 <p>La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés et se terminer par :</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>INFO - Exécution de l&#39;action &#39;pyramide-0&#39; : terminée
@@ -952,6 +971,11 @@ Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entr
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>INFO - Offre créée : Offering(id=********, layer_name=$votre_chantier_PCRS)
 </code></pre></div>
 <p>Vous pouvez maintenant retrouver vos données dans cartes.gouv (https://cartes.gouv.fr/entrepot/$id_datastore/donnees/$votre_chantier_PCRS) ou les visionner dans un SIG comme QGIS en renseignant les urls des GetCapabilities des services (<a href="https://data.geopf.fr/wmts?service=WMTS&amp;request=GetCapabilities">WMTS</a> et <a href="https://data.geopf.fr/wms-r?">WMSRaster</a>).</p>
+<h2 id="suppression-de-la-livraison">Suppression de la livraison<a class="headerlink" href="#suppression-de-la-livraison" title="Permanent link">#</a></h2>
+<p>Afin de ne pas surcharger l'espace de livraison et de ne pas atteindre vos quotas lors de livraisons ultérieures, une fois que vous avez validez vos flux, vous pouvez supprimer la livraison avec la commande suivante :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>upload_delete<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
+</code></pre></div>
+<p>Le programme doit vous indiquer que la suppression s'est bien passée <code>INFO - Suppression effectuée.</code>.</p>
 
 
 
