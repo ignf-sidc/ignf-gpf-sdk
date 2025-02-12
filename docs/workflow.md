@@ -382,7 +382,7 @@ Possibilité de supprimer des entités de type : `upload`, `stored_data`, `confi
     // Ok si non trouvée ? par défaut à true
     "not_found_ok": true,
     // Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
-    "if_multi": "first|all|error",
+    "if_multi": "first|all|error"
 }
 ```
 
