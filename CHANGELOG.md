@@ -10,6 +10,9 @@
 
 ### [Fixed]
 
+* Cli : correction de la suppression via les nouvelles commandes.
+* Cli : correction de l'appel raccourcis.
+
 
 ## v0.1.35
 
