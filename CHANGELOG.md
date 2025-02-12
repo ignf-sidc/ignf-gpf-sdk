@@ -6,7 +6,7 @@
 
 ### [Changed]
 
-### [Changed]
+* ci/cd : on teste les exécutables `egpf` et `entrepot_gpf`.
 
 ### [Fixed]
 

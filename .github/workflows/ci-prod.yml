@@ -16,7 +16,9 @@ jobs:
         python-version: 3.8
     - name: Install dependencies
       run: |
-        pip install --upgrade pip setuptools flit
+        pip install --upgrade pip
+        pip install --upgrade setuptools
+        pip install --upgrade flit
         flit install --extras test
     - name: "Analyse code with black"
       run: black --diff --check sdk_entrepot_gpf tests
@@ -28,6 +30,10 @@ jobs:
       run: mypy --strict sdk_entrepot_gpf tests
     - name: "Run unit tests"
       run: coverage run -m unittest discover -b -p *TestCase.py
+    - name: "Run egpf"
+      run: egpf --version
+    - name: "Run entrepot_gpf"
+      run: entrepot_gpf --version
 
   publish:
     name: Publish to PyPi
