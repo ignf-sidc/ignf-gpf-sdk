@@ -12,6 +12,7 @@ class User(StoreEntity):
 
     _entity_name = "user"
     _entity_title = "utilisateur"
+    _entity_titles = "utilisateurs"
 
     @classmethod
     def api_create(cls: Type[T], data: Optional[Dict[str, Any]], route_params: Optional[Dict[str, Any]] = None) -> T:

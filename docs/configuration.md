@@ -1,7 +1,16 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/configuration/
+-->
+
 # Configuration
 
 Ce module Python vient avec une configuration par défaut vous permettant de définir un minimum de paramètres.
-Vous pouvez cependant écraser chaque paramètre par défaut en redéfinissant sa valeur dans un nouveau fichier de configuration.
+Vous pouvez cependant surcharger chaque paramètre par défaut en redéfinissant sa valeur dans un nouveau fichier de configuration.
 
 Certains paramètres (comme vos identifiants d'API) **doivent** être redéfinis.
 
@@ -24,15 +33,16 @@ Nous pouvons faire référence à la `valeur_1_1` par l'intitulé `section_1.opt
 
 ## Votre fichier de configuration
 
-Créez un fichier `config.ini` à la racine du projet.
+Créez un fichier `config.ini` à la racine du projet ou dans votre dossier de travail.
 
 Il faudra à minima renseigner vos identifiants API (section `store_authentification`) et éventuellement l'entrepôt principal (*datastore*) sur lequel vous allez travailler (section `store_api`).
 
 Voici un exemple de ce que cela peut donner :
 
 ```ini
+# Informations pour l'authentification
 [store_authentification]
-# Information pourra accéder au d'authentification. Normalement déjà défini dans sdk_entrepot_gpf/_conf/default.ini
+# Si besoin, normalement déjà défini dans sdk_entrepot_gpf/_conf/default.ini
 client_id=gpf-warehouse
 client_secret=BK2G7Vvkn7UDc8cV7edbCnHdYminWVw2
 # Votre login
@@ -40,6 +50,7 @@ login=LOGIN
 # Votre mot de passe
 password=PASSWORD
 
+# Informations pour l'API
 [store_api]
 # L'identifiant de votre entrepôt
 datastore=DATASTORE_ID_TO_MODIFY
@@ -51,7 +62,7 @@ Explications sur les paramètres :
   * `client_id` et `client_secret` : informations pour récupérer le token d'authentification, valeurs récupérées depuis le Swagger de l'API de la Géoplateforme au moment de l'authentification. Ces valeurs sont normalement gérées dans la configuration par défaut `sdk_entrepot_gpf/_conf/default.ini`.
   * `login` : votre nom d'utilisateur ;
   * `password` : votre mot de passe ;
-* `store_api` : paramètres concernant votre Entrepôt sur la Géoplateforme :
+* `store_api` : paramètres concernant l'API Entrepôt de la Géoplateforme :
   * `datastore` : l'identifiant du datastore principal de travail (optionnel, voir ci-dessous).
 
 Dans la configuration, vous pouvez indiquer l'identifiant du datastore à utiliser. Celui-ci est lié à la communauté à laquelle vous appartenez.
@@ -85,8 +96,9 @@ Vous êtes membre de 1 communauté(s) :
 
 Dans cet exemple, l'identifiant du datastore à utiliser est `33333333333333333333`.
 
-> [!WARNING]
-> Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.
+
+???+ warning "Attention"
+    Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.
 
 ## Utilisations
 

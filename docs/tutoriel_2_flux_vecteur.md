@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/tutoriel_2_flux_vecteur/
+-->
+
 # Tutoriel 2 : publier un flux vecteur
 
 La Géoplateforme permet d'héberger des flux vecteur pour permettre à vos utilisateurs de les télécharger/utiliser.
@@ -17,7 +26,7 @@ Le jeu de données « 1_dataset_vector » contient des données vecteur à tél�
 Récupérez les données en lançant la commande :
 
 ```sh
-python -m sdk_entrepot_gpf dataset -n 1_dataset_vector
+python -m sdk_entrepot_gpf example dataset 1_dataset_vector
 ```
 
 Observez la structure des données :
@@ -57,7 +66,7 @@ Chaque dataset contient :
 Livrer les données en indiquant le chemin du fichier descripteur au programme :
 
 ```sh
-python -m sdk_entrepot_gpf upload -f 1_dataset_vector/upload_descriptor.json
+python -m sdk_entrepot_gpf delivery 1_dataset_vector/upload_descriptor.json
 ```
 
 Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérifications côté API avant de conclure que tout est bon.
@@ -71,7 +80,7 @@ Ces étapes sont décrites grâce à un workflow.
 Vous pouvez récupérer un workflow d'exemple grâce à la commande suivante :
 
 ```sh
-python -m sdk_entrepot_gpf workflow -n generic_vecteur.jsonc
+python -m sdk_entrepot_gpf example workflow generic_vecteur.jsonc
 ```
 
 Ouvrez le fichier. Vous trouverez plus de détails dans la [documentation sur les workflows](workflow.md), mais vous pouvez dès à présent voir que le workflow est composé de 4 étapes. Il faudra lancer une commande pour chacune d'elles.
@@ -94,7 +103,7 @@ flowchart TD
 
 ## fichier statique
 
-Pour publier les données en WMS il faut appliquer un style aux données. La partie versement d'un style ne peut pas encore se faire avec `sdk_entrepot_gpf`. Il faut donc ajouté le fichier de style à la mains avec swagger, Insomnia ou en ligne de commande. Tutoriel [ICI](https://gpf-beta.ign.fr/geoplateforme/tutoriels/vecteur/gestion_statique/)
+Pour publier les données en WMS il faut appliquer un style aux données. La partie versement d'un style ne peut pas encore se faire avec `sdk_entrepot_gpf`. Il faut donc ajouter le fichier de style à la main avec swagger, Insomnia ou en ligne de commande. Tutoriel [ICI](https://gpf-beta.ign.fr/geoplateforme/tutoriels/vecteur/gestion_statique/)
 
 Un fichier statique ([CANTON_style.sld](https://raw.githubusercontent.com/Geoplateforme/sdk_entrepot/prod/sdk_entrepot_gpf/_data/datasets/1_dataset_vector/CANTON_style.sld)) pour le tuto est disponible dans le jeu de données test. Pour l'utiliser avec le workflow sans modification il faut le livrer avec `"name": "style_canton"`.
 Si vous modifiez le nom du fichier de style il faut modifier dans le workflow la partie "configuration-wms".

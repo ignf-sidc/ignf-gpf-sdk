@@ -92,7 +92,7 @@
                         },
                         "body_parameters": {
                             // Endpoint de type WFS
-                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=WFS)]}",
+                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(technical_name=gpf-geoserver-wfs)]}",
                             "visibility": "PRIVATE",
                             "open": true
                         }
@@ -155,8 +155,8 @@
                             "configuration": "{store_entity.configuration.infos._id [INFOS(name={user.last_name}__vecteur_wms_bdd)]}"
                         },
                         "body_parameters": {
-                            // Endpoint de type WMS
-                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=WMS-VECTOR)]}",
+                            // Endpoint de type WMS-V
+                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(technical_name=gpf-geoserver-wms-v)]}",
                             "visibility": "PRIVATE",
                             "open": true
                         }
@@ -274,7 +274,7 @@
                         },
                         "body_parameters": {
                             // Endpoint de type WMTS-TMS (id trouvé en récupérant les informations de l'entrepôt)
-                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=WMTS-TMS)]}",
+                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(technical_name=gpf-rok4-server-wmts-tms)]}",
                             "visibility": "PRIVATE",
                             "open": true
                         }

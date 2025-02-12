@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/tutoriel_pcrs/
+-->
+
 # Tutoriel : publier un flux PCRS
 
 La Géoplateforme permet d'héberger et diffuser vos données PCRS raster/image (Plan Corps de Rue Simplifié).
@@ -7,7 +16,7 @@ Pour cela, vous devez téléverser des dalles « PCRS » qui permettront de cré
 Voici les prérequis pour suivre ce tutoriel :
 
 * vous devez disposer d'un compte Géoplateforme (création en suivant ce [tuto](https://geoplateforme.github.io/tutoriels/production/controle-des-acces/entrepot/creation_compte/) ou sur [cartes.gouv](https://cartes.gouv.fr/))
-* vous devez disposer d'un datastore (pour sa création, vous pouvez contacter geoplateforme@ign.fr ou faire une demande [ici](https://cartes.gouv.fr/entrepot/demande-de-creation) en précisant votre établissement, qu'il s'agit d'une diffusion partenaire PCRS et votre idenditifiant utilisateur que vous trouver sur votre [espace](https://cartes.gouv.fr/mon-compte))
+* vous devez disposer d'un datastore (pour sa création, vous pouvez contacter geoplateforme@ign.fr ou faire une demande [ici](https://cartes.gouv.fr/entrepot/demande-de-creation) en précisant votre établissement, qu'il s'agit d'une diffusion partenaire PCRS et votre identifiant utilisateur que vous trouver sur votre [espace](https://cartes.gouv.fr/mon-compte))
 * vous devez avoir installé python et le module [SDK](index.md)
 
 Vous allez avoir besoin de 3 fichiers pour réaliser le tutoriel dont le contenu va être détaillé :
@@ -66,7 +75,7 @@ Il peut être nécessaire de rajouter certains paramètres pour que cela fonctio
 
 ## Fichier descripteur de livraison
 
-Vous allez devoir créer un fichier `PCRS_descriptor.jsonc` à la racine de votre projet avec les inforamtions suivantes :
+Vous allez devoir créer un fichier `PCRS_descriptor.jsonc` à la racine de votre projet avec les informations suivantes :
 
 ```text
 {
@@ -109,7 +118,7 @@ $votre_chantier_PCRS/
 Vous pouvez maintenant effectuer la livraison en lançant la commande depuis la racine de votre projet ou en indiquant le chemin du fichier descripteur au programme :
 
 ```sh
-python3 -m sdk_entrepot_gpf upload -f ./PCRS_descriptor.jsonc
+python3 -m sdk_entrepot_gpf delivery PCRS_descriptor.jsonc
 ```
 
 Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérification côté API avant de conclure que tout est bon `INFO - BILAN : les 1 livraisons se sont bien passées` (cela peut être long selon la taille de la livraison et la qualité de votre connexion, ne fermez pas votre terminal pendant ce temps).
@@ -123,7 +132,7 @@ Ces étapes sont décrites grâces à un workflow.
 Vous pouvez récupérer le template du workflow grâce à la commande suivante :
 
 ```sh
-python3 -m sdk_entrepot_gpf workflow -n PCRS.jsonc
+python3 -m sdk_entrepot_gpf example workflow PCRS.jsonc
 ```
 
 Pour plus de détails, consultez la [documentation sur les workflows](workflow.md).
@@ -134,9 +143,9 @@ Les commandes à lancer sont les suivantes :
 
 ```sh
 # partie génération de la pyramide
-python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s pyramide --param producteur=$votre_chantier_PCRS
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s pyramide --param producteur $votre_chantier_PCRS
 # partie publication
-python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s publication --param producteur=$votre_chantier_PCRS
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s publication --param producteur $votre_chantier_PCRS
 ```
 
 La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés et se terminer par :

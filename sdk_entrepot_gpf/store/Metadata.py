@@ -9,7 +9,7 @@ from sdk_entrepot_gpf.store.interface.CreatedByUploadFileInterface import Create
 
 
 class Metadata(CreatedByUploadFileInterface, DownloadInterface, PartialEditInterface, ReUploadFileInterface, StoreEntity):
-    """Classe Python représentant l'entité Metadonnées (metadata).
+    """Classe Python représentant l'entité Métadonnées (metadata).
 
     Cette classe permet d'effectuer les actions spécifiques liées aux métadonnées : création,
     remplacement, mise à jour, suppression.
@@ -17,13 +17,14 @@ class Metadata(CreatedByUploadFileInterface, DownloadInterface, PartialEditInter
 
     _entity_name = "metadata"
     _entity_title = "métadonnée"
+    _entity_titles = "métadonnées"
 
     @staticmethod
     def publish(file_identifiers: List[str], endpoint_id: str, datastore: Optional[str] = None) -> None:
         """Publie des métadonnées selon leurs fileIdentifier sur un point d'accès METADATA
 
         Args:
-            fileIdentifier (List[str]): liste des fileIdentifier des métadonnées à publier
+            file_identifiers (List[str]): liste des fileIdentifier des métadonnées à publier
             endpoint_id (str): id du endpoint METADATA
             datastore (Optional[str], optional): Identifiant du datastore
         """
@@ -44,7 +45,7 @@ class Metadata(CreatedByUploadFileInterface, DownloadInterface, PartialEditInter
         """Dépublication des métadonnées selon leurs fileIdentifier sur un point d'accès METADATA
 
         Args:
-            fileIdentifier (List[str]): liste des fileIdentifier des métadonnées à publier
+            file_identifiers (List[str]): liste des fileIdentifier des métadonnées à publier
             endpoint_id (str): id du endpoint METADATA
             datastore (Optional[str], optional): Identifiant du datastore
         """

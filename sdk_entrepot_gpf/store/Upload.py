@@ -21,6 +21,8 @@ class Upload(TagInterface, CommentInterface, SharingInterface, EventInterface, P
 
     _entity_name = "upload"
     _entity_title = "livraison"
+    _entity_titles = "livraisons"
+    _entity_fields = "name,type,visibility,srs,status,size"
 
     STATUS_CREATED = "CREATED"
     STATUS_OPEN = "OPEN"
@@ -32,7 +34,7 @@ class Upload(TagInterface, CommentInterface, SharingInterface, EventInterface, P
     STATUS_DELETED = "DELETED"
 
     def api_push_data_file(self, file_path: Path, api_path: str) -> None:
-        """Téléverse via l'API un fichier de donnée associé à cette Livraison.
+        """Téléverse via l'API un fichier de données associé à cette Livraison.
 
         Args:
             file_path: chemin local vers le fichier à envoyer
@@ -54,7 +56,7 @@ class Upload(TagInterface, CommentInterface, SharingInterface, EventInterface, P
         )
 
     def api_delete_data_file(self, api_path: str) -> None:
-        """Supprime un fichier de donnée de la Livraison.
+        """Supprime un fichier de données de la Livraison.
 
         Args:
             api_path: chemin distant vers le fichier à supprimer

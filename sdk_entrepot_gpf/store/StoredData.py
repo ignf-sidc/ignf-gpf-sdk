@@ -14,6 +14,8 @@ class StoredData(TagInterface, CommentInterface, SharingInterface, EventInterfac
 
     _entity_name = "stored_data"
     _entity_title = "donnée stockée"
+    _entity_titles = "données stockées"
+    _entity_fields = "name,type,visibility,srs,status"
 
     STATUS_CREATED = "CREATED"
     STATUS_GENERATING = "GENERATING"
@@ -23,7 +25,7 @@ class StoredData(TagInterface, CommentInterface, SharingInterface, EventInterfac
     STATUS_UNSTABLE = "UNSTABLE"
 
     def get_liste_deletable_cascade(self) -> List[StoreEntity]:
-        """liste les entités à supprimer lors d'une suppression en cascade des configuration liées et des offres liées à chaque configuration.
+        """liste les entités à supprimer lors d'une suppression en cascade des configurations liées et des offres liées à chaque configuration.
 
         Returns:
             List[StoreEntity]: liste des entités qui seront supprimées
