@@ -267,7 +267,7 @@ class StoreEntity(ABC):
         """liste les entités à supprimer lors d'une suppression en cascade
 
         Returns:
-            List[StoreEntity]: liste des entités qui seront supprimé
+            List[StoreEntity]: liste des entités qui seront supprimées
         """
         return [self]
 

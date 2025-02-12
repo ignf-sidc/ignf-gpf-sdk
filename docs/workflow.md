@@ -9,31 +9,31 @@ Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entr
 
 # Workflows
 
-Le fichier workflow est un fichier au format JSON permettant de décrire les actions à réaliser sur des données stockées où livrées.
+Le fichier workflow est un fichier au format JSON permettant de décrire les actions à réaliser sur des données stockées ou livrées.
 
 Certaines valeurs du workflow peuvent être complétées avec un système de résolution permettant notamment d'utiliser le nom des entités pour trouver leur ID. Pour plus d'informations consulter la [page dédiée au résolveurs](resolveurs.md).
 
 Les actions sont les suivantes :
 
-* lancer un traitement (càd créer une processing exécution) ;
-* configurer un géoservice (càd créer une configuration) ;
+* lancer un traitement (càd créer une `processing_execution`) ;
+* configurer un géoservice (càd créer une `configuration`) ;
 * publier un géoservice (càd créer une offering) ;
-* supprimer une entité de type upload, stored_data, configuration ou offering ;
-* modifier une entité de type upload, stored_data, configuration ou offering ;
-* Mettre à jour les used_data et la bbox d'une configuration
-* copier une configuration (création d'une nouvelle configuration en reprenant les paramètres non précisés de la précédente) ;
-* synchroniser une offre (mettre à jour avec la donnée stockée et une offering).
+* supprimer une entité (types gérés : `upload`, `stored_data`, `configuration` ou `offering`) ;
+* modifier une entité (types gérés : `upload`, `stored_data`, `configuration` ou `offering`) ;
+* mettre à jour les données stockées utilisées (càd les `used_data`) et la bbox d'une configuration
+* copier une configuration (création d'une nouvelle `configuration` en reprenant les paramètres non précisés de la précédente) ;
+* synchroniser une offre (mettre à jour une `offering` à partir d'une `stored_data`).
 
 ## Définition
 
 Le fichier doit contenir un dictionnaire `workflow`. Qui contient deux clefs :
 
-* `datastore`: (optionnel) uuid du datastore à utiliser pour le workflow.
-* `step`: (obligatoire) dictionnaire des étapes à lancer ;
-    * la clef sera le nom de l'étape qui servira à la lancer ;
-    * sa valeur est un dictionnaire décriant l'étape :
-        * `actions` : (obligatoire) listes des actions à lancer, la liste sera exécutée dans l'ordre. Le dictionnaire décrivant l'action dépend du type d'action à lancer, la clef `type` permet de définir le type d'action à effectuer (description plus bas) ;
-        * `parents` : (obligatoire) liste des étapes devant précéder celle-ci. Pour une actions sans dépendances la liste doit être vide.
+* `datastore` : (optionnel) uuid du datastore à utiliser pour le workflow ;
+* `step` : (obligatoire) dictionnaire des étapes à lancer ;
+  * la clef sera le nom de l'étape qui servira à la lancer ;
+  * sa valeur est un dictionnaire décrivant l'étape :
+    * `actions` : (obligatoire) listes des actions à lancer, la liste sera exécutée dans l'ordre. Le dictionnaire décrivant l'action dépend du type d'action à lancer, la clef `type` permet de définir le type d'action à effectuer (description plus bas) ;
+    * `parents` : (obligatoire) liste des étapes devant précéder celle-ci. Pour une action sans dépendances la liste doit être vide.
 
 ce qui donne :
 
@@ -54,18 +54,20 @@ ce qui donne :
 }
 ```
 
-Ce workflow permet de lancé 2 étapes `etape 1` et `etape 2`.
+Ce workflow permet de lancer 2 étapes `etape 1` et `etape 2`.
 
-Les actions possibles sont les suivante :
+Les actions possibles sont les suivantes :
 
-* [Exécuter un traitement](Exécuter un traitement)
-* [Configurer un géoservice](Configurer un géoservice)
-* [Publier un géoservice](Publier un géoservice)
-* [Supprimer une entité](Supprimer une entité)
-* [Modifier une entité](Modifier une entité)
-* [Mettre à jour les used_data et la bbox d'une configuration](Mettre à jour les used_data et la bbox d'une configuration)
-* [Copier une configuration](Copier une configuration)
-* [Synchroniser une publication](Synchroniser une publication)
+* [Exécuter un traitement](#executer-un-traitement)
+* [Configurer un géoservice](#configurer-un-geoservice)
+* [Publier un géoservice](#publier-un-geoservice)
+* [Créer une permission](#creer-une-permission)
+* [Créer un accès](#creer-un-acces)
+* [Supprimer une ou des entité(s)](#supprimer-une-entite)
+* [Modifier une entité](#modifier-une-entite)
+* [Mettre à jour les used_data et la bbox d'une configuration](#mettre-a-jour-les-used_data-et-la-bbox-dune-configuration)
+* [Copier une configuration](#copier-une-configuration)
+* [Synchroniser une publication](#synchroniser-une-publication)
 
 ### Exécuter un traitement
 
@@ -112,13 +114,13 @@ Le détail d'un traitement est disponible ici : [/datastores/{datastore}/process
     * `east`*
     * `north`*
 * `used_data`*: liste de dictionnaires :
-    * `stored_data`*: Identifiant de la donnée stockée
-    * `relations`*: liste de dictionnaire décrivant la relation :
-        * `native_name`*: Nom de la table
-        * `public_name`: Nom public de la table
-        * `title`*: Titre
-        * `keywords`: Liste de mots clés (doivent être uniques)
-        * `abstract`*: Description
+  * `stored_data`*: identifiant de la donnée stockée
+  * `relations`*: liste de dictionnaires décrivant la relation :
+    * `native_name`*: nom de la table
+    * `public_name`: nom public de la table
+    * `title`*: titre
+    * `keywords`: liste de mots clés (doivent être uniques)
+    * `abstract`*: description
 
 #### WMTS-TMS
 
@@ -128,27 +130,27 @@ Le détail d'un traitement est disponible ici : [/datastores/{datastore}/process
     * `east`*
     * `north`*
 * `title`*: titre
-* `keywords`: Liste de mots clés (doivent être uniques)
-* `styles`: lists des identifiants des fichiers statiques de style Rok4
+* `keywords`: liste de mots clés (doivent être uniques)
+* `styles`: liste des identifiants des fichiers statiques de style Rok4
 * `used_data`*: liste de dictionnaire :
-    * `bottom_level`*:niveau minimum
-    * `top_level`*: niveau maximum
-    * `stored_data`*: Identifiant de la donnée stockée
-* `abstract`*: Description
-* `getfeatureinfo`: Dictionnaire décrivant la ressource cible du GetFeatureInfo. Une des structure suivante :
-    * avec la stored data, dictionnaire :
-        * `stored_data`*: Indique si on va utiliser directement la donnée stockée
-    * avec une url, dictionnaire :
-        * `server_url`* url utiliser pour le GetFeatureInfo
+  * `bottom_level`*: niveau minimum
+  * `top_level`*: niveau maximum
+  * `stored_data`*: identifiant de la donnée stockée
+* `abstract`*: description
+* `getfeatureinfo`: dictionnaire décrivant la ressource cible du GetFeatureInfo. Une des structures suivantes :
+  * avec la stored data, dictionnaire :
+    * `stored_data`*: indique si on va utiliser directement la donnée stockée
+  * avec une url, dictionnaire :
+    * `server_url`* url utilisée pour le GetFeatureInfo
 
 #### VECTOR-TMS
 
 * `used_data`*: liste de dictionnaires :
-    * `stored_data`*: Identifiant de la donnée stockée
-    * `relations`*: liste de dictionnaire décrivant la relation :
-        * `native_name`*: Nom de la table
-        * `public_name`: Nom public de la table
-        * `abstract`*: Description
+  * `stored_data`*: Identifiant de la donnée stockée
+  * `relations`*: liste de dictionnaires décrivant la relation :
+    * `native_name`*: Nom de la table
+    * `public_name`: Nom public de la table
+    * `abstract`*: Description
 
 #### WMS-VECTOR
 
@@ -161,11 +163,10 @@ Le détail d'un traitement est disponible ici : [/datastores/{datastore}/process
 * `keywords`: Liste de mots clés (doivent être uniques)
 * `abstract`*: Description
 * `used_data`*: liste de dictionnaire :
-    * `stored_data`*: Identifiant de la donnée stockée
-    * `relations`*: liste de dictionnaire décrivant la relation :
-        * `name`*: Nom de la table
-        * `style`*: uuid du statiques de style
-        * `ftl`: uuid de ?????
+  * `stored_data`*: Identifiant de la donnée stockée
+  * `relations`*: liste de dictionnaires décrivant la relation :
+    * `name`*: Nom de la table
+    * `style`*: uuid du statiques de style
 
 #### WMS-RASTER
 
@@ -176,20 +177,20 @@ Le détail d'un traitement est disponible ici : [/datastores/{datastore}/process
     * `north`*
 * `title`*: titre
 * `keywords`: Liste de mots clés (doivent être uniques)
-* `styles`: lists des identifiants des fichiers statiques de style Rok4
+* `styles`: liste des identifiants des fichiers statiques de style Rok4
 * `used_data`*: liste de dictionnaire :
-    * `bottom_level`*:niveau minimum
-    * `top_level`*: niveau maximum
-    * `stored_data`*: Identifiant de la donnée stockée
+  * `bottom_level`*: Niveau minimum
+  * `top_level`*: Niveau maximum
+  * `stored_data`*: Identifiant de la donnée stockée
 * `interpolation`: Interpolation utilisée pour les conversions de résolution : [ NEAREST-NEIGHBOUR, LINEAR, BICUBIC, LANCZOS2, LANCZOS3, LANCZOS4 ] (default: BICUBIC)
 * `bottom_resolution`: Résolution minimale de la couche
 * `top_resolution`: Résolution maximale de la couche
 * `abstract`*: Description
-* `getfeatureinfo`: Dictionnaire décrivant la ressource cible du GetFeatureInfo. Une des structure suivante :
-    * avec la stored data, dictionnaire :
-        * `stored_data`*: Indique si on va utiliser directement la donnée stockée
-    * avec une url, dictionnaire :
-        * `server_url`* url utiliser pour le GetFeatureInfo
+* `getfeatureinfo`: Dictionnaire décrivant la ressource cible du GetFeatureInfo. Une des structures suivantes :
+  * avec la stored data, dictionnaire :
+    * `stored_data`*: Indique si on va utiliser directement la donnée stockée
+  * avec une url, dictionnaire :
+    * `server_url`* url utilisée pour le GetFeatureInfo
 
 #### DOWNLOAD
 
@@ -208,40 +209,40 @@ Le détail d'un traitement est disponible ici : [/datastores/{datastore}/process
 #### ALTIMETRY
 
 * `bbox`: dictionnaire Bounding box
+  * `west`*
+  * `south`*
+  * `east`*
+  * `north`*
+* `title`*: Titre
+* `keywords`: liste des mots clés
+* `abstract`*: Description
+* `used_data`*: liste de dictionnaire :
+  * `title`*: Titre
+  * `bbox`: dictionnaire Bounding box
     * `west`*
     * `south`*
     * `east`*
     * `north`*
-* `title`*: Titre
-* `keywords`:liste des mots clés
-* `abstract`*: Description
-* `used_data`*: liste de dictionnaire :
-    * `title`*: Titre
-    * `bbox`: dictionnaire Bounding box
-        * `west`*
-        * `south`*
-        * `east`*
-        * `north`*
-    * `source`*: Informations sur la source des données. Une des solution suivante
-        * valeur fixe :
-            * `value`*: Valeur unique pour la source des données
-        * Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
-            * `mapping`: dictionnaire :
-                * `< * >`: Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
-            * `stored_data`*: Identifiant de la donnée stockée
-    * `accuracy`* Informations sur la source des données. Une des solution suivante
-        * valeur fixe:
-            * `value`*: Valeur unique pour la source des données
-        * Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
-            * `mapping`: dictionnaire :
-              * `< * >`: Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
-            * `stored_data`*: Identifiant de la donnée stockée
-    * `stored_data*: Identifiant de la donnée stockée
+  * `source`*: Informations sur la source des données. Une des solutions suivantes
+    * valeur fixe :
+      * `value`*: Valeur unique pour la source des données
+    * Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
+      * `mapping`: dictionnaire :
+        * `< * >`: Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
+      * `stored_data`*: Identifiant de la donnée stockée
+  * `accuracy`* Informations sur la source des données. Une des solutions suivantes
+    * valeur fixe:
+      * `value`*: Valeur unique pour la source des données
+    * Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
+      * `mapping`: dictionnaire :
+        * `< * >`: Mapping entre les valeurs de la pyramide et les valeurs effectivement renvoyées
+      * `stored_data`*: Identifiant de la donnée stockée
+  * `stored_data*: Identifiant de la donnée stockée
 
 #### SEARCH
 
 * `title`*: Titre
-* `keywords`:liste des mots clés
+* `keywords`: liste des mots clés
 * `abstract`*: Description
 * `used_data`*: liste de dictionnaire :
     * `stored_data`*: Identifiant de la donnée stockée
@@ -254,7 +255,7 @@ Le détail d'un traitement est disponible ici : [/datastores/{datastore}/process
   * `east`*
   * `north`*
 * `title`*: Titre
-* `keywords`:liste des mots clés
+* `keywords`: liste des mots clés
 * `abstract`*: Description
 * `limits`: dictionnaire décrivant les limites pour les calculs d'itinéraire (nombre d'étapes et de contraintes) et d'isochrone (durée et distance)
     * `steps`: Nombre d'étapes maximal pour le service d'itinéraire (maximum: 25, minimum: 0, default: 16)
@@ -264,18 +265,18 @@ Le détail d'un traitement est disponible ici : [/datastores/{datastore}/process
 * `constraints`: Dictionnaire de définition des contraintes pour la configuration (pas d'information sur le contenu dans la documentation API GPF)
 * `srss`: liste des projections
 * `used_data`* dictionnaire :
-    * `profile`*: Profil de graphe à utiliser (e.g. voiture ou piéton)
-    * `optimization`*: Optimisation de graphe à utiliser (e.g. plus court ou plus rapide)
-    * `cost_column`: Colonne de coût (pour stored data de type GRAPHE-DB)
-    * `reverse_cost_column`: Colonne de coût inverse (pour stored data de type GRAPHE-DB)
-    * `cost_type`: Type de coût [ time, distance ]
-    * `costing`: Méthode de calcul de coût (pour stored data de type GRAPHE-VALHALLA) [ auto, auto_shorter, pedestrian ]
-    * `attributes`: liste dictionnaire des Attributs retournés par l'API:
-        * `table_name`: Nom de la table
-        * `native_name`*: Nom de l'attribut dans la table
-        * `public_name`*: Nom de l'attribut vu du service (pattern: ^[A-Za-z0-9_-]+$)
-        * `default`: boolean
-    * `stored_data`*: Identifiant de la donnée stockée
+  * `profile`*: Profil de graphe à utiliser (e.g. voiture ou piéton)
+  * `optimization`*: Optimisation de graphe à utiliser (e.g. plus court ou plus rapide)
+  * `cost_column`: Colonne de coût (pour stored data de type GRAPHE-DB)
+  * `reverse_cost_column`: Colonne de coût inverse (pour stored data de type GRAPHE-DB)
+  * `cost_type`: Type de coût [ time, distance ]
+  * `costing`: Méthode de calcul de coût (pour stored data de type GRAPHE-VALHALLA) [ auto, auto_shorter, pedestrian ]
+  * `attributes`: liste dictionnaire des Attributs retournés par l'API:
+    * `table_name`: Nom de la table
+    * `native_name`*: Nom de l'attribut dans la table
+    * `public_name`*: Nom de l'attribut public (pattern: ^[A-Za-z0-9_-]+$)
+    * `default`: boolean
+  * `stored_data`*: Identifiant de la donnée stockée
 
 ### Publier un géoservice
 
@@ -351,7 +352,7 @@ Possibilité de supprimer des entités de type : `upload`, `stored_data`, `confi
 
 * suppression par ID de l'entité :
 
-```jsonc
+```json
 {
     "type": "delete-entity",
     // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
@@ -365,11 +366,16 @@ Possibilité de supprimer des entités de type : `upload`, `stored_data`, `confi
 }
 ```
 
-***ATTENTION** ici la valeur **`{uuid}` doit être une uuid en dur et non une uuid récupérée par le résolveur `store_entity`**(StoreEntityResolver) pour que l'option `"not_found_ok": true,`(valeur par défaut) fonctionne. **S'il y a besoin d'utiliser le résolveur `store_entity` il faut utiliser la solution suivante**. Avec l'utilisation du résolveur `store_entity` si l'entité n'existe pas une erreur sera levée pendant la résolution de l'action et les résolveurs gardant en mémoire les valeurs déjà trouvées la réutilisation du résolveur avec les même filtre pointera vers l'entité supprimée.*
+???+ warning "Attention !!!"
+    Ici la valeur **`{uuid}` doit être une uuid en dur et non une uuid récupérée par le résolveur `store_entity`** (StoreEntityResolver) pour que l'option `"not_found_ok": true,`(valeur par défaut) fonctionne.
+
+    **S'il y a besoin d'utiliser le résolveur `store_entity` il faut utiliser la "suppression par filtre sur la liste" présentée ci-dessous**.
+
+    Avec l'utilisation du résolveur `store_entity`, les résolveurs gardant en mémoire, les valeurs déjà trouvées la réutilisation du résolveur avec les mêmes filtres pointera vers l'entité supprimée.
 
 * suppression par filtre sur la liste :
 
-```jsonc
+```json
 {
     "type": "delete-entity",
     // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
@@ -394,14 +400,14 @@ Correspond aux requêtes de type `PUT` et `PATCH` de l'[API Entrepôt](https://d
 
 La suppression des tags et des commentaires est faite avant l'ajout.
 
-```jsonc
+```json
 {
     "type": "edit-entity",
     // Type de l'entité à modifier : (upload, stored_data, configuration, offering)
     "entity_type": "configuration",
     // Id de l'entité à modifier
     "entity_id": "{uuid}",
-    // Optionnel si non présent requête n'ai pas lancée ( => mise à jour des tags et commentaires uniquement), si l'entité hérite de FullEditInterface (mise à jour totale) => fusion des informations récupérées sur l'API (GET) et de celle fournies, sinon on envoie que celles fournies
+    // Optionnel si non présent requête n'est pas lancée ( => mise à jour des tags et commentaires uniquement), si l'entité hérite de FullEditInterface (mise à jour totale) => fusion des informations récupérées sur l'API (GET) et de celle fournies, sinon on n'envoie que celles fournies
     "body_parameters": { ... },
     // Optionnel :  tags à supprimer
     "remove_tags": ["clef1", "clef2"],
@@ -472,21 +478,21 @@ L'action d'édition d'une configuration ne permet pas de supprimer ni ajouter un
 
 Création d'une configuration à partir d'une configuration déjà existante
 
-```jsonc
+```json
 {
     "type": "copy-configuration",
     "url_parameters" : {
         // Id de la configuration à copier
         "configuration": "{uuid}"
     },
-    // nouveau name et layer_name de la configuration à créer le layer_name n'est plus modifiable pas la suite)
+    // nouveau name et layer_name de la configuration à créer (le layer_name n'est plus modifiable par la suite)
     "body_parameters": {
         "name": "",
         "layer_name": "",
     },
-    // optionnel : Liste des tags ajoutés à la nouvelle configuration, (ne sont pas récupérer depuis la configuration source)
+    // optionnel : Liste des tags ajouter à la nouvelle configuration (ne sont pas récupérés depuis la configuration source)
     "tags": { "key_tag" : "val_tag"},
-    // optionnel : Liste des commentaires à ajouter à la nouvelle configuration, (ne sont pas récupérer depuis la configuration source)
+    // optionnel : Liste des commentaires à ajouter à la nouvelle configuration (ne sont pas récupérés depuis la configuration source)
     "comments": [],
 }
 ```
@@ -497,7 +503,7 @@ Synchronisation d'une ou plusieurs offres avec leur configuration et stored-data
 
 * Mise à jour selon ID de l'offre
 
-```jsonc
+```json
 {
   "type": "synchronize-offering",
   // Id de l'entité à supprimer (erreur remontée par l'API si l'entité n'existe pas)
@@ -507,12 +513,12 @@ Synchronisation d'une ou plusieurs offres avec leur configuration et stored-data
 
 * suppression par filtrage sur la liste des offres, possibilité de synchroniser plusieurs offres en même temps
 
-```jsonc
+```json
 {
   "type": "synchronize-offering",
   // Ou Critères pour la retrouver
   "filter_infos": { ...  },
-  // optionnel : Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+  // optionnel : Que faire si plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
   "if_multi": "first|all|error"
 }
 ```
@@ -521,18 +527,18 @@ Si aucun résultat, on sort en erreur.
 
 Pour "filter_infos" voir les filtres possibles pour la requête [/datastores/{datastore}/offerings](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/getAll_6). Si on a `"configuration" : "{uuid}"` c'est la requête  [/datastores/{datastore}/configurations/{configuration}/offerings](https://data.geopf.fr/api/swagger-ui/index.html#/Configurations%20et%20publications/getOfferings) qui sera utilisée dans l'attente que la filtration sur les configurations soit possible.
 
-## Exemple
+## Exemples
 
 ### Actions de base
 
-Pour les actions de base (processing-execution, configuration, offre) des workflows des tutoriels sont disponibles dans [sdk_entrepot_gpf/_data/workflows/](../sdk_entrepot_gpf/_data/workflows/) :
+Pour les actions de base (processing-execution, configuration, offre) des workflows des tutoriels sont disponibles dans [sdk_entrepot_gpf/_data/workflows/](https://github.com/Geoplateforme/sdk-entrepot/tree/prod/sdk_entrepot_gpf/_data/workflows/) :
 
-* archivage [generic_archive.jsonc](../sdk_entrepot_gpf/_data/workflows/generic_archive.jsonc) (traitement d'une archive, configuration et offre pour un géoservice Téléchargement). [Tutoriel](tutoriel_1_archive.md) ;
-* flux vecteur [generic_vecteur.jsonc](../sdk_entrepot_gpf/_data/workflows/generic_vecteur.jsonc) (traitement d'une mise en base, configuration et offre pour un géoservice Flux WFS, configuration et offre pour un flux WMS vecteur, traitement de création de pyramide, configuration et offre pour un flux TMS) [Tutoriel](./tutoriel_2_flux_vecteur.md) ;
-* flux raster [generic_raster.jsonc](../sdk_entrepot_gpf/_data/workflows/generic_raster.jsonc) (traitement de création d'une pyramide, configuration et offre pour un flux WMS, configuration et offre pour un flux WMTS) [Tutoriel](./tutoriel_3_flux_raster.md) ;
-* mise en place d'une pyramide par "joincache" [generic_joincache.jsonc](sdk_entrepot_gpf/_data/workflows/generic_joincache.jsonc) (traitement création de pyramides, traitement de fusion de pyramides, traitement de mise à jour d'une pyramide, configuration et offre pour un flux WMS raster, configuration et offre pour un flux WMTS) ;
-* mise à jour d'un base de donnée [generic_maj_bdd.jsonc](sdk_entrepot_gpf/_data/workflows/generic_maj_bdd.jsonc) (traitement de mise en base création + mise à jour, configuration et offre pour un flux WMS)
-* création d'une pyramise rasteur à partir un flux WMS vecteur (moissonnage) [generic_moissonnage.jsonc](sdk_entrepot_gpf/_data/workflows/generic_moissonnage.jsonc) (traitement de mise en base, configuration et offre pour un flux WMS vecteur, traitement de moissonnage, configuration et offre pour un flux WMS raster) ;
+* archivage [generic_archive.jsonc](https://github.com/Geoplateforme/sdk-entrepot/tree/prod/sdk_entrepot_gpf/_data/workflows/generic_archive.jsonc) (traitement d'une archive, configuration et offre pour un géoservice Téléchargement). [Tutoriel](tutoriel_1_archive.md) ;
+* flux vecteur [generic_vecteur.jsonc](https://github.com/Geoplateforme/sdk-entrepot/tree/prod/sdk_entrepot_gpf/_data/workflows/generic_vecteur.jsonc) (traitement d'une mise en base, configuration et offre pour un géoservice Flux WFS, configuration et offre pour un flux WMS vecteur, traitement de création de pyramide, configuration et offre pour un flux TMS) [Tutoriel](./tutoriel_2_flux_vecteur.md) ;
+* flux raster [generic_raster.jsonc](https://github.com/Geoplateforme/sdk-entrepot/tree/prod/sdk_entrepot_gpf/_data/workflows/generic_raster.jsonc) (traitement de création d'une pyramide, configuration et offre pour un flux WMS, configuration et offre pour un flux WMTS) [Tutoriel](./tutoriel_3_flux_raster.md) ;
+* mise en place d'une pyramide par "joincache" [generic_joincache.jsonc](https://github.com/Geoplateforme/sdk-entrepot/tree/prod/sdk_entrepot_gpf/_data/workflows/generic_joincache.jsonc) (traitement création de pyramides, traitement de fusion de pyramides, traitement de mise à jour d'une pyramide, configuration et offre pour un flux WMS raster, configuration et offre pour un flux WMTS) ;
+* mise à jour d'un base de donnée [generic_maj_bdd.jsonc](https://github.com/Geoplateforme/sdk-entrepot/tree/prod/sdk_entrepot_gpf/_data/workflows/generic_maj_bdd.jsonc) (traitement de mise en base création + mise à jour, configuration et offre pour un flux WMS)
+* création d'une pyramide rasteur à partir un flux WMS vecteur (moissonnage) [generic_moissonnage.jsonc](https://github.com/Geoplateforme/sdk-entrepot/tree/prod/sdk_entrepot_gpf/_data/workflows/generic_moissonnage.jsonc) (traitement de mise en base, configuration et offre pour un flux WMS vecteur, traitement de moissonnage, configuration et offre pour un flux WMS raster) ;
 
 ## Exécution du workflow
 
@@ -563,7 +569,7 @@ from sdk_entrepot_gpf.workflow.Workflow import Workflow
 from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
 from sdk_entrepot_gpf.workflow.resolver.StoreEntityResolver import StoreEntityResolver
 
-# initialisation de la configuration, adapté le nom si besoin
+# initialisation de la configuration, adapter le nom si besoin
 Config().read("config.ini")
 
 # initialisation du Workflow avec le fichier "mon_workflow.jsonc"

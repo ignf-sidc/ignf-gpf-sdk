@@ -1,4 +1,21 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/comme-executable/
+-->
+
 # Utilisation comme exécutable
+
+## Aide
+
+Vous pouvez consulter l'aide en ajoutant `-h` à la commande.
+
+Cela fonction à la racine de l'executable (`egpf -h` ou `python -m sdk_entrepot_gpf -h`) ou dans une sous-commande (`egpf command -h` ou `python -m sdk_entrepot_gpf command -h`).
+
+L'aide est plus complète que les exemples de cette page ! :)
 
 ## Configuration
 
@@ -26,7 +43,7 @@ Authentification réussie.
 
 Dans la configuration, vous devez indiquer l'identifiant du datastore à utiliser.
 
-Si vous ne le connaissez pas, il est possible de lister les communautés auxquelles vous participez et, pour chacune d'elles, le datastore qui lui est associé.
+Si vous ne le connaissez pas, il est possible de lister les communautés auxquelles vous appartenez et, pour chacune d'elles, le datastore qui lui est associé.
 
 La commande `me` permet de lister les communautés auxquelles vous appartenez :
 
@@ -53,8 +70,10 @@ Vous êtes membre de 1 communauté(s) :
 
 Dans cet exemple, l'identifiant du datastore à utiliser est `33333333333333333333`.
 
-> [!WARNING]
-> Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.
+
+???+ warning "Attention"
+    Cela ne fonctionnera que si les autres paramètres (nom d'utilisateur, mot de passe et urls) sont corrects.
+
 
 ## Afficher toute la configuration
 
@@ -66,42 +85,58 @@ Affichez la configuration (commande `config`) :
 # Toute la configuration
 python -m sdk_entrepot_gpf config
 # Une section
-python -m sdk_entrepot_gpf config -s store_authentification
+python -m sdk_entrepot_gpf config store_authentification
 # Une option d'une section
-python -m sdk_entrepot_gpf config -s store_authentification -o password
+python -m sdk_entrepot_gpf config store_authentification password
 ```
 
 ## Récupérer des jeux de données d'exemple
 
-Il est possible de récupérer des jeux de données d'exemple via l'exécutable avec la commande `dataset`.
+Il est possible de récupérer des jeux de données d'exemple via l'exécutable avec la commande `example`.
 
-Lancez la commande `dataset` sans paramètre pour lister les jeux disponibles :
-
-```sh
-python -m sdk_entrepot_gpf dataset
-```
-
-Lancez la commande `dataset` en précisant le nom (`-n`) du jeu de données à extraire pour récupérer un jeu de données :
+Lancez la commande `example dataset` pour lister les jeux disponibles :
 
 ```sh
-python -m sdk_entrepot_gpf dataset -n 1_dataset_vector
+python -m sdk_entrepot_gpf example dataset
 ```
 
-Les données seront extraites dans le dossier courant, vous pouvez préciser la destination avec le paramètre `--folder` (ou `-f`).
+Lancez la commande `example dataset [NOM]` en précisant le nom  du jeu de données à extraire pour récupérer un jeu de données :
 
-## Envoyer des données
+```sh
+python -m sdk_entrepot_gpf dataset 1_dataset_vector
+```
 
-Pour envoyer des données, vous devez générer un [fichier descripteur de livraison](upload_descriptor.md).
+Les données seront extraites dans le dossier courant, vous pouvez préciser la destination en indiquant le dossier où mettre les données :
+
+```sh
+python -m sdk_entrepot_gpf dataset 1_dataset_vector mon/dossier
+```
+
+## Téléverser des données
+
+Pour téléverser des données, vous devez générer un [fichier descripteur de livraison](upload_descriptor.md).
 
 C'est un fichier au format JSON permettant de décrire les données à livrer et les livraisons à créer.
 
-Ensuite, vous pouvez simplement livrer des données avec la commande `upload` :
+Ensuite, vous pouvez simplement livrer des données avec la commande `delivery` :
 
 ```sh
-python -m sdk_entrepot_gpf upload -f mon_fichier_descripteur.json
+python -m sdk_entrepot_gpf delivery mon_fichier_descripteur.json
 ```
 
 Les jeux de données d'exemple sont fournis avec le fichier descripteur (voir [Récupérer des jeux de données d'exemple](#récupérer-des-jeux-de-données-dexemple)).
+
+Si votre livraison est interrompue, vous pourrez la reprendre en ajoutant `-b CONTINUE` :
+
+```sh
+python -m sdk_entrepot_gpf delivery mon_fichier_descripteur.json -b CONTINUE
+```
+
+Ou au contraire vous pouvez la supprimer et la recommencer en ajoutant `-b DELETE` :
+
+```sh
+python -m sdk_entrepot_gpf delivery mon_fichier_descripteur.json -b DELETE
+```
 
 ## Réaliser des traitements et publier des données
 
@@ -149,41 +184,48 @@ Avant la suppression la liste des entités supprimées sera affichée et l'utili
 Commande générale :
 
 ```sh
-python -m sdk_entrepot_gpf delete --type {upload,stored_data,configuration,offering,permission,key} --id UUID
+python -m sdk_entrepot_gpf {upload,stored_data,configuration,offering,permission,key} UUID --delete [--force] [--cascade]
 ```
 
 Avec comme options supplémentaires :
 
 * `--force` : aucune question ne sera posée avant la suppression
 * `--cascade` : suppression des éléments liés en aval, fonctionne uniquement pour :
-  * `stored_data` : suppression des configuration et offres liées
-  * `configuration` : suppression des offres liées
+    * `stored_data` : suppression des configuration et offres liées
+    * `configuration` : suppression des offres liées
 
-NB : s'il y a des des éléments liés en aval et que vous ne demandez pas la suppression il sera impossible de supprimer l'élément ciblé.
+???+ note "Nota bene"
+    S'il y a des éléments liés en aval et que vous ne demandez pas la suppression il sera impossible de supprimer l'élément ciblé.
 
 Exemples :
 
 ```sh
 # Suppression d'une livraison
-python -m sdk_entrepot_gpf delete --type upload --id UUID
+python -m sdk_entrepot_gpf upload UUID --delete
 # Suppression d'une donnée stockée (sans demander confirmation, sans supprimer les éléments liés)
-python -m sdk_entrepot_gpf delete --type stored_data --id UUID --force
+python -m sdk_entrepot_gpf stored_data UUID --delete --force
 # Suppression d'une configuration (et d'une éventuelle offre liée)
-python -m sdk_entrepot_gpf delete --type configuration --id UUID --cascade
+python -m sdk_entrepot_gpf configuration UUID --delete --cascade
 ```
 
 ## Fichiers annexes
 
 Base : `python -m sdk_entrepot_gpf annexe`
 
-Quatre types de lancement :
+Types de lancement :
 
-* livraison d'annexes : `-f FICHIER`
-* liste des annexes, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
-* afficher des détails d'une annexe, avec option publication / dépublication : `--id ID [--publish|--unpublish]`
+* liste des annexes, avec filtres en option : `[--info filtre1=valeur1,filtre2=valeur2]`
+* afficher des détails d'une annexe, : `ID`
+* publication / dépublication d'une annexe : `ID [--publish|--unpublish]`
 * publication / dépublication par label : `--publish-by-label label1,label2` et `--unpublish-by-label label1,label2`
 
-Exemple de fichier pour la livraison :
+## Téléversement d'annexe, de fichiers statique et de métadonnées et création de clefs
+
+La commande `delivery` vous permet de téléverser des annexes, des fichiers statiques (style) et des métadonnées mais également de créer des clefs.
+
+Cela passe toujours par la création d'un fichier descripteur (comme pour le [téléversement de données](#televerser-des-donnees)).
+
+Exemple de fichier pour le téléversement d'une annexe, d'un fichier de style et d'une métadonnée ainsi que la création d'une clef :
 
 ```json
 {
@@ -194,24 +236,7 @@ Exemple de fichier pour la livraison :
       "labels": ["label1", "label2"],
       "published": false
     }
-  ]
-}
-```
-
-## Fichiers statiques
-
-Base : `python -m sdk_entrepot_gpf static`
-
-Trois types de lancement :
-
-* livraison de fichiers statics : `-f FICHIER`
-* liste des fichiers statics, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
-* afficher des détails d'un ficher statique : `--id ID`
-
-Exemple de fichier pour la livraison :
-
-```json
-{
+  ],
   "static" : [
     {
       "file": "mon_style.sld",
@@ -219,48 +244,13 @@ Exemple de fichier pour la livraison :
       "type": "GEOSERVER-STYLE",
       "description": "description"
     }
-  ]
-}
-```
-
-## Fichiers de métadonnées
-
-Base : `python -m sdk_entrepot_gpf metadata`
-
-Quatre types de lancement :
-
-* livraison d'une métadonnée : `-f FICHIER`
-* liste des métadonnées, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
-* afficher les détails d'une métadonnée : `--id ID`
-* publication / dépublication : `--publish NOM_FICHIER [NOM_FICHIER] --id-endpoint ID_ENDPOINT` et `--unpublish NOM_FICHIER [NOM_FICHIER] --id-endpoint ID_ENDPOINT`
-
-Exemple de fichier pour la livraison :
-
-```json
-{
+  ],
   "metadata": [
     {
       "file": "metadata.xml",
       "type": "INSPIRE"
     }
-  ]
-}
-```
-
-## Gestion des clefs de l'utilisateur
-
-Base : `python -m sdk_entrepot_gpf key`
-
-Trois types de lancement :
-
-* liste des clefs : `` (aucun paramètres)
-* afficher les détails d'une clef : `--id ID`
-* création de clefs : `--f FICHIER`
-
-Exemple de fichier pour la création :
-
-```json
-{
+  ],
   "key": [
     {
       "name": "nom",
@@ -271,8 +261,44 @@ Exemple de fichier pour la création :
     }
   ]
 }
-
 ```
+
+## Fichiers statiques
+
+Base : `python -m sdk_entrepot_gpf static`
+
+Types de lancement :
+
+* liste des fichiers statics, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
+* afficher des détails d'un ficher statique : `ID`
+
+## Fichiers de métadonnées
+
+Base : `python -m sdk_entrepot_gpf metadata`
+
+Types de lancement :
+
+* liste des métadonnées, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
+* afficher les détails d'une métadonnée : `ID`
+
+## Points d'accès (endpoint)
+
+Base : `python -m sdk_entrepot_gpf endpoint`
+
+Types de lancement :
+
+* liste des points d'accès, avec filtre en option : `[--info filtre1=valeur1,filtre2=valeur2]`
+* publication de métadonnées sur le point d'accès : `--publish-metadatas NOM_FICHIER [NOM_FICHIER]`
+* dépublication de métadonnées sur le point d'accès : `--unpublish-metadatas NOM_FICHIER [NOM_FICHIER]`
+
+## Gestion des clefs de l'utilisateur
+
+Base : `python -m sdk_entrepot_gpf key`
+
+Types de lancement :
+
+* liste des clefs : (pas de possibilité de filter)
+* afficher les détails d'une clef : `ID`
 
 ## Tutoriels
 

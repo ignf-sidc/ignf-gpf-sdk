@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/
+-->
+
 # SDK Python
 
 L'API Entrepôt Géoplateforme vous permet de téléverser, traiter puis publier vos données géographiques. Bien que très puissante, cette API n'est pas aisée à prendre en main. Ce module Python a été créé afin de vous permettre d'utiliser la Géoplateforme facilement.
@@ -23,7 +32,7 @@ Des tutoriels sont disponibles pour voir des cas concrets d'utilisation de A à 
 * [Tutoriel 1 : héberger une archive pour la rendre téléchargeable](tutoriel_1_archive.md)
 * [Tutoriel 2 : téléverser des données vecteur et les publier en flux](tutoriel_2_flux_vecteur.md)
 * [Tutoriel 3 : téléverser des données raster et les publier en flux](tutoriel_3_flux_raster.md)
-* [Tutoriel PCRS : téléverser des PCRS et les publier en flux](tutoriel_pcrs.md)
+* [Tutoriel PCRS : téléverser des images PCRS et les publier en flux](tutoriel_pcrs.md)
 
 ## Développement
 

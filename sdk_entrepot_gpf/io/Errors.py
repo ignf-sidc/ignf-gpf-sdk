@@ -155,7 +155,7 @@ class BadRequestError(_WithResponseError):
 
 
 class ConflictError(_WithResponseError):
-    """Erreur API : conflit au traitement de la requête (Est-ce que vous tentez de supprimer une ressource utilisée ?)."""
+    """Erreur API : conflit au traitement de la requête (est-ce que vous tentez de supprimer une ressource utilisée ?)."""
 
 
 class StatusCodeError(_WithResponseError):

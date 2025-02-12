@@ -1,3 +1,12 @@
+<!--
+CE DOCUMENT N'A PAS VOCATION A ÊTRE LU DIRECTEMENT OU VIA GITHUB :
+les liens seront cassés, l'affichage ne sera pas correcte. Ne faites ça !
+
+Consultez la doc en ligne ici : https://geoplateforme.github.io/sdk-entrepot/
+
+Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entrepot/development/
+-->
+
 # Développement
 
 ## Mise en place
@@ -8,7 +17,7 @@ Récupérez le code :
 git clone git@github.com:geoplateforme/sdk_entrepot.git
 ```
 
-Ouvrez le dossier nouvellement crée avec votre éditeur favoris (ici [Visual Studio Code](https://code.visualstudio.com/)) :
+Ouvrez le dossier nouvellement créé avec votre éditeur favori (ici [Visual Studio Code](https://code.visualstudio.com/)) :
 
 ```sh
 code sdk_entrepot
@@ -41,7 +50,9 @@ source env/bin/activate
 Installez les dépendances de développement :
 
 ```sh
-python3 -m pip install --upgrade pip setuptools flit
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade setuptools
+python3 -m pip install --upgrade flit
 python3 -m flit install --extras all
 ```
 
@@ -53,11 +64,24 @@ Lancez les tests pour vérifier que tout fonctionne correctement :
 
 ## Documentation
 
+### Test local
+
 Vous pouvez générer la doc en local via la commande :
 
 ```sh
 mkdocs serve
 ```
+
+Vous pouvez ensuite la consulter ici : [http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+### Publication
+
+Pour générer la doc et la publier [en ligne](https://geoplateforme.github.io/sdk-entrepot/), il faut pour le moment :
+
+* récupérer le code à jour sur la branche de votre choix ;
+* générer et pousser le doc via la commande : `mkdocs gh-deploy`.
+
+C'est terminé ! Vous pouvez consulter la branche [gh-pages](https://github.com/Geoplateforme/sdk-entrepot/tree/gh-pages) qui doit être mise à jour.
 
 ## Développement et tests
 
@@ -82,7 +106,7 @@ Pour automatiser dans VSCode : [doc ici](https://code.visualstudio.com/docs/pyth
   - `s_` : string​
   - `i_` : integer​
   - `f_` : float​
-  - `l_` : list (et autres enumerable)​
+  - `l_` : list (et autres énumérables)​
   - `d_` : dict​
   - `b_` : bool​
   - `e_` : error​

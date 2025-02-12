@@ -1,5 +1,20 @@
 # CHANGE LOG
 
+## v0.1.36
+
+### [Added]
+
+### [Changed]
+
+* ci/cd : on teste les exécutables `egpf` et `entrepot_gpf`.
+* cli/entities : les callback sont des paramètres
+
+### [Fixed]
+
+* Cli : correction de la suppression via les nouvelles commandes.
+* Cli : correction de l'appel raccourcis.
+
+
 ## v0.1.35
 
 ### [Added]

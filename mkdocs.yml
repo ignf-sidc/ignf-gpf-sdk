@@ -15,6 +15,7 @@ theme:
   favicon: assets/images/favicon.ico
   features:
     - content.code.annotate
+    - content.code.copy
   icon:
     repo: fontawesome/brands/github
 
@@ -39,6 +40,9 @@ markdown_extensions:
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
   - attr_list # Extension pour ajouter des attributs HTML dans le Markdown
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 plugins:
   - search:
@@ -64,10 +68,12 @@ nav:
   - upload_descriptor.md
   - workflow.md
   - development.md
+  - resolveurs.md
   - Tutoriels:
       - "Tutoriel 1 : publier une archive": tutoriel_1_archive.md
       - "Tutoriel 2 : publier un flux vecteur": tutoriel_2_flux_vecteur.md
       - "Tutoriel 3 : publier un flux raster": tutoriel_3_flux_raster.md
+      - "Tutoriel PCRS": tutoriel_pcrs.md
   - Références:
       - sdk_entrepot_gpf.auth: reference/auth.md
       - sdk_entrepot_gpf.io: reference/io.md
