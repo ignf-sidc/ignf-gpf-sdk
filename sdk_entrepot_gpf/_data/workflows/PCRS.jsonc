@@ -9,7 +9,7 @@
                         "type": "processing-execution",
                         "body_parameters": {
                             // On récupère l'id du traitement nommé "Calcul de pyramide raster"
-                            "processing": "{store_entity.processing.infos._id [INFOS(name=Calcul ou mise à jour de pyramide raster]}",
+                            "processing": "{store_entity.processing.infos._id [INFOS(name=Calcul ou mise à jour de pyramide raster)]}",
                             "inputs": {
                                 "upload": [
                                     // On récupère l'id de la Livraison associée grâce à son nom
@@ -118,7 +118,8 @@
                         // Liste des tags ajoutés à la Configuration
                         "tags": {
                             "type": "PCRS",
-                            "datasheet_name": "{params.producteur}"                    }
+                            "datasheet_name": "{params.producteur}"                    
+                        }
                     },
                     // Action 4 : publication WMSRaster de la pyramide
                     {
@@ -137,6 +138,25 @@
                 ],
                 "parents": [
                     "pyramide"
+                ]
+            },
+            // Étape n°3 : Suppresion de la livraison
+            "upload_delete": {
+                "actions": [
+                    {
+                        "type": "delete-entity",
+                        // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
+                        "entity_type": "upload",
+                        // Critères pour filtrer filter_infos et/ou filter_tags
+                        "filtre_infos": {"name":"{params.producteur}"},
+                        "filter_tags": {"type":"PCRS"},
+                        // Suppression en cascade autorisée ou pas ? par défaut à false
+                        "cascade": true,
+                        // Ok si non trouvée ? par défaut à true
+                        "not_found_ok": true,
+                        // Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+                        "if_multi": "all"
+                    }
                 ]
             }
         }
