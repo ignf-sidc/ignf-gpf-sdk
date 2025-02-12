@@ -7,6 +7,7 @@
 ### [Changed]
 
 * ci/cd : on teste les exécutables `egpf` et `entrepot_gpf`.
+* cli/entities : les callback sont des paramètres
 
 ### [Fixed]
 
