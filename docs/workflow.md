@@ -362,7 +362,7 @@ Possibilité de supprimer des entités de type : `upload`, `stored_data`, `confi
     // Suppression en cascade autorisée ou pas ? par défaut à false
     "cascade": true,
     // Ok si non trouvée ? par défaut à true
-    "not_found_ok": true,
+    "not_found_ok": true
 }
 ```
 
@@ -416,7 +416,7 @@ La suppression des tags et des commentaires est faite avant l'ajout.
     // Optionnel : Liste des tags ajoutés à l'entité (uniquement si la classe hérite de TagInterface)
     "tags": {},
     // Optionnel : Liste des commentaires à ajouter (uniquement si la classe hérite de CommentInterface)
-    "comments": [],
+    "comments": []
 }
 ```
 
@@ -488,12 +488,12 @@ Création d'une configuration à partir d'une configuration déjà existante
     // nouveau name et layer_name de la configuration à créer (le layer_name n'est plus modifiable par la suite)
     "body_parameters": {
         "name": "",
-        "layer_name": "",
+        "layer_name": ""
     },
     // optionnel : Liste des tags ajouter à la nouvelle configuration (ne sont pas récupérés depuis la configuration source)
     "tags": { "key_tag" : "val_tag"},
     // optionnel : Liste des commentaires à ajouter à la nouvelle configuration (ne sont pas récupérés depuis la configuration source)
-    "comments": [],
+    "comments": []
 }
 ```
 
