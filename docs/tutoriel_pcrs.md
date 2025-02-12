@@ -158,7 +158,7 @@ Vous pouvez maintenant retrouver vos données dans cartes.gouv (https://cartes.g
 Afin de ne pas surcharger l'espace de livraison et de ne pas atteindre vos quotas lors de livraisons ultérieures, une fois que vous avez validez vos flux, vous pouvez supprimer la livraison avec la commande suivante :
 
 ```sh
-python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s upload_delete --param producteur=$votre_chantier_PCRS
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s upload_delete --param producteur $votre_chantier_PCRS
 ```
 
 Le programme doit vous indiquer que la suppression s'est bien passée `INFO - Suppression effectuée.`.
