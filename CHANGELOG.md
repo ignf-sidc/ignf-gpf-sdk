@@ -10,6 +10,8 @@
 
 ### [Fixed]
 
+* Correction de la suppression via les nouvelles commandes.
+
 
 ## v0.1.35
 
