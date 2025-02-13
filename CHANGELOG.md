@@ -4,6 +4,8 @@
 
 ### [Added]
 
+Cli : ajout d'une commande `resolve` permettant de résoudre et tester les chaînes de configuration.
+
 ### [Changed]
 
 ### [Fixed]

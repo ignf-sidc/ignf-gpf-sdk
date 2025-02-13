@@ -18,6 +18,7 @@ from sdk_entrepot_gpf.io.Errors import ConflictError, NotFoundError
 from sdk_entrepot_gpf.io.ApiRequester import ApiRequester
 from sdk_entrepot_gpf.io.Config import Config
 from sdk_entrepot_gpf.scripts.example import Example
+from sdk_entrepot_gpf.scripts.resolve import ResolveCli
 from sdk_entrepot_gpf.workflow.action.DeleteAction import DeleteAction
 from sdk_entrepot_gpf.workflow.action.ProcessingExecutionAction import ProcessingExecutionAction
 from sdk_entrepot_gpf.workflow.action.UploadAction import UploadAction
@@ -64,6 +65,9 @@ class Main:
             self.config()
         elif self.o_args.task == "example":
             Example(self.o_args.type, self.o_args.name, self.o_args.output)
+        elif self.o_args.task == "resolve":
+            d_params = {x[0]: x[1] for x in self.o_args.params}
+            ResolveCli(self.o_args.datastore, self.o_args.resolve, d_params)
         elif self.o_args.task == "workflow":
             # TODO : retirer le if et ne garder que le début
             if self.o_args.name is None and self.o_args.file is not None:
@@ -133,6 +137,11 @@ class Main:
         o_sub_parser.add_argument("section", type=str, nargs="?", default=None, help="Se limiter à une section")
         o_sub_parser.add_argument("option", type=str, nargs="?", default=None, help="Se limiter à une option (la section doit être renseignée)")
         o_sub_parser.add_argument("--file", "-f", type=str, default=None, help="Chemin du fichier où sauvegarder la configuration (si null, la configuration est affichée)")
+
+        # Parser pour resolve
+        o_sub_parser = o_sub_parsers.add_parser("resolve", help="Résoudre des chaînes de configuration")
+        o_sub_parser.add_argument("resolve", type=str, default=None, help="Chaîne à résoudre")
+        o_sub_parser.add_argument("--params", "-p", type=str, nargs=2, action="append", metavar=("Clef", "Valeur"), default=[], help="Paramètres supplémentaires à passer au workflow à résoudre.")
 
         # Parser pour workflow
         s_epilog_workflow = """quatre types de lancement :
