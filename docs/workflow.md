@@ -492,7 +492,7 @@ Création d'une configuration à partir d'une configuration déjà existante
     },
     // optionnel : Liste des tags ajouter à la nouvelle configuration (ne sont pas récupérés depuis la configuration source)
     "tags": { "key_tag" : "val_tag"},
-    // optionnel : Liste des commentaires à ajouter à la nouvelle configuration, (ne sont pas récupérer depuis la configuration source)
+    // optionnel : Liste des commentaires à ajouter à la nouvelle configuration (ne sont pas récupérés depuis la configuration source)
     "comments": []
 }
 ```

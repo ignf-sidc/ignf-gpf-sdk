@@ -1,5 +1,14 @@
 # CHANGE LOG
 
+## v0.1.37
+
+### [Added]
+
+### [Changed]
+
+### [Fixed]
+
+
 ## v0.1.36
 
 ### [Added]
@@ -30,9 +39,6 @@
 * Possibilités de supprimer automatiquement les fichiers ayant produit une erreur lors de la livraison (action `--delete-failed-files`)
 * StoreEntity : nomenclatures des entités au pluriel (`entity_titles`)
 * StoreEntity : liste des champs à récupérer en mode liste pour chaque entités (`_entity_fields`)
-
-### [Changed]
-
 * UploadAction : correction message fichier distant non trouvé en local
 * Couverture des tests : on masque les fichiers couverts à 100%
 * Réorganisation des appels du cli.
