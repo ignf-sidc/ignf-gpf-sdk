@@ -49,17 +49,19 @@ class WorkflowCli:
         Config().om.info(f"Ouverture du workflow {p_workflow}...")
         self.workflow = Workflow(p_workflow.stem, JsonHelper.load(p_workflow))
 
-        # Y'a-t-il une étape d'indiquée
-        if self.step is None:
-            # Si pas d'étape indiquée, on valide le workflow
-            Config().om.info("Validation du workflow...")
-            self.validate()
-        else:
-            # Sinon on lance l'étape indiquée
+        # Dans tous les cas on valide le workflow
+        self.validate()
+
+        # Et si une étape est indiquée, on la lance
+        if self.step is not None:
             self.run()
+        else:
+            # Sinon on affiche le contenu du workflows
+            self.show_steps()
 
     def validate(self) -> None:
         """Validation du workflow."""
+        Config().om.info("Validation du workflow...")
         l_errors = self.workflow.validate()
         if l_errors:
             s_errors = "\n   * ".join(l_errors)
@@ -68,6 +70,8 @@ class WorkflowCli:
             raise GpfSdkError("Workflow invalide.")
         Config().om.info("Le workflow est valide.", green_colored=True)
 
+    def show_steps(self) -> None:
+        """Affichage du contenu du workflow."""
         # Affichage des étapes disponibles et des parents
         Config().om.info("Liste des étapes disponibles et de leurs parents :", green_colored=True)
         l_steps = self.workflow.get_all_steps()

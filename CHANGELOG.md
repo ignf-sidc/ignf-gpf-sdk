@@ -10,6 +10,8 @@ Cli : ajout d'une commande `resolve` permettant de résoudre et tester les chaî
 
 ### [Fixed]
 
+Cli : validation du workflow avant lancement
+
 
 ## v0.1.36
 
