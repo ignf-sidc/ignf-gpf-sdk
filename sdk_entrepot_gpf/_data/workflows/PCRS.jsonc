@@ -105,8 +105,8 @@
                                     {
                                         // On récupère l'id de la Donnée Stockée créée à l'étape précédente grâce à son nom, son type et l'un de ses tags
                                         "stored_data": "{store_entity.stored_data.infos._id [INFOS(name={params.producteur}), TAGS(type=PCRS)]}",
-                                        "bottom_level": "18",
-                                        "top_level": "0"
+                                        "bottom_level": "22",
+                                        "top_level": "6"
                                     }
                                 ]
                             }
@@ -149,6 +149,25 @@
                         "entity_type": "upload",
                         // Critères pour filtrer filter_infos et/ou filter_tags
                         "filtre_infos": {"name":"{params.producteur}"},
+                        "filter_tags": {"type":"PCRS"},
+                        // Suppression en cascade autorisée ou pas ? par défaut à false
+                        "cascade": true,
+                        // Ok si non trouvée ? par défaut à true
+                        "not_found_ok": true,
+                        // Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+                        "if_multi": "all"
+                    }
+                ]
+            },
+            // Étape n°4 : Dépublication des offerings, suppression des configurations et de la stored_data
+            "depublication": {
+                "actions": [
+                    {
+                        "type": "delete-entity",
+                        // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
+                        "entity_type": "stored_data",
+                        // Critères pour filtrer filter_infos et/ou filter_tags
+                        "filter_infos": {"name":"{params.producteur}"},
                         "filter_tags": {"type":"PCRS"},
                         // Suppression en cascade autorisée ou pas ? par défaut à false
                         "cascade": true,

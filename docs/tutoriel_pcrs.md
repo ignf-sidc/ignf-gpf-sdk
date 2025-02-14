@@ -171,3 +171,13 @@ python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s upload_delete --param prod
 ```
 
 Le programme doit vous indiquer que la suppression s'est bien passée `INFO - Suppression effectuée.`.
+
+## Nettoyage de fin d'expérimentation
+
+Dans le cadre de l'utilisation du jeu de données test pour l'expérimentation, vous pouvez dépublier vos couches et supprimer la pyramide avec la commande suivante :
+
+```sh
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s depublication --param producteur $votre_chantier_PCRS
+```
+
+Le programme va vous demander de confirmer les entités à supprimer `INFO - Voulez-vous effectuer la suppression ? (oui/NON)`, vous allez devoir répondre `oui` si les entités listées en vert au-dessus correspondent bien à celles à supprimer.
