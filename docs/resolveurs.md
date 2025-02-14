@@ -11,6 +11,7 @@ Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entr
 
 Les résolveurs sont des outils permettant de compléter les workflows en remplaçant un pattern par la valeur calculée.
 
+
 ## Utilisation
 
 Le nom d'un résolveur est donné à son initialisation. Il est possible d'avoir plusieurs résolveurs d'un même type.
@@ -29,6 +30,7 @@ Dans le fichier de workflow, pour utiliser le résolveur il faut ajouter le patt
 * Texte : `"{nom_du_resolveur.nom_de_la_clef}"`
 * Liste: `["_nom_du_resolveur_", "nom_de_la_clef"]` ou `["_nom_du_resolveur.nom_de_la_clef"]`
 * Dictionnaire : `{"_nom_du_resolveur_": "nom_de_la_clef"}`
+
 
 ## Résolveurs de base
 
@@ -289,6 +291,7 @@ print(GlobalResolver().resolve(text))
 #    Y-1 M+2 D+3 H-4 M+5 > 23/04/2023 07:13 <
 ```
 
+
 ## Créer son résolveur
 
 Pour créer votre résolveur, vous devez créer une classe qui hérite de la classe `AbstractResolver`.
@@ -296,3 +299,45 @@ Pour créer votre résolveur, vous devez créer une classe qui hérite de la cla
 Dans le constructeur de votre classe, il faudra implémenter les tâches qui doivent être effectuées une fois. Par exemple, de récupérer les informations de l'utilisateur (qui, à priori, ne changent pas à chaque résolution).
 
 Dans la fonction `resolve` de votre classe, il faudra implémenter la résolution du paramétrage à partir de la string `string_to_solve` avant de retourner la valeur résolue.
+
+
+## La regex de récupération des résolveurs
+
+Les chaînes à résoudre sont identifiées grâce à une regex configurable dans les paramètres (section `workflow_resolution_regex` option `global_regex`).
+
+Cette regex est particulièrement ardue et nous allons donc détailler ici son fonctionnement.
+
+L'objectif est de capturer le **nom du résolveur** (`resolver_name`) et la **chaîne à résoudre** (`to_solve`) le tout (`param`) étant associé [selon les 3 types de données gérés](#utilisation).
+
+```text
+(?P<param>(\["_|{("_)?)(?P<resolver_name>[a-z_0-9]+)(\.|_": *"|_", *")(?P<to_solve>[^"{}]*?({[^}]+}[^"{}]*?)*)("\]|"?}))
+```
+
+### Décomposition détaillée
+
+Explications détaillées :
+* `(\["_|{("_)?)` : gestion des types *début*, on peut avoir une string `{`, un tableau `["_` ou un dictionnaire `{"_`.
+* `(?P<resolver_name>[a-z_0-9]+)` : capture du nom du résolveur ;
+* `(\.|_": *"|_", *")` : gestion des types *milieu*, on peut avoir une string `.`, un tableau `_", "` ou un dictionnaire `_": "` ;
+* `(?P<to_solve>[^"{}]*?({[^}]+}[^"{}]*?)*)` : chaîne à résoudre voir ci-dessous ;
+* `("\]|"?})` : gestion des types fin, on peut avoir une string `}`, un tableau `"]` ou un dictionnaire `"}`.
+
+### Chaîne à résoudre
+
+L'objectif de cette partie est de capture la chaîne à résoudre. A priori cette chaîne ne contient pas les caractères `]`, `"` et `}` qui marquent la fin de la chaîne, on aurait donc tendance à vouloir capture tout ce qui n'est pas ces caractères : `[^"{}]*?`.
+
+C'est ce que l'on fait sur le début. Cependant, cette chaîne peut elle même contenir des résolveurs (de type string uniquement). Il faut donc autoriser le caractère `{` à condition qu'on est un caractère `}`. Entre les deux on autorisera tous les caractères qui ne sont pas `}` et après la chaîne on autorisera une fois encore tous les caractères qui ne sont pas `]`, `"` et `}`. Enfin, cela peut se répéter.
+
+Cela donne donc : `({[^}]+}[^"{}]*?)*`
+
+Avec cela, on peut aller récupérer des résolveurs dans des résolveurs (niveau 2).
+
+Il est possible d'aller chercher le niveau 3 (et plus avec la même logique) en remplaçant la chaîne `[^}]+` par la chaîne complète (`[^"{}]*?({[^}]+}[^"{}]*?)*`).
+
+Pour le niveau 3, on obtient la chaîne :
+
+```text
+(?P<param>(\["_|{("_)?)(?P<resolver_name>[a-z_0-9]+)(\.|_": *"|_", *")(?P<to_solve>[^"{}]*?({[^"{}]*?({[^}]+}[^"{}]*?)*}[^"{}]*?)*)("\]|"?}))
+```
+
+Par défaut, c'est la regex niveau 2 qui est mise dans la configuration, mais vous pouvez changer cela si besoin.
