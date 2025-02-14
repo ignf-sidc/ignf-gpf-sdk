@@ -632,7 +632,7 @@ class WorkflowTestCase(GpfTestCase):
             },
         )
         l_steps = o_workflow.get_all_steps()
-        self.assertEqual(l_steps[0], "Etape « etape1 » [parent(s) : ]")
+        self.assertEqual(l_steps[0], "Etape « etape1 » [étape primaire]")
         self.assertEqual(l_steps[1], "Etape « etape2A » [parent(s) : etape1]")
         self.assertEqual(l_steps[2], "Etape « etape2B » [parent(s) : etape1]")
         self.assertEqual(l_steps[3], "Etape « etape3 » [parent(s) : etape2A, etape2B]")

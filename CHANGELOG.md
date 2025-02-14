@@ -8,7 +8,11 @@ Cli : ajout d'une commande `resolve` permettant de résoudre et tester les chaî
 
 ### [Changed]
 
+Workflow : étape indiquée comme "étape primaire" si pas de parent
+
 ### [Fixed]
+
+Cli : validation du workflow avant lancement
 
 
 ## v0.1.36
