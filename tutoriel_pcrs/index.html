@@ -597,6 +597,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#nettoyage-de-fin-dexperimentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nettoyage de fin d'expérimentation
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -838,6 +847,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#nettoyage-de-fin-dexperimentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Nettoyage de fin d'expérimentation
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -976,6 +994,11 @@ Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entr
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>upload_delete<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
 </code></pre></div>
 <p>Le programme doit vous indiquer que la suppression s'est bien passée <code>INFO - Suppression effectuée.</code>.</p>
+<h2 id="nettoyage-de-fin-dexperimentation">Nettoyage de fin d'expérimentation<a class="headerlink" href="#nettoyage-de-fin-dexperimentation" title="Permanent link">#</a></h2>
+<p>Dans le cadre de l'utilisation du jeu de données test pour l'expérimentation, vous pouvez dépublier vos couches et supprimer la pyramide avec la commande suivante :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>depublication<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
+</code></pre></div>
+<p>Le programme va vous demander de confirmer les entités à supprimer <code>INFO - Voulez-vous effectuer la suppression ? (oui/NON)</code>, vous allez devoir répondre <code>oui</code> si les entités listées en vert au-dessus correspondent bien à celles à supprimer.</p>
 
 
 
