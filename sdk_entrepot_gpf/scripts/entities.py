@@ -130,6 +130,10 @@ class Entities:
             assert isinstance(o_entity, Upload)
             Entities.action_upload_close(o_entity, self.args.mode_cartes)
             b_return = False
+        if getattr(self.args, "relative_entities", False) is True:
+            assert issubclass(o_entity.__class__, StoreEntity)
+            Entities.action_relative_entities(o_entity)
+            b_return = False
 
         # Gestion des actions liées aux Annexes
         if getattr(self.args, "publish", False) is True:
@@ -347,6 +351,86 @@ class Entities:
             Config().om.info(f"Suppression des {len(l_files)} fichiers effectuées avec succès.", green_colored=True)
 
     @staticmethod
+    def action_relative_entities(entity: StoreEntity):
+        """
+        Affiche les entités liées a l'entité indiquée.
+
+        Args:
+            entity (StoreEntity): entité indiqué
+        """
+        if isinstance(entity, Upload):
+            Config().om.info("Affichage des entités liées à la livraison " + entity["name"])
+
+            Config().om.info("Affichage des executions de traitements en aval: ")
+            l_pe_avals = ProcessingExecution.api_list(infos_filter={"input_upload": entity.id})
+            for o_pe in l_pe_avals:
+                Config().om.info("\t" + o_pe["processsing"]["name"])
+            else:
+                Config().om.info("Aucune executions de traitements en aval")
+
+            Config().om.info("Affichage des executions de traitements en amont: ")
+            l_pe_amonts = ProcessingExecution.api_list(infos_filter={"output_upload": entity.id})
+            for o_pe in l_pe_amonts:
+                Config().om.info("\t" + o_pe["processsing"]["name"])
+            else:
+                Config().om.info("Aucune executions de traitements en amont")
+
+            Config().om.info("Affichage des executions de vérification: ")
+            d_checks = entity.api_list_checks()
+            for d_verification in d_checks["passed"]:
+                Config().om.info("\t" + d_verification["check"]["name"])
+            for d_verification in d_checks["asked"]:
+                Config().om.info("\t" + d_verification["check"]["name"])
+            for d_verification in d_checks["in_progress"]:
+                Config().om.info("\t" + d_verification["check"]["name"])
+            for d_verification in d_checks["failed"]:
+                Config().om.info("\t" + d_verification["check"]["name"])
+
+        if isinstance(entity, StoredData):
+            Config().om.info("Affichage des entités liées à la donnée stockée " + entity["name"])
+
+            Config().om.info("Affichage des configurations: ")
+            l_configurations = Configuration.api_list(infos_filter={"stored_data": entity.id})
+            for o_configuration in l_configurations:
+                Config().om.info("\t" + o_configuration)
+            else:
+                Config().om.info("Aucune configurations")
+
+            Config().om.info("Affichage des executions de traitements en aval: ")
+            l_pe_avals = ProcessingExecution.api_list(infos_filter={"input_stored_data": entity.id})
+            for o_pe in l_pe_avals:
+                Config().om.info(o_pe["processsing"]["name"])
+            else:
+                Config().om.info("Aucune executions de traitements en aval")
+
+            Config().om.info("Affichage des executions de traitements en amont: ")
+            l_pe_amonts = ProcessingExecution.api_list(infos_filter={"output_stored_data": entity.id})
+            for o_pe in l_pe_amonts:
+                Config().om.info(o_pe["processsing"]["name"])
+            else:
+                Config().om.info("Aucune executions de traitements en amont")
+
+            Config().om.info("Affichage des offerings : ")
+            l_offerings = Offering.api_list(infos_filter={"stored_data": entity.id})
+            for o_offering in l_offerings:
+                Config().om.info("\t" + o_offering)
+            else:
+                Config().om.info("Aucune offering")
+
+        if isinstance(entity, CheckExecution):
+            Config().om.info("Affichage des entités liées à l'éxécution de vérification " + entity["name"])
+            Config().om.info("Upload: " + entity["upload"]["name"])
+            Config().om.info("Vérification: " + entity["check"]["name"])
+        if isinstance(entity, Configuration):
+            Config().om.info("Affichage des entités liées à la configuraiton " + entity["name"])
+            Config().om.info("Stored data: " + entity["type_infos"]["used_data"]["stored_data"])
+            Config().om.info("Affichage des offerings: ")
+            for o_offering in entity.api_list_offerings():
+                Config().om.info(o_offering)
+        if isinstance(entity, Offering):
+            Config().om.info(entity["configuration"]["name"])
+
+    @staticmethod
     def action_annexe_publish(annexe: Annexe) -> None:
         """Publie l'annexe indiquée.
 
@@ -403,6 +487,7 @@ class Entities:
             # Filtres
             o_sub_parser.add_argument("--infos", "-i", type=str, default=None, help=f"Filtrer les {o_entity.entity_titles()} selon les infos")
             o_sub_parser.add_argument("--page", "-p", type=int, default=None, help="Page à récupérer. Toutes si non indiqué.")
+            o_sub_parser.add_argument("--relative-entities", action="store_true", help="Affiche les entités liées.")
             if issubclass(o_entity, TagInterface):
                 l_epilog.append(
                     f"""    * lister les {o_entity.entity_titles()} avec d'optionnels filtres sur les infos et les tags : {o_entity.entity_name()} [--infos INFO=VALEUR] [--tags TAG=VALEUR]"""
