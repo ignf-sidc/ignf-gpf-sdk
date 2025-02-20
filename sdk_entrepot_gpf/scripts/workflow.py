@@ -5,14 +5,10 @@ from sdk_entrepot_gpf.Errors import GpfSdkError
 from sdk_entrepot_gpf.helper.JsonHelper import JsonHelper
 from sdk_entrepot_gpf.helper.PrintLogHelper import PrintLogHelper
 from sdk_entrepot_gpf.io.Config import Config
+from sdk_entrepot_gpf.scripts.resolve import ResolveCli
 from sdk_entrepot_gpf.scripts.utils import Utils
 from sdk_entrepot_gpf.workflow.Workflow import Workflow
-from sdk_entrepot_gpf.workflow.resolver.DateResolver import DateResolver
-from sdk_entrepot_gpf.workflow.resolver.DictResolver import DictResolver
-from sdk_entrepot_gpf.workflow.resolver.GlobalResolver import GlobalResolver
-from sdk_entrepot_gpf.workflow.resolver.StoreEntityResolver import StoreEntityResolver
 from sdk_entrepot_gpf.store.ProcessingExecution import ProcessingExecution
-from sdk_entrepot_gpf.workflow.resolver.UserResolver import UserResolver
 
 
 class WorkflowCli:
@@ -81,12 +77,8 @@ class WorkflowCli:
     def run(self) -> None:
         """Lancement de l'étape indiquée."""
         assert self.step is not None
-        # On définit des résolveurs
-        GlobalResolver().add_resolver(StoreEntityResolver("store_entity"))
-        GlobalResolver().add_resolver(UserResolver("user"))
-        GlobalResolver().add_resolver(DateResolver("datetime"))
-        # Résolveur params qui permet d'accéder aux paramètres supplémentaires passés par l'utilisateur
-        GlobalResolver().add_resolver(DictResolver("params", self.params))
+        # On initialise les résolveurs
+        ResolveCli.init_resolvers(self.params)
 
         # le comportement
         s_behavior = str(self.behavior).upper() if self.behavior is not None else None
