@@ -90,8 +90,12 @@ class Entities:
                 d_tags_filter = None
             l_entities = self.entity_class.api_list(infos_filter=d_infos_filter, tags_filter=d_tags_filter, page=getattr(self.args, "page", None), datastore=self.datastore)
             Config().om.info(f"Affichage de {len(l_entities)} {self.entity_class.entity_titles()} :", green_colored=True)
-            l_props = str(Config().get("cli", f"list_{self.entity_type}", "_id,name"))
-            print(tabulate([o_e.get_store_properties(l_props.split(",")) for o_e in l_entities], headers="keys"))
+            Entities.tabulate_entities(self.entity_type, l_entities)
+
+    @staticmethod
+    def tabulate_entities(entity_type: str, entities: List[StoreEntity]):
+        l_props = str(Config().get("cli", f"list_{entity_type}", "_id,name"))
+        print(tabulate([o_e.get_store_properties(l_props.split(",")) for o_e in entities], headers="keys"))
 
     def action(self, o_entity: StoreEntity) -> bool:  # pylint:disable=too-many-return-statements
         """Traite les actions s'il y a lieu. Renvoie true si on doit afficher l'entité.
@@ -359,76 +363,79 @@ class Entities:
             entity (StoreEntity): entité indiqué
         """
         if isinstance(entity, Upload):
-            Config().om.info("Affichage des entités liées à la livraison " + entity["name"])
+            Config().om.info(f"Affichage des entités liées à la livraison {entity['name']}.", green_colored=True)
 
-            Config().om.info("Affichage des executions de traitements en aval: ")
             l_pe_avals = ProcessingExecution.api_list(infos_filter={"input_upload": entity.id})
-            for o_pe in l_pe_avals:
-                Config().om.info("\t" + o_pe["processsing"]["name"])
+            if(len(l_pe_avals) > 0):
+                Config().om.info(f"\tAffichage des {len(l_pe_avals)} éxécutions de traitements en aval :")
+                Entities.tabulate_entities(ProcessingExecution.entity_name(), l_pe_avals)
             else:
-                Config().om.info("Aucune executions de traitements en aval")
+                Config().om.info("\tAucune éxécution de traitements en aval.")
 
-            Config().om.info("Affichage des executions de traitements en amont: ")
+
             l_pe_amonts = ProcessingExecution.api_list(infos_filter={"output_upload": entity.id})
-            for o_pe in l_pe_amonts:
-                Config().om.info("\t" + o_pe["processsing"]["name"])
+            if l_pe_amonts :
+                Config().om.info(f"\tAffichage des {len(l_pe_amonts)} éxécutions de traitements en amont :")
+                Entities.tabulate_entities(ProcessingExecution.entity_name(), l_pe_amonts)
             else:
-                Config().om.info("Aucune executions de traitements en amont")
+                Config().om.info("\tAucune éxécutions de traitements en amont.")
 
-            Config().om.info("Affichage des executions de vérification: ")
             d_checks = entity.api_list_checks()
-            for d_verification in d_checks["passed"]:
-                Config().om.info("\t" + d_verification["check"]["name"])
-            for d_verification in d_checks["asked"]:
-                Config().om.info("\t" + d_verification["check"]["name"])
-            for d_verification in d_checks["in_progress"]:
-                Config().om.info("\t" + d_verification["check"]["name"])
-            for d_verification in d_checks["failed"]:
-                Config().om.info("\t" + d_verification["check"]["name"])
+            l_temp = d_checks["passed"] + d_checks["asked"] + d_checks["in_progress"] + d_checks["failed"]
+            l_checks = [CheckExecution(d_check_exec, datastore=entity.datastore) for d_check_exec in l_temp]
+            if(len(l_checks) > 0):
+                Config().om.info(f"\tAffichage des {len(l_checks)} éxécutions de vérification :")
+                Entities.tabulate_entities(CheckExecution.entity_name(), l_checks)
+            else:
+                Config().om.info("\tAucune vérifications")
 
         if isinstance(entity, StoredData):
-            Config().om.info("Affichage des entités liées à la donnée stockée " + entity["name"])
+            Config().om.info(f"Affichage des entités liées à la donnée stockée {entity['name']}.", green_colored=True)
 
-            Config().om.info("Affichage des configurations: ")
             l_configurations = Configuration.api_list(infos_filter={"stored_data": entity.id})
-            for o_configuration in l_configurations:
-                Config().om.info("\t" + o_configuration)
+            if len(l_configurations) > 0:
+                Config().om.info(f"\tAffichage des {len(l_configurations)} configurations :")
+                Entities.tabulate_entities(Configuration.entity_name(), l_configurations)
             else:
-                Config().om.info("Aucune configurations")
+                Config().om.info("\t\tAucune configuration.")
 
-            Config().om.info("Affichage des executions de traitements en aval: ")
             l_pe_avals = ProcessingExecution.api_list(infos_filter={"input_stored_data": entity.id})
-            for o_pe in l_pe_avals:
-                Config().om.info(o_pe["processsing"]["name"])
+            if len(l_pe_avals) > 0:
+                Config().om.info(f"\tAffichage des éxécutions {len(l_pe_avals)} de traitements en aval :")
+                Entities.tabulate_entities(ProcessingExecution.entity_name(), l_pe_avals)
             else:
-                Config().om.info("Aucune executions de traitements en aval")
+                Config().om.info("\t\tAucune éxécution de traitements en aval.")
 
-            Config().om.info("Affichage des executions de traitements en amont: ")
             l_pe_amonts = ProcessingExecution.api_list(infos_filter={"output_stored_data": entity.id})
-            for o_pe in l_pe_amonts:
-                Config().om.info(o_pe["processsing"]["name"])
+            if len(l_pe_amonts) > 0:
+                Config().om.info("\tAffichage des éxécutions de traitements en amont :")
+                Entities.tabulate_entities(ProcessingExecution.entity_name(), l_pe_amonts)
             else:
-                Config().om.info("Aucune executions de traitements en amont")
+                Config().om.info("\t\tAucune éxécution de traitements en amont.")
 
-            Config().om.info("Affichage des offerings : ")
             l_offerings = Offering.api_list(infos_filter={"stored_data": entity.id})
-            for o_offering in l_offerings:
-                Config().om.info("\t" + o_offering)
+            if len(l_offerings) > 0:
+                Config().om.info("\tAffichage des offres :")
+                Entities.tabulate_entities(Offering.entity_name(), l_offerings)
             else:
-                Config().om.info("Aucune offering")
+                Config().om.info("\t\tAucune offre.")
 
         if isinstance(entity, CheckExecution):
-            Config().om.info("Affichage des entités liées à l'éxécution de vérification " + entity["name"])
-            Config().om.info("Upload: " + entity["upload"]["name"])
-            Config().om.info("Vérification: " + entity["check"]["name"])
+            Config().om.info(f"Affichage des entités liées à l'éxécution de vérification {entity['name']}.", green_colored=True)
+            Config().om.info(f"\tLivraison : {entity}")
+            Config().om.info(f"\tVérification : {entity}")
         if isinstance(entity, Configuration):
-            Config().om.info("Affichage des entités liées à la configuraiton " + entity["name"])
-            Config().om.info("Stored data: " + entity["type_infos"]["used_data"]["stored_data"])
-            Config().om.info("Affichage des offerings: ")
-            for o_offering in entity.api_list_offerings():
-                Config().om.info(o_offering)
+            Config().om.info(f"Affichage des entités liées à la configuration {entity['name']}.", green_colored=True)
+            Config().om.info(f"\tDonnée stockée : {entity['type_infos']['used_data']['stored_data']}")
+            l_offerings = entity.api_list_offerings()
+            if len(l_offerings) > 0:
+                Config().om.info(f"\tAffichage des {len(l_offerings)} offres :")
+                Entities.tabulate_entities(Offering.entity_name(), l_offerings)
+            else:
+                Config("Aucune offre.")
         if isinstance(entity, Offering):
-            Config().om.info(entity["configuration"]["name"])
+            Config().om.info(f"Affichage des entités liées à l'offre {entity['name']}.", green_colored=True)
+            Config().om.info(f"\tConfiguration : {entity['configuration']}")
 
     @staticmethod
     def action_annexe_publish(annexe: Annexe) -> None:
