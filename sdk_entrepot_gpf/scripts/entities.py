@@ -99,6 +99,8 @@ class Entities:
     @staticmethod
     def print_entity(o_entity: StoreEntity, extent: str = None):
         if o_entity.get("extent") is not None:
+            if extent != "Geojson":
+                del o_entity._store_api_dict["extent"]
             if extent == "wkt":
                 o_entity._store_api_dict["extent"] = dumps(shape(o_entity.get("extent")["geometry"]))
             # if extent == "show":
