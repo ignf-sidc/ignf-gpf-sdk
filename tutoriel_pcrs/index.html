@@ -909,7 +909,7 @@ Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entr
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a># Informations pour l&#39;API
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>[store_api]
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a># L&#39;identifiant sandbox
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a># L&#39;identifiant de votre datastore
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>datastore=********
 </code></pre></div>
 <p>Il faut compléter le fichier avec votre login/mot de passe et l'identifiant du datastore qui vous a été aloué.</p>
@@ -968,35 +968,46 @@ Le lien vers cette page devrait être : https://geoplateforme.github.io/sdk-entr
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>delivery<span class="w"> </span>PCRS_descriptor.jsonc
 </code></pre></div>
 <p>Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérification côté API avant de conclure que tout est bon <code>INFO - BILAN : les 1 livraisons se sont bien passées</code> (cela peut être long selon la taille de la livraison et la qualité de votre connexion, ne fermez pas votre terminal pendant ce temps).</p>
+<p>Si votre connexion est interrompue, vous pouver reprendre la livraison avec la commande :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>delivery<span class="w"> </span>PCRS_descriptor.jsonc<span class="w"> </span>-b<span class="w"> </span>CONTINUE
+</code></pre></div>
+<p>Il y a deux vérifications effectuées sur la livraison :</p>
+<ul>
+<li>la vérification standard qui s'assure que les données ne sont pas corrompues lors du transfert</li>
+<li>la vérification raster qui s'assure que les données sont valides</li>
+</ul>
+<p>Si une des deux vérification échoue, vous pourrez obtenir les logs d'erreur détaillés en indiquant l'id de votre livraison dans la commande :</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>upload<span class="w"> </span>********<span class="w"> </span>--checks
+</code></pre></div>
 <h2 id="workflow">Workflow<a class="headerlink" href="#workflow" title="Permanent link">#</a></h2>
 <p>Une fois les données livrées, il faut créer la pyramide image avant de la diffuser en flux (WMSRaster et WMTS).</p>
 <p>Ces étapes sont décrites grâces à un workflow.</p>
 <p>Vous pouvez récupérer le template du workflow grâce à la commande suivante :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>example<span class="w"> </span>workflow<span class="w"> </span>PCRS.jsonc
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>example<span class="w"> </span>workflow<span class="w"> </span>PCRS.jsonc
 </code></pre></div>
 <p>Pour plus de détails, consultez la <a href="../workflow/">documentation sur les workflows</a>.</p>
 <p>Le workflow <code>PCRS.jsonc</code> est composé de 2 étapes (une pour la génération de la pyramide et une pour la publication des flux). Il faudra lancer une commande pour chacune d'elles.</p>
 <p>Les commandes à lancer sont les suivantes :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># partie génération de la pyramide</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>pyramide<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># partie publication</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>publication<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># partie génération de la pyramide</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>pyramide<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># partie publication</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>publication<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
 </code></pre></div>
 <p>La première commande peut être longue selon le nombre de dalles livrées. Des logs doivent vous être remontés et se terminer par :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>INFO - Exécution de l&#39;action &#39;pyramide-0&#39; : terminée
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>INFO - Exécution de l&#39;action &#39;pyramide-0&#39; : terminée
 </code></pre></div>
 <p>Avec la deuxième commande, deux offres (une WMTS et une WMSRaster) devraient être créées :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>INFO - Offre créée : Offering(id=********, layer_name=$votre_chantier_PCRS)
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>INFO - Offre créée : Offering(id=********, layer_name=$votre_chantier_PCRS)
 </code></pre></div>
 <p>Vous pouvez maintenant retrouver vos données dans cartes.gouv (https://cartes.gouv.fr/entrepot/$id_datastore/donnees/$votre_chantier_PCRS) ou les visionner dans un SIG comme QGIS en renseignant les urls des GetCapabilities des services (<a href="https://data.geopf.fr/wmts?service=WMTS&amp;request=GetCapabilities">WMTS</a> et <a href="https://data.geopf.fr/wms-r?">WMSRaster</a>).</p>
 <h2 id="suppression-de-la-livraison">Suppression de la livraison<a class="headerlink" href="#suppression-de-la-livraison" title="Permanent link">#</a></h2>
 <p>Afin de ne pas surcharger l'espace de livraison et de ne pas atteindre vos quotas lors de livraisons ultérieures, une fois que vous avez validez vos flux, vous pouvez supprimer la livraison avec la commande suivante :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>upload_delete<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>upload_delete<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
 </code></pre></div>
 <p>Le programme doit vous indiquer que la suppression s'est bien passée <code>INFO - Suppression effectuée.</code>.</p>
 <h2 id="nettoyage-de-fin-dexperimentation">Nettoyage de fin d'expérimentation<a class="headerlink" href="#nettoyage-de-fin-dexperimentation" title="Permanent link">#</a></h2>
 <p>Dans le cadre de l'utilisation du jeu de données test pour l'expérimentation, vous pouvez dépublier vos couches et supprimer la pyramide avec la commande suivante :</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>depublication<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>sdk_entrepot_gpf<span class="w"> </span>workflow<span class="w"> </span>-f<span class="w"> </span>PCRS.jsonc<span class="w"> </span>-s<span class="w"> </span>depublication<span class="w"> </span>--param<span class="w"> </span>producteur<span class="w"> </span><span class="nv">$votre_chantier_PCRS</span>
 </code></pre></div>
 <p>Le programme va vous demander de confirmer les entités à supprimer <code>INFO - Voulez-vous effectuer la suppression ? (oui/NON)</code>, vous allez devoir répondre <code>oui</code> si les entités listées en vert au-dessus correspondent bien à celles à supprimer.</p>
 
