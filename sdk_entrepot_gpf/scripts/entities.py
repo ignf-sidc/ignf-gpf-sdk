@@ -3,6 +3,8 @@ from __future__ import annotations  # utile pour le typage "argparse._SubParsers
 import argparse
 import re
 from typing import Callable, List, Optional
+from shapely.geometry import shape
+from shapely.wkt import dumps
 from tabulate import tabulate
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -77,7 +79,8 @@ class Entities:
             if self.action(o_entity):  # si ça retourne True
                 # On affiche l'entité
                 Config().om.info(f"Affichage de l'entité {o_entity}", green_colored=True)
-                Config().om.info(o_entity.to_json(indent=3))
+                Entities.print_entity(o_entity, None)
+                Config().om.info("Emprise masquée, utilisez la commande --extent pour l'afficher")
         elif getattr(self.args, "publish_by_label", False) is True:
             Entities.action_annexe_publish_by_labels(self.args.publish_by_label.split(","), datastore=self.datastore)
         elif getattr(self.args, "unpublish_by_label", False) is True:
@@ -93,6 +96,19 @@ class Entities:
             l_props = str(Config().get("cli", f"list_{self.entity_type}", "_id,name"))
             print(tabulate([o_e.get_store_properties(l_props.split(",")) for o_e in l_entities], headers="keys"))
 
+    @staticmethod
+    def print_entity(o_entity: StoreEntity, extent: str = None):
+        if o_entity.get("extent") is not None:
+            if extent != "Geojson":
+                del o_entity._store_api_dict["extent"]
+            if extent == "wkt":
+                o_entity._store_api_dict["extent"] = dumps(shape(o_entity.get("extent")["geometry"]))
+            # if extent == "show":
+            #     coordinates = o_entity.get("extent")["geometry"]["coordinates"]
+            #     m = folium.Map(location = coordinates[0], zoom_start=10)
+            #     folium.Polygon(coordinates, color="blue", fill= True).add_to(m)
+        Config().om.info(o_entity.to_json(indent=3))
+
     def action(self, o_entity: StoreEntity) -> bool:  # pylint:disable=too-many-return-statements
         """Traite les actions s'il y a lieu. Renvoie true si on doit afficher l'entité.
 
@@ -107,6 +123,10 @@ class Entities:
         if getattr(self.args, "delete", False) is True:
             assert isinstance(o_entity, Upload)
             Entities.action_entity_delete(o_entity, self.args.cascade, self.args.force, self.datastore)
+            b_return = False
+
+        if getattr(self.args, "extent", None) is not None:
+            Entities.print_entity(o_entity, self.args.extent)
             b_return = False
 
         # Gestion des actions liées aux Livraisons
@@ -403,6 +423,7 @@ class Entities:
             # Filtres
             o_sub_parser.add_argument("--infos", "-i", type=str, default=None, help=f"Filtrer les {o_entity.entity_titles()} selon les infos")
             o_sub_parser.add_argument("--page", "-p", type=int, default=None, help="Page à récupérer. Toutes si non indiqué.")
+            o_sub_parser.add_argument("--extent", type=str, default=None, help="Affichage de toute la donnée selon le type", choices=["wkt", "Geojson"])
             if issubclass(o_entity, TagInterface):
                 l_epilog.append(
                     f"""    * lister les {o_entity.entity_titles()} avec d'optionnels filtres sur les infos et les tags : {o_entity.entity_name()} [--infos INFO=VALEUR] [--tags TAG=VALEUR]"""
