@@ -8,7 +8,11 @@ Cli : ajout d'une commande `resolve` permettant de résoudre et tester les chaî
 
 ### [Changed]
 
+Tutoriel PCRS : ajout des explications de suppression de données.
+
 ### [Fixed]
+
+Workflows PCRS : correction d'une parenthèse manquante.
 
 
 ## v0.1.36
