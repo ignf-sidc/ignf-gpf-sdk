@@ -341,6 +341,18 @@ class StoreEntityTestCase(GpfTestCase):
             # Vérification que les infos de l'entité sont maj
             self.assertDictEqual(o_store_entity.get_store_properties(), d_new_data)
 
+    def test_list_api_update(self) -> None:
+        """Vérifie le bon fonctionnement de list_api_update."""
+        # On crée une liste de fausses entités à mettre à jour
+        l_entities = [MagicMock(), MagicMock(), MagicMock()]
+        for o_entity in l_entities:
+            o_entity.api_update = MagicMock()
+        # On appelle la fonction
+        StoreEntity.list_api_update(l_entities)
+        # On vérifie que les api_update() ont été appelé
+        for o_entity in l_entities:
+            o_entity.api_update.assert_called_once()
+
     def test_eq(self) -> None:
         """Vérifie le bon fonctionnement de eq."""
         # Instanciation d'une Store entity

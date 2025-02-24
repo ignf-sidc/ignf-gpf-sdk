@@ -1,7 +1,7 @@
 import json
 from abc import ABC
 import time
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Sequence, Type, TypeVar
 from datetime import datetime
 from dateutil import parser
 
@@ -217,6 +217,11 @@ class StoreEntity(ABC):
         )
         # Mise à jour du stockage local
         self._store_api_dict = o_response.json()
+
+    @staticmethod
+    def list_api_update(l_entities: Sequence["StoreEntity"]) -> None:
+        for o_entity in l_entities:
+            o_entity.api_update()
 
     @staticmethod
     def filter_dict_from_str(filters: Optional[str]) -> Dict[str, str]:
