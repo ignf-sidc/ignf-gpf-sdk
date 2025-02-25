@@ -26,7 +26,7 @@
                                 "compression": "jpg",
                                 "interpolation": "bicubic",
                                 "mask": true,
-                                "parallelization": 8
+                                "parallelization": 4
                             }
                         },
                         // Liste des commentaires ajoutés à la Donnée Stockée en sortie de l'exécution du traitement
@@ -165,6 +165,48 @@
                     {
                         "type": "delete-entity",
                         // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
+                        "entity_type": "offering",
+                        // Critères pour filtrer filter_infos et/ou filter_tags
+                        "filter_infos": {"configuration":"{store_entity.configuration.infos._id [INFOS(name={params.producteur}_WMTS)]}"},
+                        "filter_tags": {"type":"PCRS"},
+                        // Suppression en cascade autorisée ou pas ? par défaut à false
+                        "cascade": true,
+                        // Ok si non trouvée ? par défaut à true
+                        "not_found_ok": true,
+                        // Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+                        "if_multi": "all"
+                    },
+                    {
+                        "type": "delete-entity",
+                        // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
+                        "entity_type": "offering",
+                        // Critères pour filtrer filter_infos et/ou filter_tags
+                        "filter_infos": {"configuration":"{store_entity.configuration.infos._id [INFOS(name={params.producteur}_WMSR)]}"},
+                        "filter_tags": {"type":"PCRS"},
+                        // Suppression en cascade autorisée ou pas ? par défaut à false
+                        "cascade": true,
+                        // Ok si non trouvée ? par défaut à true
+                        "not_found_ok": true,
+                        // Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+                        "if_multi": "all"
+                    },
+                    {
+                        "type": "delete-entity",
+                        // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
+                        "entity_type": "configuration",
+                        // Critères pour filtrer filter_infos et/ou filter_tags
+                        "filter_infos": {"stored_data": "{store_entity.stored_data.infos._id [INFOS(name={params.producteur})]}"},
+                        "filter_tags": {"type":"PCRS"},
+                        // Suppression en cascade autorisée ou pas ? par défaut à false
+                        "cascade": true,
+                        // Ok si non trouvée ? par défaut à true
+                        "not_found_ok": true,
+                        // Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+                        "if_multi": "all"
+                    },
+                    {
+                        "type": "delete-entity",
+                        // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
                         "entity_type": "stored_data",
                         // Critères pour filtrer filter_infos et/ou filter_tags
                         "filter_infos": {"name":"{params.producteur}"},
@@ -176,6 +218,245 @@
                         // Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
                         "if_multi": "all"
                     }
+                ]
+            },
+            // Étape n°5 : maj de la pyramide
+            "pyramide_maj": {
+                "actions": [
+                    {
+                        // On crée une exécution de traitement
+                        "type": "processing-execution",
+                        "body_parameters": {
+                            // On récupère l'id du traitement nommé "Calcul de pyramide raster"
+                            "processing": "{store_entity.processing.infos._id [INFOS(name=Calcul ou mise à jour de pyramide raster)]}",
+                            "inputs": {
+                                "upload": [
+                                    // On récupère l'id de la Livraison associée grâce à son nom
+                                    "{store_entity.upload.infos._id [INFOS(name={params.producteur}_v{params.new_version}), TAGS(version={params.new_version})]}"
+                                ],
+                                "stored_data": [
+                                    // On récupère l'id de la pyramide à maj grâce à son nom
+                                    "{store_entity.stored_data.infos._id [INFOS(name={params.producteur}{params.old_version}), TAGS(type=PCRS)]}"
+                                ]
+                            },
+                            "output": {
+                                "stored_data": {
+                                    "name": "{params.producteur}{params.new_version}"
+                                }
+                            },
+                            "parameters": {
+                                "tms": "2154_5cm",
+                                "compression": "jpg",
+                                "interpolation": "bicubic",
+                                "mask": true,
+                                "parallelization": 4
+                            }
+                        },
+                        // Liste des commentaires ajoutés à la Donnée Stockée en sortie de l'exécution du traitement
+                        "comments": [
+                            "Création de la pyramide {params.producteur} v{params.new_version}."
+                        ],
+                        // Liste des tags ajoutés à la Donnée Stockée en sortie de l'exécution du traitement
+                        "tags": {
+                            "type": "PCRS",
+                            "version": "{params.new_version}",
+                            "datasheet_name": "{params.producteur}{params.new_version}"
+                        }
+                    }
+                ],
+                "parents": []
+            },
+            // Étape n°6 : maj des configuration et publication
+            "publication_maj":{
+                "actions": [
+                    // Action 1 : modification de la configuration WMTS
+                    {
+                        "type": "used_data-configuration",
+                        "entity_id":  "{store_entity.configuration.infos._id [INFOS(name={params.producteur}_WMTS)]}",
+                        // on supprime l'ancienne pyramide
+                        "delete_used_data": [{"stored_data": "{store_entity.stored_data.infos._id [INFOS(name={params.producteur}{params.old_version}), TAGS(type=PCRS)]}"}],
+                        // on ajoute la nouvelle pyramide
+                        "append_used_data": [
+                            {
+                                "stored_data": "{store_entity.stored_data.infos._id [INFOS(name={params.producteur}{params.new_version}), TAGS(type=PCRS)]}",
+                                "bottom_level": "22",
+                                "top_level": "6"
+                            }
+                        ],
+                        // Optionnel : si on veut mettre à jour la BBox avec les données utilisées (bbox calculée après la modification des used_data). Par défaut à false.
+                        "reset_bbox": true
+                    },
+                    {
+                        "type": "edit-entity",
+                        // Type de l'entité à modifier : (upload, stored_data, configuration, offering)
+                        "entity_type": "configuration",
+                        // Id de l'entité à modifier
+                        "entity_id": "{store_entity.configuration.infos._id [INFOS(name={params.producteur}_WMTS)]}",
+                        "remove_tags": ["datasheet_name"],
+                        "tags": {"datasheet_name": "{params.producteur}{params.new_version}"}
+                    },
+                    // Action 2 : modification de la configuration WMSRaster
+                    {
+                        "type": "used_data-configuration",
+                        "entity_id":  "{store_entity.configuration.infos._id [INFOS(name={params.producteur}_WMSR)]}",
+                        // on supprime l'ancienne pyramide
+                        "delete_used_data": [{"stored_data": "{store_entity.stored_data.infos._id [INFOS(name={params.producteur}{params.old_version}), TAGS(type=PCRS)]}"}],
+                        // on ajoute la nouvelle pyramide
+                        "append_used_data": [
+                            {
+                                "stored_data": "{store_entity.stored_data.infos._id [INFOS(name={params.producteur}{params.new_version}), TAGS(type=PCRS)]}",
+                                "bottom_level": "22",
+                                "top_level": "6"
+                            }
+                        ],
+                        // Optionnel : si on veut mettre à jour la BBox avec les données utilisées (bbox calculée après la modification des used_data). Par défaut à false.
+                        "reset_bbox": true
+                    },
+                    {
+                        "type": "edit-entity",
+                        // Type de l'entité à modifier : (upload, stored_data, configuration, offering)
+                        "entity_type": "configuration",
+                        // Id de l'entité à modifier
+                        "entity_id": "{store_entity.configuration.infos._id [INFOS(name={params.producteur}_WMSR)]}",
+                        "remove_tags": ["datasheet_name"],
+                        "tags": {"datasheet_name": "{params.producteur}{params.new_version}"}
+                    },
+                    // Action 3 : synchronisation de l'offre WMTS
+                    {
+                      "type": "synchronize-offering",
+                      // Critères pour trouver les offres
+                      "filter_infos": {"configuration":"{store_entity.configuration.infos._id [INFOS(name={params.producteur}_WMTS)]}"},
+                      // optionnel : Que faire si plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+                      "if_multi": "all"
+                    },
+                    // Action 3 : synchronisation de l'offre WMSR
+                    {
+                      "type": "synchronize-offering",
+                      // Critères pour trouver les offres
+                      "filter_infos": {"configuration":"{store_entity.configuration.infos._id [INFOS(name={params.producteur}_WMSR)]}"},
+                      // optionnel : Que faire si plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+                      "if_multi": "all"
+                    }
+                ],
+                "parents": [
+                    "pyramide_maj"
+                ]
+            },
+            // Étape n°7 : Suppression de l'ancienne stored_data
+            "pyramide_delete": {
+                "actions": [
+                    {
+                        "type": "delete-entity",
+                        // Type de l'entité à supprimer (upload, stored_data, configuration, offering)
+                        "entity_type": "stored_data",
+                        // Critères pour filtrer filter_infos et/ou filter_tags
+                        "filter_infos": {"name":"{params.producteur}{params.old_version}"},
+                        "filter_tags": {"type":"PCRS"},
+                        // Suppression en cascade autorisée ou pas ? par défaut à false
+                        "cascade": true,
+                        // Ok si non trouvée ? par défaut à true
+                        "not_found_ok": true,
+                        // Que faire plusieurs résultats ?  first => uniquement 1er de la liste; all => on prend tout (défaut); error => sortie en erreur du programme
+                        "if_multi": "all"
+                    }
+                ]
+            },
+            // Étape n°8 : création des configuration et publication pour l'ancienne pyramide
+            "publication_old":{
+                "actions": [
+                    // Action 1 : configuration WMTS de l'ancienne pyramide
+                    {
+                        "type": "configuration",
+                        "body_parameters": {
+                            "type": "WMTS-TMS",
+                            "name": "{params.producteur}_old_WMTS{params.old_version}",
+                            "layer_name": "{params.producteur}_old_WMTS{params.old_version}",
+                            "type_infos": {
+                                "title": "{params.producteur}_old_WMTS{params.old_version}",
+                                "abstract": "Chantier PCRS {params.producteur} old version {params.old_version}",
+                                "keywords": ["PCRS", "Raster"],
+                                "used_data": [
+                                    {
+                                        // On récupère l'id de la Donnée Stockée créée à l'étape précédente grâce à son nom, son type et l'un de ses tags
+                                        "stored_data": "{store_entity.stored_data.infos._id [INFOS(name={params.producteur}{params.old_version}), TAGS(type=PCRS)]}",
+                                        "bottom_level": "22",
+                                        "top_level": "6"
+                                    }
+                                ]
+                            }
+                        },
+                        // Liste des commentaires ajoutés à la Configuration
+                        "comments": [
+                            "configuration WMTS du chantier PCRS {params.producteur} old version {params.old_version}"
+                        ],
+                        // Liste des tags ajoutés à la Configuration
+                        "tags": {
+                            "type": "PCRS",
+                            "datasheet_name": "{params.producteur}{params.old_version}"                       
+                        }
+                    },
+                    // Action 2 : publication WMTS de l'ancienne pyramide
+                    {
+                        "type": "offering",
+                        "url_parameters": {
+                            // On récupère l'id de la Configuration créée à l'étape précédente grâce à son nom et l'un de ses tags
+                            "configuration": "{store_entity.configuration.infos._id [INFOS(name={params.producteur}_old_WMTS{params.old_version}), TAGS(type=PCRS)]}"
+                        },
+                        "body_parameters": {
+                            // Endpoint de type WMTS-TMS (id trouvé en récupérant les informations de l'entrepôt)
+                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=WMTS-TMS)]}",
+                            "visibility": "PRIVATE",
+                            "open": true
+                        }
+                    },
+                    // Action 3 : configuration WMSRaster de l'ancienne pyramide
+                    {
+                        "type": "configuration",
+                        "body_parameters": {
+                            "type": "WMS-RASTER",
+                            "name": "{params.producteur}_old_WMSR{params.old_version}",
+                            "layer_name": "{params.producteur}_old_WMSR{params.old_version}",
+                            "type_infos": {
+                                "title": "{params.producteur}_old_WMSR{params.old_version}",
+                                "abstract": "Chantier PCRS {params.producteur} old version {params.old_version}",
+                                "keywords": ["PCRS", "Raster"],
+                                "used_data": [
+                                    {
+                                        // On récupère l'id de la Donnée Stockée créée à l'étape précédente grâce à son nom, son type et l'un de ses tags
+                                        "stored_data": "{store_entity.stored_data.infos._id [INFOS(name={params.producteur}{params.old_version}), TAGS(type=PCRS)]}",
+                                        "bottom_level": "22",
+                                        "top_level": "6"
+                                    }
+                                ]
+                            }
+                        },
+                        // Liste des commentaires ajoutés à la Configuration
+                        "comments": [
+                            "configuration WMSR du chantier PCRS {params.producteur} old version {params.old_version}"
+                        ],
+                        // Liste des tags ajoutés à la Configuration
+                        "tags": {
+                            "type": "PCRS",
+                            "datasheet_name": "{params.producteur}{params.old_version}"                       
+                        }
+                    },
+                    // Action 4 : publication WMSRaster de l'ancienne pyramide
+                    {
+                        "type": "offering",
+                        "url_parameters": {
+                            // On récupère l'id de la Configuration créée à l'étape précédente grâce à son nom et l'un de ses tags
+                            "configuration": "{store_entity.configuration.infos._id [INFOS(name={params.producteur}_old_WMSR{params.old_version}), TAGS(type=PCRS)]}"
+                        },
+                        "body_parameters": {
+                            // Endpoint de type WMS (id trouvé en récupérant les informations de l'entrepôt)
+                            "endpoint": "{store_entity.endpoint.infos._id [INFOS(type=WMS-RASTER)]}",
+                            "visibility": "PRIVATE",
+                            "open": true
+                        }
+                    }
+                ],
+                "parents": [
+                    "pyramide_maj"
                 ]
             }
         }
