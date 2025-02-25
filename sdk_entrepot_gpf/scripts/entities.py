@@ -116,7 +116,6 @@ class Entities:
         b_return = True
         # Gestion des actions communes
         if getattr(self.args, "delete", False) is True:
-            assert isinstance(o_entity, Upload)
             Entities.action_entity_delete(o_entity, self.args.cascade, self.args.force, self.datastore)
             b_return = False
 
