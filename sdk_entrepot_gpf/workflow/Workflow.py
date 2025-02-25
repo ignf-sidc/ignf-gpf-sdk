@@ -394,9 +394,12 @@ class Workflow:
         for s_step_name in self.steps:
             # on récupère les parents
             l_parents = self.__get_step_definition(s_step_name)["parents"]
-            s_parents = ", ".join(l_parents)
             # on ajoute dans la liste
-            l_steps.append(f"Etape « {s_step_name} » [parent(s) : {s_parents}]")
+            if l_parents:
+                s_parents = ", ".join(l_parents)
+                l_steps.append(f"Etape « {s_step_name} » [parent(s) : {s_parents}]")
+            else:
+                l_steps.append(f"Etape « {s_step_name} » [étape primaire]")
 
         # On renvoie la liste
         return l_steps
