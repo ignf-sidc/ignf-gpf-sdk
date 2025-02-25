@@ -4,15 +4,19 @@
 
 ### [Added]
 
-Cli : ajout d'une commande `resolve` permettant de résoudre et tester les chaînes de configuration.
+* Cli : ajout d'une commande `resolve` permettant de résoudre et tester les chaînes de configuration.
+* Cli : ajout d'une action `--relative-entities` permettant de lister les entités liées à l'entité indiquée.
 
 ### [Changed]
 
-Workflow : étape indiquée comme "étape primaire" si pas de parent
+* Workflow : étape indiquée comme "étape primaire" si pas de parent
+* Tutoriel PCRS : ajout des explications de suppression de données.
 
 ### [Fixed]
 
-Cli : validation du workflow avant lancement
+* Workflows PCRS : correction d'une parenthèse manquante.
+* Cli : validation du workflow avant lancement
+* Cli : correction bug suppression entité autre que livraison
 
 
 ## v0.1.36

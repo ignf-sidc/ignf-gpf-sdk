@@ -42,7 +42,7 @@ password=********
 
 # Informations pour l'API
 [store_api]
-# L'identifiant sandbox
+# L'identifiant de votre datastore
 datastore=********
 ```
 
@@ -122,6 +122,23 @@ python3 -m sdk_entrepot_gpf delivery PCRS_descriptor.jsonc
 ```
 
 Le programme doit vous indiquer que le transfert est en cours, puis qu'il attend la fin des vérification côté API avant de conclure que tout est bon `INFO - BILAN : les 1 livraisons se sont bien passées` (cela peut être long selon la taille de la livraison et la qualité de votre connexion, ne fermez pas votre terminal pendant ce temps).
+
+Si votre connexion est interrompue, vous pouver reprendre la livraison avec la commande :
+
+```sh
+python3 -m sdk_entrepot_gpf delivery PCRS_descriptor.jsonc -b CONTINUE
+```
+ 
+Il y a deux vérifications effectuées sur la livraison :
+
+* la vérification standard qui s'assure que les données ne sont pas corrompues lors du transfert
+* la vérification raster qui s'assure que les données sont valides
+
+Si une des deux vérification échoue, vous pourrez obtenir les logs d'erreur détaillés en indiquant l'id de votre livraison dans la commande :
+
+```sh
+python3 -m sdk_entrepot_gpf upload ******** --checks
+```
 
 ## Workflow
 
