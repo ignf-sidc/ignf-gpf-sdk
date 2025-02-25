@@ -238,7 +238,7 @@ Vous pouvez ensuite mettre à jour les offres avec la commande :
 python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s publication_maj --param producteur $votre_chantier_PCRS --param old_version "" --param new_version 2
 ```
 
-Une fois que vous avez validez les nouvelles offres, vous pouvez supprimer l'ancienne pyramide pour libérer de l'espace sur votre datastore ou la publier si vous souhaitez faire de l'historisation pour comparer (attention aux quotas de votre datastore).
+Une fois que vous avez validé les nouvelles offres, vous pouvez supprimer l'ancienne pyramide pour libérer de l'espace sur votre datastore ou la publier si vous souhaitez faire de l'historisation pour comparer (attention aux quotas de votre datastore).
 
 ```sh
 # si vous souhaitez supprimer l'ancienne pyramide
