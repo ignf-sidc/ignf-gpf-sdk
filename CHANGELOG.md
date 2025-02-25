@@ -5,6 +5,7 @@
 ### [Added]
 
 Cli : ajout d'une commande `resolve` permettant de résoudre et tester les chaînes de configuration.
+Cli : ajout d'une action `--relative-entities` permettant de lister les entités liées à l'entité indiquée.
 
 ### [Changed]
 

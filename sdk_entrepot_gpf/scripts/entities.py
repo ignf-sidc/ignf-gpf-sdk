@@ -2,7 +2,7 @@ from __future__ import annotations  # utile pour le typage "argparse._SubParsers
 
 import argparse
 import re
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Sequence
 from tabulate import tabulate
 
 from sdk_entrepot_gpf.Errors import GpfSdkError
@@ -90,8 +90,19 @@ class Entities:
                 d_tags_filter = None
             l_entities = self.entity_class.api_list(infos_filter=d_infos_filter, tags_filter=d_tags_filter, page=getattr(self.args, "page", None), datastore=self.datastore)
             Config().om.info(f"Affichage de {len(l_entities)} {self.entity_class.entity_titles()} :", green_colored=True)
-            l_props = str(Config().get("cli", f"list_{self.entity_type}", "_id,name"))
-            print(tabulate([o_e.get_store_properties(l_props.split(",")) for o_e in l_entities], headers="keys"))
+            Entities.tabulate_entities(self.entity_type, l_entities, sep="")
+
+    @staticmethod
+    def tabulate_entities(entity_type: str, entities: Sequence[StoreEntity], sep: str = "\n") -> None:
+        """Affiche la liste d'entités sous forme de tableau.
+
+        Args:
+            entity_type (str): type des entités (pour récupérer les colonnes en config)
+            entities (Sequence[StoreEntity]): entités
+            sep (str, optional): séparateur à la fin du tableau. Defaults to "\n".
+        """
+        l_props = str(Config().get("cli", f"list_{entity_type}", "_id,name"))
+        print(tabulate([o_e.get_store_properties(l_props.split(",")) for o_e in entities], headers="keys") + sep)
 
     def action(self, o_entity: StoreEntity) -> bool:  # pylint:disable=too-many-return-statements
         """Traite les actions s'il y a lieu. Renvoie true si on doit afficher l'entité.
@@ -128,6 +139,10 @@ class Entities:
         if getattr(self.args, "close", False) is True:
             assert isinstance(o_entity, Upload)
             Entities.action_upload_close(o_entity, self.args.mode_cartes)
+            b_return = False
+        if getattr(self.args, "relative_entities", False) is True:
+            assert issubclass(o_entity.__class__, StoreEntity)
+            Entities.action_relative_entities(o_entity)
             b_return = False
 
         # Gestion des actions liées aux Annexes
@@ -346,6 +361,128 @@ class Entities:
             Config().om.info(f"Suppression des {len(l_files)} fichiers effectuées avec succès.", green_colored=True)
 
     @staticmethod
+    def action_relative_entities(entity: StoreEntity) -> None:  # pylint:disable=too-many-branches,too-many-statements
+        """Affiche les entités liées a l'entité indiquée.
+
+        Args:
+            entity (StoreEntity): entité indiquée
+        """
+        if isinstance(entity, Upload):
+            Config().om.info(f"Affichage des entités liées à la livraison {entity['name']} :", green_colored=True)
+
+            l_pe_avals = ProcessingExecution.api_list(infos_filter={"input_upload": entity.id})
+            if len(l_pe_avals) > 0:
+                Config().om.info(f"\t * Affichage des {len(l_pe_avals)} exécutions de traitements en aval :")
+                Entities.tabulate_entities(ProcessingExecution.entity_name(), l_pe_avals)
+            else:
+                Config().om.info("\t * Aucune exécution de traitements en aval.\n")
+
+            l_pe_amonts = ProcessingExecution.api_list(infos_filter={"output_upload": entity.id})
+            if l_pe_amonts:
+                Config().om.info(f"\t * Affichage des {len(l_pe_amonts)} exécutions de traitements en amont :")
+                Entities.tabulate_entities(ProcessingExecution.entity_name(), l_pe_amonts)
+            else:
+                Config().om.info("\t * Aucune exécution de traitements en amont.\n")
+
+            d_checks = entity.api_list_checks()
+            l_temp = d_checks["passed"] + d_checks["asked"] + d_checks["in_progress"] + d_checks["failed"]
+            l_checks = [CheckExecution(d_check_exec, datastore=entity.datastore) for d_check_exec in l_temp]
+            if len(l_checks) > 0:
+                Config().om.info(f"\t * Affichage des {len(l_checks)} exécutions de vérification :")
+                Entities.tabulate_entities(CheckExecution.entity_name(), l_checks)
+            else:
+                Config().om.info("\t * Aucune vérification.\n")
+
+        if isinstance(entity, StoredData):
+            Config().om.info(f"Affichage des entités liées à la donnée stockée {entity['name']} :", green_colored=True)
+
+            l_configurations = Configuration.api_list(infos_filter={"stored_data": entity.id})
+            if len(l_configurations) > 0:
+                Config().om.info(f"\t * Affichage des {len(l_configurations)} configurations liées :")
+                Entities.tabulate_entities(Configuration.entity_name(), l_configurations)
+            else:
+                Config().om.info("\t * Aucune configuration.\n")
+
+            l_offerings = Offering.api_list(infos_filter={"stored_data": entity.id})
+            if len(l_offerings) > 0:
+                Config().om.info(f"\t * Affichage des {len(l_offerings)} offres liées :")
+                Entities.tabulate_entities(Offering.entity_name(), l_offerings)
+            else:
+                Config().om.info("\t * Aucune offre.\n")
+
+            l_pe_avals = ProcessingExecution.api_list(infos_filter={"input_stored_data": entity.id})
+            if len(l_pe_avals) > 0:
+                Config().om.info(f"\t * Affichage des {len(l_pe_avals)} exécutions de traitements en aval :")
+                Entities.tabulate_entities(ProcessingExecution.entity_name(), l_pe_avals)
+            else:
+                Config().om.info("\t * Aucune exécution de traitements en aval.\n")
+
+            l_pe_amonts = ProcessingExecution.api_list(infos_filter={"output_stored_data": entity.id})
+            if len(l_pe_amonts) > 0:
+                Config().om.info(f"\t * Affichage des {len(l_pe_amonts)} exécutions de traitements en amont :")
+                Entities.tabulate_entities(ProcessingExecution.entity_name(), l_pe_amonts)
+            else:
+                Config().om.info("\t * Aucune exécution de traitements en amont.\n")
+
+        if isinstance(entity, CheckExecution):
+            Config().om.info(f"Affichage des entités liées à l'exécution de vérification {entity['name']} :", green_colored=True)
+            Config().om.info(f"\t * Livraison : {entity}")
+            Config().om.info(f"\t * Vérification : {entity}")
+
+        if isinstance(entity, ProcessingExecution):
+            s_output = entity["output"].get("upload", entity["output"].get("stored_data", {"name": ""}))["name"]
+            Config().om.info(f"Affichage des entités liées à l'exécution de traitement {entity['processing']} => {s_output} :", green_colored=True)
+            l_in_uploads = [Upload(x, datastore=entity.datastore) for x in entity["inputs"].get("upload", [])]
+            l_in_stored_data = [StoredData(x, datastore=entity.datastore) for x in entity["inputs"].get("stored_data", [])]
+            Config().om.info("\t * Entrée(s) :")
+            if l_in_uploads:
+                StoreEntity.list_api_update(l_in_uploads)
+                Config().om.info("\t\t - Livraison(s) :")
+                Entities.tabulate_entities("upload", l_in_uploads, sep="")
+            if l_in_stored_data:
+                StoreEntity.list_api_update(l_in_stored_data)
+                Config().om.info("\t\t - Données stockées(s) :")
+                Entities.tabulate_entities("stored_data", l_in_stored_data, sep="")
+            print("\n")
+            if "upload" in entity["output"]:
+                o_out_upload = Upload(entity["output"]["upload"], datastore=entity.datastore)
+                o_out_upload.api_update()
+                Config().om.info("\t * Sortie (livraison) :")
+                Entities.tabulate_entities("update", [o_out_upload])
+            elif "stored_data" in entity["output"]:
+                o_out_stored_data = StoredData(entity["output"]["stored_data"], datastore=entity.datastore)
+                o_out_stored_data.api_update()
+                Config().om.info("\t * Sortie (donnée stockée) :")
+                Entities.tabulate_entities("stored_data", [o_out_stored_data])
+            else:
+                Config().om.info(f"\t * Sortie : {entity['output']}")
+
+        if isinstance(entity, Configuration):
+            Config().om.info(f"Affichage des entités liées à la configuration {entity['name']} :", green_colored=True)
+            l_stored_datas = [StoredData.api_get(x["stored_data"], datastore=entity.datastore) for x in entity["type_infos"]["used_data"]]
+            if l_stored_datas:
+                Config().om.info(f"\t * Affichage des {len(l_stored_datas)} données stockées liées :")
+                Entities.tabulate_entities("stored_data", l_stored_datas)
+                l_offerings = entity.api_list_offerings()
+            else:
+                Config().om.info("\t * Aucune donnée stockée liée.\n")
+
+            if len(l_offerings) > 0:
+                Config().om.info(f"\t * Affichage des {len(l_offerings)} offres liées :")
+                Entities.tabulate_entities(Offering.entity_name(), l_offerings)
+            else:
+                Config().om.info("\t * Aucune offre liée.\n")
+
+        if isinstance(entity, Offering):
+            Config().om.info(f"Affichage des entités liées à l'offre {entity['endpoint']['name']} - {entity['layer_name']} :", green_colored=True)
+            Config().om.info("\t * Point d'accès :")
+            o_endpoint = Endpoint(entity["endpoint"], datastore=entity.datastore)
+            Entities.tabulate_entities("endpoint", [o_endpoint])
+            Config().om.info("\t * Configuration :")
+            o_configuration = Configuration.api_get(entity["configuration"]["_id"], datastore=entity.datastore)
+            Entities.tabulate_entities("configuration", [o_configuration])
+
+    @staticmethod
     def action_annexe_publish(annexe: Annexe) -> None:
         """Publie l'annexe indiquée.
 
@@ -402,6 +539,7 @@ class Entities:
             # Filtres
             o_sub_parser.add_argument("--infos", "-i", type=str, default=None, help=f"Filtrer les {o_entity.entity_titles()} selon les infos")
             o_sub_parser.add_argument("--page", "-p", type=int, default=None, help="Page à récupérer. Toutes si non indiqué.")
+            o_sub_parser.add_argument("--relative-entities", action="store_true", help="Affiche les entités liées.")
             if issubclass(o_entity, TagInterface):
                 l_epilog.append(
                     f"""    * lister les {o_entity.entity_titles()} avec d'optionnels filtres sur les infos et les tags : {o_entity.entity_name()} [--infos INFO=VALEUR] [--tags TAG=VALEUR]"""
