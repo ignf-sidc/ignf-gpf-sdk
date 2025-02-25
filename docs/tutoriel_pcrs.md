@@ -102,9 +102,9 @@ Vous allez devoir créer un fichier `PCRS_descriptor.jsonc` à la racine de votr
 }
 ```
 
-Il faut remplacer 3 fois dans le fichier `$votre_chantier_PCRS` par une valeur sous la forme `PCRS_chantier_********` (ex: PCRS_chantier_D046_2022). Cette valeur vous permettra de retrouver votre fiche de données sur cartes.gouv.fr. Vous pouvez également compléter le fichier avec une description et éventuellement un commentaire.
+Il faut remplacer 3 fois dans le fichier `$votre_chantier_PCRS` par une valeur sous la forme `PCRS_chantier_********` (ex: PCRS_chantier_D046). Cette valeur vous permettra de retrouver votre fiche de données sur cartes.gouv.fr. Vous pouvez également compléter le fichier avec une description et éventuellement un commentaire.
 
-***ATTENTION** Si vous utilisez le jeu de données test pour l'expérimentation, la valeur `$votre_chantier_PCRS` est également utilisée pour définir le nom des couches. Comme il y a unicité de nom pour les couches sur les services publics, nous vous encourageons à enrichir cette valeur pour qu'elle soit différente d'un testeur à l'autre (ex: PCRS_chantier_D046_2022_test_PACA).*
+***ATTENTION** Si vous utilisez le jeu de données test pour l'expérimentation, la valeur `$votre_chantier_PCRS` est également utilisée pour définir le nom des couches. Comme il y a unicité de nom pour les couches sur les services publics, nous vous encourageons à enrichir cette valeur pour qu'elle soit différente d'un testeur à l'autre (ex: PCRS_chantier_D046_test_PACA).*
 
 Vous déposerez vos données dans un répertoire du même nom `$votre_chantier_PCRS` à la racine de votre projet comme suit :
 
@@ -181,3 +181,68 @@ python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s depublication --param prod
 ```
 
 Le programme va vous demander de confirmer les entités à supprimer `INFO - Voulez-vous effectuer la suppression ? (oui/NON)`, vous allez devoir répondre `oui` si les entités listées en vert au-dessus correspondent bien à celles à supprimer.
+
+## Mise à jour
+
+Si une mise à jour concerne l'ensemble du territoire d'une APLC (Autorité Publique Locale Compétente), nous préconisons de construire une nouvelle pyramide et de diffuser des nouvelles offres en reprenant le [tutoriel](tutoriel_pcrs.md) du début.
+
+Si une mise à jour ne concerne qu'une emprise limitée, vous allez pouvoir créer une nouvelle pyramide qui prendra en compte les nouvelles dalles et mettre à jour les offres.
+
+Pour cela, livrez les nouvelles dalles en ajoutant un tag version à votre fichier descripteur.
+
+```text
+{
+    "datasets": [
+        {
+            "data_dirs": [
+                "$votre_chantier_PCRS_v2"
+            ],
+            "upload_infos": {
+                "description": "Description de votre chantier (département, zone, date...) maj v2",
+                "name": "$votre_chantier_PCRS_v2",
+                "srs": "EPSG:2154",
+                "type": "RASTER"
+            },
+            "comments": [
+                "Votre commentaire"
+            ],
+            "tags": {
+                "datasheet_name": "$votre_chantier_PCRS2",
+                "type": "PCRS",
+                "version": "2"
+            }
+        }
+    ]
+}
+```
+
+```sh
+python3 -m sdk_entrepot_gpf delivery PCRS_descriptor_maj.jsonc
+```
+
+Puis, générez la nouvelle pyramide avec la commande suivante (laissez le paramètre `old_version` vide si il s'agit d'une mise à jour de la pyramide initiale) :
+
+```sh
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s pyramide_maj --param producteur $votre_chantier_PCRS --param old_version "" --param new_version 2
+```
+
+Si il s'agit d'une mise à jour itérative, renseignez le paramètre `old_version` :
+
+```sh
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s pyramide_maj --param producteur $votre_chantier_PCRS --param old_version 2 --param new_version 3
+```
+
+Vous pouvez ensuite mettre à jour les offres avec la commande :
+
+```sh
+python3 -m sdk_entrepot_gpf workflow -f PCRS.jsonc -s publication_maj --param producteur $votre_chantier_PCRS --param old_version "" --param new_version 2
+```
+
+Une fois que vous avez validez les nouvelles offres, vous pouvez supprimer l'ancienne pyramide pour libérer de l'espace sur votre datastore ou la publier si vous souhaitez faire de l'historisation pour comparer (attention aux quotas de votre datastore).
+
+```sh
+# si vous souhaitez supprimer l'ancienne pyramide
+python3 -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s pyramide_delete --param producteur $votre_chantier_PCRS --param old_version ""
+# Si vous souhaitez publier l'ancienne pyramide
+python3 -m sdk_entrepot_gpf workflow -f generic_raster.jsonc -s publication_old --param producteur $votre_chantier_PCRS --param old_version ""
+```
